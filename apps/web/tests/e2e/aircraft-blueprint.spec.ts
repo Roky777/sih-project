@@ -19,6 +19,13 @@ test("live blueprint matches selected component records and opens 3D structures 
     await expect(bp.locator(`.bp-assembly[data-component-id="${item.id}"]`)).toHaveAttribute("data-attention", String(finding));
   }
   await bp.scrollIntoViewIfNeeded(); await bp.screenshot({ path: info.outputPath("blueprint-desktop.png") });
+  await page.setViewportSize({ width: 2560, height: 1440 });
+  const header = await page.locator(".o-header").boundingBox();
+  const inspection = await page.locator(".aircraft-detail-workspace").boundingBox();
+  expect(Math.abs(header!.x - inspection!.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(header!.x + header!.width - inspection!.x - inspection!.width)).toBeLessThanOrEqual(1);
+  await bp.screenshot({ path: info.outputPath("blueprint-wide.png") });
+  await page.setViewportSize({ width: 1440, height: 900 });
   await bp.getByRole("button", { name: "Inspect Turbine: Failed", exact: true }).press("Enter");
   const dialog = page.getByRole("dialog", { name: "Turbine", exact: true });
   await expect(dialog).toBeVisible(); await expect(dialog.getByText("AC-033", { exact: false }).first()).toBeVisible();
@@ -114,4 +121,37 @@ test("empty records stay unavailable rather than becoming a healthy blueprint", 
   await expect(bp.getByText("Component records unavailable", { exact: true })).toBeVisible();
   await expect(bp.locator(".bp-register-item,.bp-assembly")).toHaveCount(0);
   await expect(bp.getByText("No condition findings", { exact: true })).toHaveCount(0);
+});
+
+test("aircraft inspection sections share one workspace and keep the showroom and evidence connected", async ({ page }, info) => {
+  await fixtures(page); await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/aircraft/AC-001");
+  const workspace = page.getByRole("region", { name: "Aircraft inspection workspace" });
+  const stage = page.getByRole("region", { name: "Aircraft digital twin showcase" });
+  await expect(workspace.getByRole("heading", { name: "Inspection workspace", exact: true })).toBeVisible();
+  await expect(workspace.locator(".aircraft-workspace-head")).toContainText("AC-001");
+  await expect(page.getByRole("heading", { name: "System map", exact: true })).toHaveCount(0);
+  await workspace.getByRole("tab", { name: "Components", exact: true }).click();
+  await expect(workspace.getByRole("tabpanel", { name: "Component records" })).toBeVisible();
+  await expect(workspace.getByRole("link", { name: "View evidence" }).first()).toHaveAttribute("href", "/health/AC-001-T");
+  const system = workspace.getByRole("button", { name: /Synthetic propulsion/ });
+  await system.press("Enter"); await expect(system).toHaveAttribute("aria-expanded", "false");
+  await system.press("Enter"); await expect(system).toHaveAttribute("aria-expanded", "true");
+  await workspace.screenshot({ path: info.outputPath("integrated-components.png") });
+  await workspace.getByRole("tab", { name: "History", exact: true }).click();
+  await expect(workspace.getByText("No timeline events recorded in this snapshot.")).toBeVisible();
+  await expect(stage.getByRole("heading", { level: 1 })).toContainText("AC-001");
+  await workspace.getByRole("tab", { name: "Advisories (0)", exact: true }).click();
+  await expect(workspace.getByText("No advisories for this aircraft", { exact: true })).toBeVisible();
+  await stage.getByRole("button", { name: "Explore blueprint", exact: true }).click();
+  await expect(workspace.getByRole("tab", { name: "Blueprint", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(workspace.getByRole("heading", { name: "Aircraft blueprint", exact: true })).toBeInViewport();
+  await workspace.screenshot({ path: info.outputPath("integrated-blueprint.png") });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await workspace.getByRole("tab", { name: "Components", exact: true }).click();
+  expect(await workspace.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+  await expect(workspace.getByRole("tab", { name: "Advisories (0)", exact: true })).toBeInViewport();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await workspace.screenshot({ path: info.outputPath("integrated-components-mobile.png") });
 });

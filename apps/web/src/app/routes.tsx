@@ -1,12 +1,11 @@
 import { lazy, Suspense, type ReactNode } from "react";
-import { createBrowserRouter, createHashRouter, Link, Navigate, useRouteError } from "react-router-dom";
+import { createBrowserRouter, createHashRouter, Link, Navigate, useLocation, useRouteError } from "react-router-dom";
 import { SessionGate } from "../features/access/SessionGate";
 import { AsOfProvider } from "../features/ops/AsOf";
 import { OpsLayout } from "../features/ops/OpsLayout";
 import { RoleProvider } from "../features/ops/roles";
 import { ToastProvider } from "../features/ops/ui";
 const InspectionPage = lazy(() => import("../features/inspection/InspectionPage").then((module) => ({ default: module.InspectionPage })));
-const OverviewPage = lazy(() => import("../features/fleet/OverviewPage").then((module) => ({ default: module.OverviewPage })));
 const CustomerTrialPage = lazy(() => import("../features/demo/CustomerTrialPage").then(module => ({ default: module.CustomerTrialPage })));
 const AIPage = lazy(() => import("../features/health/AIPage").then((module) => ({ default: module.AIPage })));
 const FleetPage = lazy(() => import("../features/fleet/FleetPage").then((module) => ({ default: module.FleetPage })));
@@ -20,20 +19,27 @@ const FleetDashboard = lazy(() => import("../features/ops/FleetDashboard").then(
 const FocusRedirect = lazy(() => import("../features/ops/Focus").then((module) => ({ default: module.FocusRedirect })));
 const HomeRedirect = lazy(() => workflow().then((module) => ({ default: module.HomeRedirect })));
 const WelcomePage = lazy(() => workflow().then((module) => ({ default: module.WelcomePage })));
-const ReviewPage = lazy(() => workflow().then((module) => ({ default: module.ReviewPage })));
-const PlanPage = lazy(() => workflow().then((module) => ({ default: module.PlanPage })));
-const PartsPage = lazy(() => workflow().then((module) => ({ default: module.PartsPage })));
-const StatusPage = lazy(() => workflow().then((module) => ({ default: module.StatusPage })));
 const AircraftListPage = lazy(() => import("../features/ops/AircraftPages").then((module) => ({ default: module.AircraftListPage })));
 const AircraftDetailPage = lazy(() => import("../features/ops/AircraftPages").then((module) => ({ default: module.AircraftDetailPage })));
 const ComponentHealthPage = lazy(() => import("../features/ops/ComponentHealthPage").then((module) => ({ default: module.ComponentHealthPage })));
 const AdvisoriesPage = lazy(() => import("../features/ops/AdvisoriesPage").then((module) => ({ default: module.AdvisoriesPage })));
-const MaintenancePage = lazy(() => import("../features/ops/MaintenancePage").then((module) => ({ default: module.MaintenancePage })));
-const SparesPage = lazy(() => import("../features/ops/SparesPage").then((module) => ({ default: module.SparesPage })));
+const MaintenanceWorkspace = lazy(() => import("../features/ops/OperationsWorkspaces").then(module => ({ default: module.MaintenanceWorkspace })));
+const SupplyWorkspace = lazy(() => import("../features/ops/OperationsWorkspaces").then(module => ({ default: module.SupplyWorkspace })));
+const ResearchWorkspace = lazy(() => import("../features/ops/OperationsWorkspaces").then(module => ({ default: module.ResearchWorkspace })));
 const SimulatorPage = lazy(() => import("../features/ops/SimulatorPage").then((module) => ({ default: module.SimulatorPage })));
 const AnalyticsPage = lazy(() => import("../features/ops/AnalyticsPage").then((module) => ({ default: module.AnalyticsPage })));
 const DataPage = lazy(() => import("../features/ops/DataPage").then((module) => ({ default: module.DataPage })));
 const NotificationsPage = lazy(() => import("../features/ops/DataPage").then((module) => ({ default: module.NotificationsPage })));
+/** Retired duplicate entry points retain bookmarks and record context. */
+function RouteAlias({ to, defaults = {} }: { to: string; defaults?: Record<string, string> }) {
+  const location = useLocation();
+  const target = new URL(to, "http://workspace.local");
+  const params = new URLSearchParams(defaults);
+  new URLSearchParams(location.search).forEach((value, key) => params.set(key, value));
+  target.searchParams.forEach((value, key) => params.set(key, value));
+  const search = params.toString();
+  return <Navigate replace to={`${target.pathname}${search ? `?${search}` : ""}${location.hash || target.hash}`}/>;
+}
 function RouteFailure() {
   const error = useRouteError();
   const missing = typeof error === "object" && error !== null && "status" in error && error.status === 404;
@@ -46,10 +52,10 @@ export const router = createRouter([{ path:"/", element:<SessionGate><RoleProvid
   { index:true, element:import.meta.env.VITE_PAGES === 'true' ? <Navigate to="/demo" replace/> : page(<HomeRedirect/>) },
   { path:"home", element:page(<HomeRedirect/>) },
   { path:"welcome", element:page(<WelcomePage/>) },
-  { path:"review", element:page(<ReviewPage/>) },
-  { path:"plan", element:page(<PlanPage/>) },
-  { path:"parts", element:page(<PartsPage/>) },
-  { path:"status", element:page(<StatusPage/>) },
+  { path:"review", element:<RouteAlias to="/advisories" defaults={{ status: "proposed" }}/> },
+  { path:"plan", element:<RouteAlias to="/maintenance" defaults={{ view: "work" }}/> },
+  { path:"parts", element:<RouteAlias to="/spares" defaults={{ view: "requests" }}/> },
+  { path:"status", element:<RouteAlias to="/dashboard#grounded"/> },
   { path:"dashboard", element:page(<FleetDashboard/>) },
   { path:"aircraft-detail", element:page(<FocusRedirect kind="aircraft"/>) },
   { path:"component-health", element:page(<FocusRedirect kind="component"/>) },
@@ -57,13 +63,14 @@ export const router = createRouter([{ path:"/", element:<SessionGate><RoleProvid
   { path:"aircraft/:aircraftId", element:page(<AircraftDetailPage/>) },
   { path:"health/:componentId", element:page(<ComponentHealthPage/>) },
   { path:"advisories", element:page(<AdvisoriesPage/>) },
-  { path:"maintenance", element:page(<MaintenancePage/>) },
-  { path:"spares", element:page(<SparesPage/>) },
+  { path:"maintenance", element:page(<MaintenanceWorkspace/>) },
+  { path:"spares", element:page(<SupplyWorkspace/>) },
   { path:"simulator", element:page(<SimulatorPage/>) },
   { path:"analytics", element:page(<AnalyticsPage/>) },
   { path:"data", element:page(<DataPage/>) },
   { path:"notifications", element:page(<NotificationsPage/>) },
-  { path:"overview", element:<Suspense fallback={loading}><OverviewPage/></Suspense> },
+  { path:"overview", element:<RouteAlias to="/welcome"/> },
+  { path:"research", element:page(<ResearchWorkspace/>) },
   { path:"fleet", element:<Suspense fallback={loading}><InspectionPage/></Suspense> },
   { path:"demo", element:<Suspense fallback={loading}><CustomerTrialPage/></Suspense> },
   { path:"ai", element:<Suspense fallback={loading}><AIPage/></Suspense> },

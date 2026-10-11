@@ -106,9 +106,9 @@ export function AdvisoryCommandCard({ advisory: a, replay }: { advisory: Advisor
     {replay ? <p className="o-note"><Icon name="history" size={16}/>Replaying a past date: decisions are recorded only at the latest date.</p>
       : open && (engineer || supervisor) ? <div className="o-command-buttons">
         <button type="button" className="o-big-btn ghost" onClick={() => setDismissOpen(true)}>DISMISS</button>
-        {supervisor && ["proposed", "accepted"].includes(a.status)
+        {supervisor && a.status === "accepted"
           ? <button type="button" className="o-big-btn" onClick={() => setScheduleOpen(true)}>SCHEDULE ({a.downtime.act_now_days.toFixed(1)} Days Downtime)</button>
-          : engineer && a.status === "proposed"
+          : (engineer || supervisor) && a.status === "proposed"
             ? <button type="button" className="o-big-btn" disabled={update.isPending} onClick={() => update.mutate({ id: a.id, status: "accepted", expected_status: a.status }, {
               onSuccess: () => toast({ tone: "success", title: "Finding confirmed", body: "Sent to the maintenance supervisor for scheduling." }),
               onError: error => toast({ tone: "error", title: "Not recorded", body: error.message }),
@@ -116,7 +116,7 @@ export function AdvisoryCommandCard({ advisory: a, replay }: { advisory: Advisor
             : <button type="button" className="o-big-btn" disabled>{statusLabel[a.status].toUpperCase()}</button>}
       </div>
         : <p className="o-note"><Icon name="shield" size={16}/>{open ? "Engineers confirm or dismiss findings; supervisors schedule the work." : `This finding is ${statusLabel[a.status].toLowerCase()}.`}</p>}
-    {a.work_order_id && ["scheduled", "completed"].includes(a.status) && <Link className="o-link" to="/plan">Work order {a.work_order_id}{a.parts_status ? ` · ${partsLabel[a.parts_status].toLowerCase()}` : ""}<Icon name="arrow" size={13}/></Link>}
+    {a.work_order_id && ["scheduled", "completed"].includes(a.status) && <Link className="o-link" to="/maintenance#scheduled-work">Work order {a.work_order_id}{a.parts_status ? ` · ${partsLabel[a.parts_status].toLowerCase()}` : ""}<Icon name="arrow" size={13}/></Link>}
     <details className="o-adv-details"><summary>Full advisory — explanation, priority breakdown, availability impact, confidence</summary>
       <AdvisoryPanel advisory={a} replay={replay} showActions={false}/>
     </details>
@@ -158,10 +158,10 @@ export function AdvisoryActions({ advisory: a, replay }: { advisory: Advisory; r
       onSuccess: () => toast({ tone: "success", title: "Finding confirmed", body: "Sent to the maintenance supervisor for scheduling." }),
       onError: error => toast({ tone: "error", title: "Not recorded", body: error.message }),
     })}><Icon name="check" size={15}/>Confirm finding</button>}
-    {schedule && ["proposed", "accepted"].includes(a.status) && <button type="button" className={a.status === "accepted" ? "o-btn" : "o-btn ghost"} onClick={() => setScheduleOpen(true)}><Icon name="calendar" size={15}/>Schedule work</button>}
+    {schedule && a.status === "accepted" && <button type="button" className="o-btn" onClick={() => setScheduleOpen(true)}><Icon name="calendar" size={15}/>Schedule work</button>}
     {review && ["proposed", "accepted", "scheduled"].includes(a.status) && <button type="button" className="o-btn ghost" onClick={() => setDismissOpen(true)}><Icon name="close" size={15}/>Dismiss</button>}
     {review && a.status === "dismissed" && <button type="button" className="o-btn ghost" onClick={() => update.mutate({ id: a.id, status: "proposed", expected_status: a.status })}><Icon name="refresh" size={15}/>Reopen</button>}
-    {a.work_order_id && <Link className="o-link" to="/plan">Work order {a.work_order_id}{a.parts_status ? ` · ${partsLabel[a.parts_status].toLowerCase()}` : ""}<Icon name="arrow" size={13}/></Link>}
+    {a.work_order_id && <Link className="o-link" to="/maintenance#scheduled-work">Work order {a.work_order_id}{a.parts_status ? ` · ${partsLabel[a.parts_status].toLowerCase()}` : ""}<Icon name="arrow" size={13}/></Link>}
     {a.status_actor && <span className="o-muted o-small">Last decision by {a.status_actor}{a.status_reason ? `: “${a.status_reason}”` : ""}</span>}
     <DismissDialog advisory={a} open={dismissOpen} onOpenChange={setDismissOpen}/>
     <ScheduleDialog open={scheduleOpen} onOpenChange={setScheduleOpen} componentId={a.component_id} advisory={a}/>
@@ -188,7 +188,7 @@ export function ScheduleDialog({ open, onOpenChange, componentId, advisory }: { 
       {impact && <div className="o-impact-preview"><div><span>Fleet availability (30 d)</span><b className={(impact.availability_pct_points ?? 0) >= 0 ? "o-tone-healthy" : "o-tone-critical"}>{signed(impact.availability_pct_points ?? 0, 2, " pts")}</b></div><div><span>Aircraft-days lost</span><b className={(impact.aircraft_days_lost ?? 0) <= 0 ? "o-tone-healthy" : "o-tone-critical"}>{signed(impact.aircraft_days_lost ?? 0, 1)}</b></div></div>}
       <p className="o-muted o-small">Preview from {impact?.runs ?? 200} Monte Carlo runs against the current plan, on synthetic data. A worse result can be real: an early replacement may consume the only spare another aircraft needs. Open the simulator for the per-aircraft breakdown.</p>
       {impact?.spare_waits && <p className="o-warn-line"><Icon name="warning" size={14}/>No unreserved spare on hand — this work will wait for a receipt.</p>}
-      <div className="o-form-actions"><Link className="o-btn ghost" to={`/simulator?kind=schedule_maintenance&component=${componentId}`} onClick={() => close(false)}>Compare in simulator</Link><button type="button" className="o-btn" onClick={() => close(false)}>Done</button></div>
+      <div className="o-form-actions"><Link className="o-btn ghost" to={`/simulator?kind=schedule_maintenance&component=${componentId}`} onClick={() => close(false)}>Compare in simulator</Link><Link className="o-btn" to={`/maintenance?aircraft=${encodeURIComponent(result.aircraft)}#scheduled-work`} onClick={() => close(false)}>Open work board</Link></div>
     </div> : <form onSubmit={event => { event.preventDefault(); create.mutate({ component_id: componentId, advisory_id: advisory?.id ?? null, agency_id: agency || null, planned_start: startValue, notes }, {
       onSuccess: data => { setResult(data); toast({ tone: "success", title: "Work order planned", body: `${data.id} for ${data.aircraft}` }); },
       onError: error => toast({ tone: "error", title: "Could not plan work", body: error.message }),

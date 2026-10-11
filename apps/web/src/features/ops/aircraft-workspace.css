@@ -1,0 +1,88 @@
+/* An open inspection section below the aircraft showroom. */
+.aircraft-detail-workspace {
+  --aircraft-paper: #fafcf9;
+  --aircraft-inset: #f0f4ed;
+  --aircraft-line: #dce5da;
+  --aircraft-ink: #29473d;
+  --aircraft-muted: #6b7e74;
+  scroll-margin-top: 104px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--aircraft-ink);
+}
+.aircraft-workspace-head { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 28px 32px 24px; }
+.aircraft-workspace-head h2 { margin: 7px 0 8px; font-size: 24px; font-weight: 600; letter-spacing: -.5px; }
+.aircraft-workspace-head p { margin: 0; color: var(--aircraft-muted); font-size: 12px; }
+.aircraft-workspace-context { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; max-width: 360px; }
+.aircraft-workspace-context > span:last-child { width: 100%; text-align: right; color: var(--aircraft-muted); font-size: 11px; margin-top: 4px; }
+.aircraft-workspace-nav { padding: 0 32px; background: transparent; border-bottom: 1px solid var(--aircraft-line); }
+.aircraft-workspace-nav .o-tabs { gap: 6px; padding: 10px 0; margin: 0; border: 0; }
+.aircraft-workspace-nav .o-tabs button { border-radius: 8px; color: var(--aircraft-muted); padding: 0 16px; flex-shrink: 0; }
+.aircraft-workspace-nav .o-tabs button.on { color: var(--aircraft-ink); background: var(--aircraft-paper); box-shadow: 0 1px 4px #29473d0d; }
+.aircraft-workspace-nav .o-tabs button.on::after { display: none; }
+.aircraft-workspace-body { padding: 28px 32px 32px; min-width: 0; }
+.aircraft-workspace-body.pane-twin { padding: 0; }
+.aircraft-detail-workspace .aircraft-blueprint { border: 0; border-radius: 0; margin: 0; background: transparent; box-shadow: none; }
+.aircraft-detail-workspace .bp-header { padding: 22px 32px; }
+.aircraft-detail-workspace .bp-header .bp-eyebrow { display: none; }
+.aircraft-detail-workspace .bp-header h2 { margin: 0 0 7px; font-size: 20px; color: var(--aircraft-ink); }
+.aircraft-detail-workspace :is(.bp-header p,.bp-provenance,.bp-eyebrow) { color: var(--aircraft-muted); }
+.aircraft-detail-workspace .bp-provenance { border-top: 1px solid var(--aircraft-line); padding: 18px 32px; }
+.aircraft-component-records > .o-card { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.aircraft-detail-workspace .o-card-head { margin-bottom: 20px; }
+.aircraft-detail-workspace :is(.o-card-head h2,.aircraft-pane-intro h3) { color: var(--aircraft-ink); font-size: 18px; font-weight: 500; }
+.aircraft-detail-workspace :is(.o-card-head p,.aircraft-pane-intro p) { color: var(--aircraft-muted); font-size: 12px; }
+.aircraft-table-hint { display: none; }
+.aircraft-component-records .o-table-wrap { border: 1px solid var(--aircraft-line); border-radius: 12px; }
+.aircraft-component-records .o-table th { background: var(--aircraft-inset); }
+.aircraft-component-records .o-tree-system { background: var(--aircraft-inset); }
+.aircraft-component-records .o-tree-system.selected { background: #e5eee2; }
+.aircraft-detail-workspace .aircraft-system-toggle { display: flex; align-items: center; gap: 10px; border: 0; border-radius: 0; background: transparent; color: inherit; padding: 8px 0; cursor: pointer; text-align: left; box-shadow: none; }
+.aircraft-detail-workspace .aircraft-system-toggle:is(:hover,:active,:focus-visible) { background: transparent; color: var(--aircraft-ink); }
+.aircraft-system-toggle strong { font-size: 13px; }.aircraft-system-toggle span { font-size: 11px; white-space: nowrap; }
+.aircraft-detail-workspace .o-btn.ghost { border: 1px solid var(--aircraft-line); border-radius: 7px; background: var(--aircraft-paper); }
+.aircraft-detail-workspace .o-grid > .o-card, .aircraft-detail-workspace .o-stack > .o-card { background: var(--aircraft-paper); border-color: var(--aircraft-line); box-shadow: none; border-radius: 12px; }
+.aircraft-pane-intro { margin-bottom: 22px; }.aircraft-pane-intro h3 { margin: 0 0 8px; }.aircraft-pane-intro p { margin: 0; }
+.aircraft-detail-workspace .o-adv-card { border-color: var(--aircraft-line); border-radius: 12px; background: var(--aircraft-paper); box-shadow: none; }
+.aircraft-empty-line { display: flex; align-items: center; gap: 10px; padding: 18px 0; margin: 0; color: var(--aircraft-muted); font-size: 12px; }
+.aircraft-detail-workspace :is(button,a):focus-visible { outline: 2px solid #36745a; outline-offset: 3px; }
+.o-twin-atmosphere .o-footer { margin-top: 20px; border-top: 1px solid var(--o-border); padding: 22px 24px 24px; font-size: 10px; line-height: 1.7; gap: 10px 24px; align-items: center; }
+:root[data-theme="dark"] .aircraft-detail-workspace { --aircraft-paper: #172c25; --aircraft-inset: #1d342b; --aircraft-line: #3b5549; --aircraft-ink: #e5efe9; --aircraft-muted: #a5bbae; }
+:root[data-theme="dark"] .aircraft-component-records .o-tree-system.selected { background: #294438; }
+@media (max-width: 760px) {
+  .aircraft-detail-workspace { scroll-margin-top: 84px; }
+  .aircraft-workspace-head { padding: 22px 20px; align-items: flex-start; flex-direction: column; gap: 16px; }
+  .aircraft-workspace-head h2 { font-size: 22px; }
+  .aircraft-workspace-context { justify-content: flex-start; max-width: none; }
+  .aircraft-workspace-context > span:last-child { text-align: left; }
+  .aircraft-workspace-nav { padding: 0 12px; }
+  .aircraft-workspace-nav .o-tabs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); overflow: visible; }
+  .aircraft-workspace-nav .o-tabs button { padding: 0 10px; font-size: 12px; justify-content: center; }
+  .aircraft-table-hint { display: block; margin: 0 0 12px; color: var(--aircraft-muted); font-size: 11px; }
+  .aircraft-workspace-body { padding: 22px 16px; }
+  .aircraft-detail-workspace .bp-header { padding: 22px 20px; }
+  .aircraft-detail-workspace .bp-provenance { padding: 16px 20px; }
+  .aircraft-detail-workspace .o-grid.o-cols-main { grid-template-columns: minmax(0,1fr); }
+  .o-twin-atmosphere .o-footer { margin-inline: 16px; padding-inline: 0; }
+}
+
+/* Keep the availability key faithful to the day-strip colours. */
+.aircraft-detail-workspace .o-legend i.d-available { background: color-mix(in srgb, var(--o-healthy) 65%, var(--o-surface)); }
+.aircraft-detail-workspace .o-legend i.d-unscheduled_repair { background: var(--o-critical); }
+.aircraft-detail-workspace .o-legend i.d-awaiting_spares { background: var(--o-degraded); }
+.aircraft-detail-workspace .o-legend i.d-awaiting_agency { background: var(--o-watch); }
+.aircraft-detail-workspace .o-legend i.d-scheduled_maintenance { background: var(--o-maint); }
+/* The component inspector is a portal, so it shares the palette explicitly. */
+.bp-inspection-dialog, .bp-inspection-header { background: #fafcf9; color: #29473d; }
+.bp-inspection-header, .bp-part-evidence { border-color: #dce5da; }
+.bp-part-stage { background: #f0f4ed; }
+.bp-part-toolbar button, .bp-inspection-header button { border-color: #cad8cc; color: #42604f; background: #fafcf9; }
+.bp-part-toolbar button[aria-pressed="true"], .bp-evidence-action { background: #2d4c42; border-color: #2d4c42; color: #fff; }
+.bp-part-legend span { border-color: #cad8cc; color: #607969; }
+
+/* Align section content with the navigation without an enclosing card. */
+.o-shell.o-twin-atmosphere .aircraft-detail-screen > .aircraft-detail-workspace { width: calc(100% - 48px); max-width: none; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.aircraft-detail-workspace .bp-header { background: transparent; }
+.o-shell.o-twin-atmosphere .workspace-connections { max-width: none; }
+@media(max-width:760px) { .o-shell.o-twin-atmosphere .aircraft-detail-screen > .aircraft-detail-workspace { width: calc(100% - 32px); } }

@@ -1,0 +1,40 @@
+.operations-workspace > .o-segmented { align-self: flex-start; }
+.workspace-scope { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; border: 1px solid var(--o-border); border-radius: 12px; background: var(--o-surface-2); font-size: 12px; }
+.workspace-scope > span { display: flex; align-items: center; gap: 8px; overflow-wrap: anywhere; }
+.workspace-scope button { flex-shrink: 0; }
+.workspace-research-context { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 12px 18px; border: 1px solid var(--o-border); border-radius: 12px; background: var(--o-surface); font-size: 12px; }
+.workspace-research-context > span { color: var(--o-text-3); }
+.workspace-description { color: var(--o-text-2); line-height: 1.8; max-width: 880px; }
+.workspace-planning-tools { border: 1px solid var(--o-border); border-radius: 12px; background: var(--o-surface); padding: 14px 18px; }
+.workspace-planning-tools summary { color: var(--o-text-2); cursor: pointer; font-size: 12px; }
+.workspace-planning-tools[open] summary { margin-bottom: 16px; }
+.workspace-research-steps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.workspace-research-steps > a { position: relative; display: block; padding: 26px; border: 1px solid var(--o-border); border-radius: 18px; background: var(--o-surface); color: var(--o-text); }
+.workspace-research-steps > a > span { color: var(--o-accent); font-size: 12px; }
+.workspace-research-steps h2 { font-size: 19px; margin: 14px 0 10px; }
+.workspace-research-steps p { color: var(--o-text-2); font-size: 13px; line-height: 1.7; padding-bottom: 30px; }
+.workspace-research-steps svg { position: absolute; bottom: 24px; right: 24px; }
+.workspace-research-links { display: flex; flex-wrap: wrap; gap: 12px 24px; font-size: 13px; }
+.workspace-connections { width: 100%; margin-top: 8px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border: 1px solid var(--o-border); border-radius: 16px; background: var(--o-surface); }
+.workspace-connections h2 { font-size: 15px; margin-bottom: 5px; }
+.workspace-connections p { color: var(--o-text-3); font-size: 12px; line-height: 1.7; max-width: 620px; }
+.workspace-connections nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.workspace-connections .o-btn { white-space: normal; font-size: 12px; }
+.o-twin-atmosphere .workspace-connections { width: calc(100% - 48px); max-width: 1680px; align-self: center; }
+.o-flow-strip.compact { margin: 0; gap: 0; padding: 5px; border: 1px solid var(--o-border); border-radius: 16px; background: var(--o-surface); }
+.o-flow-strip.compact .o-flow-step { border: 0; border-radius: 11px; box-shadow: none; background: transparent; padding: 10px 12px; }
+.o-flow-strip.compact .o-flow-step::after { display: none; }
+.o-flow-strip.compact .o-flow-step[aria-current="step"] { background: var(--o-accent-soft); }
+.o-flow-strip.compact .o-flow-step.mine { box-shadow: none; }
+.o-flow-strip.compact .o-flow-count { font-size: 18px; }
+.o-flow-strip.compact .o-flow-text strong { font-size: 12px; }
+.o-flow-strip.compact .o-flow-text small { font-size: 10px; }
+.o-flow-strip.compact .o-flow-num { width: 24px; height: 24px; }
+#grounded, #scheduled-work { scroll-margin-top: 110px; }
+@media(max-width:1100px) { .o-flow-strip.compact { grid-template-columns: repeat(3,minmax(0,1fr)); }.workspace-connections { align-items: flex-start; flex-direction: column; }.workspace-connections nav { justify-content: flex-start; } }
+@media(max-width:760px) { .workspace-research-steps { grid-template-columns: minmax(0,1fr); }.o-flow-strip.compact { grid-template-columns: repeat(2,minmax(0,1fr)); }.workspace-scope { align-items: flex-start; flex-direction: column; }.workspace-connections { padding: 18px; }.o-twin-atmosphere .workspace-connections { width: calc(100% - 32px); } }
+/* Research shares the fleet canvas and shell while retaining its record semantics. */
+.o-shell .o-content.legacy-surface { display: flex; flex-direction: column; gap: 20px; min-width: 0; max-width: 1680px; padding: 24px 24px 32px; background: transparent; }
+.o-shell .o-content.legacy-surface > * { min-width: 0; flex-shrink: 0; }
+.o-shell .o-content.legacy-surface > .page { max-width: none; padding: 0; margin: 0; }
+@media(max-width:760px) { .o-shell .o-content.legacy-surface { padding: 14px 16px 28px; gap: 16px; } }

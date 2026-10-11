@@ -27,7 +27,7 @@ function recordNumber(data: AircraftDetail, field: string) {
   return typeof value === "number" && Number.isFinite(value) ? num(value) : "Unavailable";
 }
 
-export function TwinShowcase({ data }: { data: AircraftDetail }) {
+export function TwinShowcase({ data, onExploreBlueprint }: { data: AircraftDetail; onExploreBlueprint?: () => void }) {
   const id = String(data.aircraft.id);
   const list = useAircraftList();
   const queryClient = useQueryClient();
@@ -154,14 +154,14 @@ export function TwinShowcase({ data }: { data: AircraftDetail }) {
       {!components.length && <p className="twin-evidence-empty">Component records unavailable.</p>}
       <details className="twin-model-source"><summary>Illustrative fighter · accuracy limits</summary><p>Authored Tejas-inspired geometry, not engineering-validated CAD or the selected aircraft's verified airframe. Cockpit, intakes, exhaust, gear and surface details are visual approximations. Component records are not physical installation mappings. Synthetic records are not airworthiness evidence.</p></details>
       </div>
-      <footer className="twin-panel-footer"><button type="button" onClick={() => { setEvidenceOpen(false); document.getElementById("aircraft-blueprint")?.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" }); }}>Explore aircraft blueprint <Icon name="arrow" size={16}/></button></footer>
+      <footer className="twin-panel-footer"><button type="button" onClick={() => { setEvidenceOpen(false); if (onExploreBlueprint) onExploreBlueprint(); else document.getElementById("aircraft-blueprint")?.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" }); }}>Explore aircraft blueprint <Icon name="arrow" size={16}/></button></footer>
       </Dialog.Content></Dialog.Portal></Dialog.Root>
     </aside>
     </div>
     <div className="twin-browse" aria-label="Browse aircraft"><button type="button" aria-label="Previous aircraft" disabled={Boolean(pending) || rows.length < 2} onClick={() => step(-1)}><Icon name="arrow" size={22} style={{ transform: "rotate(-90deg)" }}/></button><button type="button" className="twin-next" aria-label="Next aircraft" disabled={Boolean(pending) || rows.length < 2} onClick={() => step(1)}><Icon name="arrow" size={22} style={{ transform: "rotate(90deg)" }}/></button><span>{String(number + 1).padStart(2, "0")}<small>/ {String(rows.length).padStart(2, "0")}</small></span></div>
     <div className="twin-stats" key={`stats-${shownId}`}>
       <dl><div><dt>Flight hours</dt><dd>{recordNumber(shown, "total_flight_hours")}<small>FH</small></dd></div><div><dt>Total cycles</dt><dd>{recordNumber(shown, "total_cycles")}</dd></div><div><dt>Health index</dt><dd>{num(shown.health_index)}<small>/ 100</small></dd></div><div><dt>Open advisories</dt><dd>{active.toString().padStart(2, "0")}</dd></div></dl>
-      <button type="button" className="twin-details" disabled={Boolean(pending)} onClick={() => document.getElementById("aircraft-blueprint")?.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" })}>Explore blueprint <Icon name="arrow" size={22}/></button>
+      <button type="button" className="twin-details" disabled={Boolean(pending)} onClick={() => { if (onExploreBlueprint) onExploreBlueprint(); else document.getElementById("aircraft-blueprint")?.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" }); }}>Explore blueprint <Icon name="arrow" size={22}/></button>
     </div>
     {pending && !motion && <span className="twin-notice" role="status">Opening {pending}…</span>}
     {error && <span className="twin-notice twin-error" role="alert">{error}</span>}

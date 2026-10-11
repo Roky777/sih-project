@@ -5,6 +5,8 @@ import { useAsOf } from "./AsOf";
 import { useAdvisories, useAlerts, useHeatGrid, useSummary, useTrend, type Advisory, type HeatGrid } from "./api";
 import { availabilityLabel, longDate, num, pct, rulText, shortDate, stateLabel } from "./format";
 import { MONO, OpsChart, areaFill, baseAxes, tooltip, withAlpha } from "./OpsChart";
+import { FlowStrip } from "./FlowStrip";
+import { FleetGroundingDetails } from "./WorkflowPages";
 import { HeadingReplay } from "./ReplaySlider";
 import { Card, PriorityBadge, Query, Segmented, StateBadge } from "./ui";
 
@@ -31,6 +33,7 @@ export function FleetDashboard() {
       </div>
       <HeadingReplay/>
     </div>
+    <FlowStrip compact/>
     <div className="o-kpi-row">
       <KpiBlock label="Fleet availability" value={s ? pct(s.availability_today, 0) : "—"} tone={s ? tone(s.availability_today) : undefined} big
         chip={s ? { text: `${delta >= 0 ? "+" : "−"}${Math.abs(delta * 100).toFixed(1)} pts`, up: delta >= 0 } : undefined}
@@ -61,6 +64,7 @@ export function FleetDashboard() {
         <TopAdvisories/>
       </Card>
     </div>
+    <FleetGroundingDetails/>
   </div>;
 }
 

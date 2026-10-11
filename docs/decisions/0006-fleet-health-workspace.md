@@ -131,3 +131,7 @@ This supersedes the enterprise shell geometry and the dark default described abo
   - coloured lines run to the aircraft in each bay;
   - aircraft waiting for a bay or a part hang off each agency line on animated amber lines;
   - a bay list with progress bars and a glass detail card complete the view.
+
+## Presentation consolidation — 11 October 2026
+
+The historical role-route and navbar descriptions above are superseded by the [canonical user flow](../product/user_flow.md). `/review`, `/plan`, `/parts` and `/status` redirect to the findings queue, maintenance work board, supply requests and dashboard grounding detail, retaining selection. One navigation inventory contains Operations, More and Research. Fleet operations and engine research retain their independent record semantics; no engine data/API/scientific decision is changed by this consolidation. See [site audit](../design/site_flow_audit.md).

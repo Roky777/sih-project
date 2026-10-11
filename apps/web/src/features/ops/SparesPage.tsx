@@ -1,24 +1,28 @@
-import { HeadingReplay } from "./ReplaySlider";
-import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
 import { useAdvisories, useDemand, useInventory, type Advisory, type InventoryItem } from "./api";
 import { longDate, num, pct } from "./format";
 import { GLASS_CSS, MONO, OpsChart, baseAxes, tooltip } from "./OpsChart";
 import { Card, Drawer, Kpi, Pill, Query, Segmented } from "./ui";
+import "./inventory-position.css";
 
 const statusLabel = { ok: "OK", at_risk: "At risk", short: "Short", print: "Print route" } as const;
 
 export function SparesPage() {
+  const [params, setParams] = useSearchParams();
+  const selectedPart = params.get("part");
   const inventory = useInventory();
   const advisories = useAdvisories();
-  const [part, setPart] = useState<string | null>(null);
+  const [part, setPartState] = useState<string | null>(selectedPart);
+  useEffect(() => { setPartState(selectedPart); }, [selectedPart]);
+  const setPart = (value: string | null) => { setPartState(value); setParams(previous => { const next = new URLSearchParams(previous); if (value) next.set("part", value); else next.delete("part"); return next; }, { replace: true }); };
   const [filter, setFilter] = useState<"all" | "risk">("all");
   const items = inventory.data ?? [];
   const rows = filter === "all" ? items : items.filter(item => item.status !== "ok");
   const flagged = (advisories.data ?? []).filter(a => !["completed", "dismissed"].includes(a.status));
   return <>
-    <div className="o-screen-head"><h1>Spares Inventory</h1><span>Stock · orders · ML-driven 30-day demand · lead time vs RUL</span><HeadingReplay/></div>
+
     <div className="o-kpis">
       <Kpi label="Parts short" icon="warning" tone="critical" value={items.length ? items.filter(i => i.status === "short").length : null} format={v => v.toFixed(0)} detail="No usable stock for expected demand"/>
       <Kpi label="Covered by print" icon="printer" tone="accent" value={items.length ? items.filter(i => i.status === "print").length : null} format={v => v.toFixed(0)} detail="Project Forge: printable parts reach the bay in 1 day"/>
@@ -50,20 +54,20 @@ export function SparesPage() {
         <Query query={advisories} rows={6}>{() => <LeadTimeScatter items={flagged}/>}</Query>
       </Card>
     </div>
-    <Card title="Inventory position" subtitle="Click a part for its demand forecast and the components driving it" actions={<Segmented label="Filter parts" value={filter} onChange={setFilter} options={[["all", "All parts"], ["risk", "Short or at risk"]] as const}/>}>
-      <Query query={inventory} rows={8}>{() => <div className="o-table-wrap"><table className="o-table">
-        <thead><tr><th>Part</th><th>Status</th><th className="num">On hand</th><th className="num">Reserved</th><th className="num">On order</th><th>Next receipt</th><th className="num">Lead time</th><th>Demand 30 d (P10–P90)</th><th>Shortfall risk</th><th>Waiting components</th></tr></thead>
+    <Card className="inventory-position" title="Inventory position" subtitle="Select a part to inspect demand and the components driving it" actions={<Segmented label="Filter parts" value={filter} onChange={setFilter} options={[["all", "All parts"], ["risk", "Short or at risk"]] as const}/>}>
+      <Query query={inventory} rows={8}>{() => <><p className="inventory-scroll-hint">Scroll across for supply, demand and waiting components.</p><div className="o-table-wrap"><table className="o-table">
+        <thead><tr><th>Part</th><th>Status</th><th className="num">On hand</th><th className="num">Reserved</th><th className="num">On order</th><th>Next receipt</th><th className="num">Lead time</th><th>Demand · 30 d<small>P10–P90 · baseline</small></th><th>Shortfall risk</th><th>Waiting components</th></tr></thead>
         <tbody>{rows.map((item: InventoryItem) => <tr key={item.part_number} className={`clickable${item.status !== "ok" ? ` o-row-flag ${item.status}` : ""}`} onClick={() => setPart(item.part_number)}>
-          <td><button type="button" className="o-link o-mono" aria-label={`Inspect part ${item.part_number}`} onClick={event => { event.stopPropagation(); setPart(item.part_number); }}>{item.part_number}</button><small>{item.description} · crit {item.criticality}{item.repairable ? " · repairable" : ""}</small></td>
-          <td><Pill tone={item.status === "print" ? "accent" : item.status}>{statusLabel[item.status]}</Pill>{item.status === "print" && <span className="o-forge-note"><Icon name="printer" size={13}/>Supply bypassed: additive print route (1 day)</span>}</td>
+          <td><button type="button" className="o-link o-mono" aria-label={`Inspect part ${item.part_number}`} onClick={event => { event.stopPropagation(); setPart(item.part_number); }}>{item.part_number}</button><small className="inventory-description">{item.description}</small><small className="inventory-metadata">Criticality {item.criticality}{item.repairable ? " · Repairable" : ""}</small></td>
+          <td><Pill tone={item.status === "print" ? "accent" : item.status}>{statusLabel[item.status]}</Pill>{item.status === "print" && <small className="inventory-print-note">Additive supply</small>}</td>
           <td className="num o-strong">{item.on_hand}</td><td className="num">{item.reserved}</td><td className="num">{item.on_order}</td>
           <td>{item.next_receipt ? <>{longDate(item.next_receipt)}<small>in {item.next_receipt_in_days} d</small></> : <span className="o-muted">—</span>}</td>
           <td className="num">{item.additive_printable ? <><span className="o-forge-lead">1 d print</span><small>{item.lead_time_days} d supplier</small></> : `${item.lead_time_days} d`}</td>
           <td><span className="o-strong">{num(item.demand["30"].expected, 1)}</span> <small>({item.demand["30"].p10}–{item.demand["30"].p90}) · baseline {num(item.demand["30"].baseline_moving_average, 1)}</small></td>
-          <td><span className="o-meter"><span className={item.demand["30"].shortfall_probability >= 0.6 ? "o-bg-critical" : item.demand["30"].shortfall_probability >= 0.25 ? "o-bg-watch" : "o-bg-healthy"} style={{ width: `${Math.max(3, item.demand["30"].shortfall_probability * 100)}%` }}/></span> {pct(item.demand["30"].shortfall_probability)}</td>
-          <td>{item.competing_components.length ? item.competing_components.slice(0, 3).map(id => <span key={id} className="o-tag">{id.slice(3, 6)}</span>) : <span className="o-muted">—</span>}{item.competing_components.length > 3 && <small>+{item.competing_components.length - 3} more</small>}</td>
+          <td><div className="inventory-risk"><span className="o-meter"><span className={item.demand["30"].shortfall_probability >= 0.6 ? "o-bg-critical" : item.demand["30"].shortfall_probability >= 0.25 ? "o-bg-watch" : "o-bg-healthy"} style={{ width: `${Math.max(3, item.demand["30"].shortfall_probability * 100)}%` }}/></span><span>{pct(item.demand["30"].shortfall_probability)}</span></div></td>
+          <td><div className="inventory-waiting">{item.competing_components.length ? item.competing_components.slice(0, 3).map(id => <span key={id} className="o-tag" title={id}>{id.slice(3, 6)}</span>) : <span className="o-muted">—</span>}</div>{item.competing_components.length > 3 && <small>+{item.competing_components.length - 3} more</small>}</td>
         </tr>)}</tbody>
-      </table></div>}</Query>
+      </table>{!rows.length && <p className="inventory-empty">{filter === "risk" ? "No parts are short, at risk or covered by a print route in this snapshot." : "No inventory records in this snapshot."}</p>}</div></>}</Query>
     </Card>
     <PartDrawer part={part} onClose={() => setPart(null)} item={items.find(i => i.part_number === part)}/>
   </>;

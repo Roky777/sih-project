@@ -6,51 +6,15 @@ import { api, isHealth } from "../../shared/api/client";
 import { Icon, type IconName } from "../../shared/ui/Icon";
 import { useSession } from "../access/SessionGate";
 import { useAcknowledgeAlert, useAdvisories, useAircraftList, useAlerts, useEngine, useRequestEngineRun } from "./api";
-import { HeadingReplay } from "./ReplaySlider";
 import { roleById, roles, stageCounts, useRole, type RoleId } from "./roles";
 import { useToast } from "./ui";
 import { WorkspaceGrid } from "./WorkspaceGrid";
 
-type NavItem = { to: string; label: string; short?: string; icon: IconName; owner?: RoleId; step?: number; badge?: "review" | "schedule" | "parts" | "alerts" | "urgent"; match?: string[] };
-/** The seven primary screens (UI spec §2), then the team workflow and supporting views. */
-const groups: { title: string; items: NavItem[]; lab?: boolean; flow?: boolean; secondary?: boolean }[] = [
-  { title: "Operations", items: [
-    { to: "/dashboard", label: "Fleet Dashboard", short: "Overview", icon: "grid" },
-    { to: "/aircraft-detail", label: "Aircraft Detail", short: "Aircraft", icon: "aircraft", match: ["/aircraft/"] },
-    { to: "/component-health", label: "Component Health", short: "Components", icon: "activity", match: ["/health/"] },
-    { to: "/advisories", label: "Predictive Maintenance", short: "Predictive", icon: "list", badge: "urgent" },
-    { to: "/maintenance", label: "Maintenance Planning", short: "Bays", icon: "calendar" },
-    { to: "/spares", label: "Spares Inventory", short: "Spares", icon: "box" },
-    { to: "/simulator", label: "Scenario Simulator", short: "Simulator", icon: "sliders" },
-  ] },
-  { title: "Workflow", flow: true, secondary: true, items: [
-    { to: "/review", label: "Review findings", icon: "activity", owner: "engineer", step: 1, badge: "review" },
-    { to: "/plan", label: "Plan maintenance", icon: "calendar", owner: "supervisor", step: 2, badge: "schedule" },
-    { to: "/parts", label: "Secure parts", icon: "box", owner: "logistics", step: 3, badge: "parts" },
-    { to: "/status", label: "Fleet status", icon: "aircraft", owner: "fleet_manager", step: 4 },
-  ] },
-  { title: "More", secondary: true, items: [
-    { to: "/aircraft", label: "All aircraft", icon: "layers" },
-    { to: "/notifications", label: "Alerts", icon: "bell", badge: "alerts" },
-    { to: "/analytics", label: "Reports & models", icon: "chart" },
-    { to: "/data", label: "Data sources", icon: "file" },
-    { to: "/fleet", label: "Research lab (C-MAPSS)", icon: "flask" },
-  ] },
-];
-const labTools: NavItem[] = [
-  { to: "/fleet", label: "Engine evidence", icon: "activity" },
-  { to: "/planning", label: "Constraint planner", icon: "wrench" },
-  { to: "/scenarios", label: "Engine what-ifs", icon: "trend" },
-  { to: "/inventory", label: "Parts & deliveries", icon: "layers" },
-  { to: "/alerts", label: "Engine alerts", icon: "shield" },
-  { to: "/ai", label: "AI & evidence", icon: "spark" },
-  { to: "/demo", label: "Guided trial", icon: "play" },
-];
-const navigationGroups = groups.map(group => group.title === "More"
-  ? { ...group, items: [...group.items, ...labTools.filter(item => item.to !== "/fleet")] }
-  : group);
-const labPaths = ["/fleet", "/planning", "/scenarios", "/inventory", "/alerts", "/ai", "/demo", "/overview", "/components/"];
-const titles: Record<string, string> = Object.fromEntries([...groups.flatMap(group => group.items), ...labTools].map(item => [item.to, item.label]));
+import { isResearchPath, navigationGroups, type NavItem } from "./workspaceNavigation";
+import { WorkspaceConnections } from "./WorkspaceConnections";
+import "./workspace-flow.css";
+const groups = navigationGroups;
+const titles: Record<string, string> = Object.fromEntries(groups.flatMap(group => group.items).map(item => [item.to, item.label]));
 
 function readPreference(key: string) { try { return window.localStorage.getItem(key); } catch { return null; } }
 function writePreference(key: string, value: string) { try { window.localStorage.setItem(key, value); } catch { /* per-viewer convenience only */ } }
@@ -69,7 +33,7 @@ export function OpsLayout() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const shell = useRef<HTMLDivElement>(null);
-  const lab = labPaths.some(path => location.pathname === path || location.pathname.startsWith(path) && path.endsWith("/") || location.pathname.startsWith(`${path}/`));
+  const lab = isResearchPath(location.pathname);
   const health = useQuery({ queryKey: ["api-health"], queryFn: () => api("/health/ready", undefined, isHealth), refetchInterval: 30_000, retry: false });
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -78,7 +42,20 @@ export function OpsLayout() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); }, [location.pathname, location.search, location.hash]);
+  useEffect(() => {
+    if (!location.hash) return;
+    const id = decodeURIComponent(location.hash.slice(1));
+    const reveal = () => {
+      const target = document.getElementById(id);
+      if (!target || !target.getBoundingClientRect().height) return false;
+      target.scrollIntoView({ block: "start", behavior: "instant" });
+      return true;
+    };
+    const observer = new MutationObserver(() => { if (reveal()) observer.disconnect(); });
+    if (!reveal()) observer.observe(document.getElementById("main-content")!, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [location.pathname, location.search, location.hash]);
   const title = titles[location.pathname] ?? (location.pathname.startsWith("/aircraft/") ? "Aircraft Detail" : location.pathname.startsWith("/health/") ? "Component Health" : location.pathname === "/welcome" ? "Welcome" : "Workspace");
 
   return <div ref={shell} className={`o-shell${location.pathname.startsWith("/aircraft/") ? " o-twin-atmosphere" : ""}`}>
@@ -99,8 +76,8 @@ export function OpsLayout() {
     <div className="o-main">
       {/* Keyed by theme as well: legacy charts and the 3D stage read colour tokens once when drawn. */}
       <main id="main-content" tabIndex={-1} className={lab ? "o-content legacy-surface" : "o-content"} key={`${location.pathname.startsWith("/aircraft/") ? "/aircraft/twin" : location.pathname}:${theme}`} aria-label={title}>
-        {!lab && ["/", "/welcome", "/home"].includes(location.pathname) && <div className="o-replay-heading-row"><HeadingReplay/></div>}
-        {lab ? <div className="page"><Outlet/></div> : ["/", "/welcome", "/home"].includes(location.pathname) ? <Outlet/> : <EngineGate><Outlet/></EngineGate>}
+        {lab ? <><div className="workspace-research-context"><Link to="/research">Engine research workspace</Link><span>Engine dataset & saved logistics · independent of fleet replay</span><Link to="/dashboard">Return to fleet operations</Link></div><div className="page"><Outlet/></div></> : ["/", "/welcome", "/home", "/overview", "/review", "/plan", "/parts", "/status"].includes(location.pathname) ? <Outlet/> : <EngineGate><Outlet/></EngineGate>}
+        <WorkspaceConnections/>
       </main>
       <footer className="o-footer"><span>PS 26249 · Integrated predictive maintenance & fleet availability demonstrator</span><span>Synthetic data environment · Decision support only · No airworthiness or dispatch authority</span><span className="o-footer-connection">{health.isError ? "API offline" : health.isSuccess ? "API connected" : "Connecting to API"}</span></footer>
     </div>
@@ -147,7 +124,7 @@ function NavMenu({ title, items, badge, role }: { title: string; items: NavItem[
     const close = (event: MouseEvent) => { if (ref.current?.open && !ref.current.contains(event.target as Node)) ref.current.open = false; };
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
-  }, [location.pathname]);
+  }, [location.pathname, location.search, location.hash]);
   const active = items.some(item => isActive(location.pathname, item));
   const total = items.reduce((sum, item) => sum + (item.owner === role ? badge(item.badge) ?? 0 : 0), 0);
   return <details className={`o-navmenu${active ? " active" : ""}`} ref={ref}>
@@ -212,7 +189,7 @@ function ProfileMenu() {
     const close = (event: MouseEvent) => { if (ref.current?.open && !ref.current.contains(event.target as Node)) ref.current.open = false; };
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
-  }, [location.pathname]);
+  }, [location.pathname, location.search, location.hash]);
   return <details className="o-profile" ref={ref}>
     <summary aria-label={`Account: ${role.label}`}><span className="o-avatar"><Icon name={role.icon} size={16}/></span><span className="o-role-tag">{roleTag[role.id]}</span></summary>
     <div className="o-glass-pop">
@@ -260,7 +237,7 @@ function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (
   const [text, setText] = useState("");
   const [cursor, setCursor] = useState(0);
   const items = useMemo(() => {
-    const pages = [...groups.flatMap(group => group.items.map(item => ({ key: item.to, label: item.label, hint: item.owner ? `Step ${item.step} · ${roleById[item.owner].short}` : group.title, to: item.to, icon: item.icon }))), ...labTools.map(item => ({ key: `lab${item.to}`, label: item.label, hint: "Research lab", to: item.to, icon: item.icon }))];
+    const pages = groups.flatMap(group => group.items.map(item => ({ key: item.to, label: item.label, hint: group.title, to: item.to, icon: item.icon })));
     const planes = (aircraft.data ?? []).map(row => ({ key: row.id, label: row.id, hint: `Aircraft · ${row.base} · HI ${row.health_index.toFixed(0)}`, to: `/aircraft/${row.id}`, icon: "aircraft" as IconName }));
     const parts = (advisories.data ?? []).map(row => ({ key: row.id, label: `${row.aircraft} ${row.component_name}`, hint: `${row.priority.level} · ${row.action.label}`, to: `/health/${row.component_id}`, icon: "gauge" as IconName }));
     const query = text.trim().toLowerCase();

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Box3, BoxGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import type { AircraftDetail, TwinComponent } from "./api";
 import { architectureComponents, componentLayouts } from "./componentArchitecture";
+import { createFighterVisual } from "./fighterGeometry";
 import { createAircraftCutaway, disposeAircraftCutaway } from "./aircraftCutaway";
 
 describe("illustrative aircraft cutaway", () => {
@@ -34,4 +35,29 @@ describe("illustrative aircraft cutaway", () => {
     expect(original.geometry.getAttribute("position").count).toBeGreaterThan(0);
     original.geometry.dispose(); original.material.dispose();
   });
+  it("fits tyre and brake assemblies to the visual gear's transverse axles", () => {
+    const source = createFighterVisual();
+    const components = architectureComponents({ systems: [{ name: "Landing gear", components: [
+      { id: "wheel", type: "LG-TYR", name: "Main wheel tyre", state: "healthy" },
+      { id: "brake", type: "LG-BRK", name: "Brake assembly", state: "healthy" },
+    ] }], advisories: [] } as unknown as AircraftDetail);
+    const model = createAircraftCutaway(source, components);
+    for (const [id, partName, referenceName] of [
+      ["wheel", "Tyre", "Main gear 1 tyre"],
+      ["brake", "Brake disc", "Main gear -1 hub"],
+    ]) {
+      const assembly = model.children.find(child => child.userData.componentId === id)!;
+      const part = assembly.getObjectByName(partName)!;
+      const reference = model.getObjectByName(referenceName)!;
+      const bounds = new Box3().setFromObject(part);
+      const referenceBounds = new Box3().setFromObject(reference);
+      expect(bounds.getCenter(new Vector3()).distanceTo(referenceBounds.getCenter(new Vector3()))).toBeLessThan(.1);
+      const size = bounds.getSize(new Vector3());
+      expect(size.x).toBeLessThan(size.z * .6);
+      expect(size.y / size.z).toBeCloseTo(1, 1);
+    }
+    disposeAircraftCutaway(model);
+    disposeAircraftCutaway(source);
+  });
+
 });

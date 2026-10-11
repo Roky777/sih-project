@@ -46,7 +46,7 @@ test("workspace grid is shared behind content, sleeps at rest, and survives navi
   await page.waitForTimeout(500);
   expect(await draws()).toBe(stageIdle);
   await page.locator(".twin-scene").hover();
-  await page.locator("#twin-system-details").scrollIntoViewIfNeeded();
+  await page.locator("#aircraft-workspace").scrollIntoViewIfNeeded();
   await page.waitForTimeout(200);
   const offscreen = await draws();
   await page.waitForTimeout(500);
@@ -54,7 +54,7 @@ test("workspace grid is shared behind content, sleeps at rest, and survives navi
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/spares");
   await expect(grid).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Spares Inventory", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Spares & supply", exact: true })).toBeVisible();
   await page.screenshot({ path: info.outputPath("spares-grid-mobile.png") });
   expect(await grid.evaluate(element => (element as HTMLCanvasElement).width)).toBeLessThanOrEqual(488);
   await page.emulateMedia({ reducedMotion: "reduce" });

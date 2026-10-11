@@ -9,13 +9,13 @@ export type Role = { id: RoleId; label: string; short: string; home: string; hom
 
 /** The four users, in the order work flows between them. */
 export const roles: Role[] = [
-  { id: "engineer", label: "Maintenance engineer", short: "Engineer", home: "/review", homeLabel: "Review findings", icon: "activity",
+  { id: "engineer", label: "Maintenance engineer", short: "Engineer", home: "/advisories?status=proposed", homeLabel: "Review findings", icon: "activity",
     question: "Is this warning real, and does the component need maintenance?",
     does: ["Check the sensor evidence behind each warning", "Confirm the finding or dismiss it with a reason"] },
-  { id: "supervisor", label: "Maintenance supervisor", short: "Supervisor", home: "/plan", homeLabel: "Plan maintenance", icon: "calendar",
+  { id: "supervisor", label: "Maintenance supervisor", short: "Supervisor", home: "/maintenance", homeLabel: "Plan maintenance", icon: "calendar",
     question: "What work do we schedule, in which bay, and when?",
     does: ["Schedule confirmed findings and mandatory inspections", "Track work orders through to completion"] },
-  { id: "logistics", label: "Logistics team", short: "Logistics", home: "/parts", homeLabel: "Secure parts", icon: "box",
+  { id: "logistics", label: "Logistics team", short: "Logistics", home: "/spares?view=requests", homeLabel: "Secure parts", icon: "box",
     question: "Which parts must we secure, and by when?",
     does: ["Reserve stock or order parts for scheduled work", "Watch parts that will run short in the next 30 days"] },
   { id: "fleet_manager", label: "Fleet manager", short: "Fleet manager", home: "/dashboard", homeLabel: "Fleet dashboard", icon: "aircraft",
@@ -70,10 +70,10 @@ export const can = {
 
 export type Stage = { id: "review" | "schedule" | "parts" | "ready"; step: number; label: string; owner: RoleId; to: string; hint: string };
 export const stages: Stage[] = [
-  { id: "review", step: 1, label: "Review", owner: "engineer", to: "/review", hint: "Findings waiting for an engineer" },
-  { id: "schedule", step: 2, label: "Schedule", owner: "supervisor", to: "/plan", hint: "Confirmed, not yet scheduled" },
-  { id: "parts", step: 3, label: "Secure parts", owner: "logistics", to: "/parts", hint: "Scheduled, part not yet secured" },
-  { id: "ready", step: 4, label: "Ready for work", owner: "supervisor", to: "/plan", hint: "Scheduled with parts secured" },
+  { id: "review", step: 1, label: "Review", owner: "engineer", to: "/advisories?status=proposed", hint: "Findings waiting for an engineer" },
+  { id: "schedule", step: 2, label: "Schedule", owner: "supervisor", to: "/maintenance", hint: "Confirmed, not yet scheduled" },
+  { id: "parts", step: 3, label: "Secure parts", owner: "logistics", to: "/spares?view=requests", hint: "Scheduled, part not yet secured" },
+  { id: "ready", step: 4, label: "Record work", owner: "supervisor", to: "/maintenance#scheduled-work", hint: "Scheduled with parts secured" },
 ];
 
 export function stageOf(advisory: Advisory): Stage["id"] | null {

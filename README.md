@@ -8,18 +8,15 @@ PS 26249 is a local decision-workspace demonstrator connecting labelled componen
 
 ## Fleet-health workspace (docs/plan.md)
 
-The default entry is now the **fleet dashboard** (`/dashboard`) of a synthetic 40-aircraft, 7-system, 20-component-type fleet built from [`docs/plan.md`](docs/plan.md). It includes:
-- the dashboard, aircraft digital twins with a replay control, component health evidence and the predictive risk queue;
-- planning and work orders, spares intelligence and a Monte Carlo scenario simulator;
-- analytics with honest model-vs-baseline evaluation, data integration and alerts.
+The default entry is the **fleet dashboard** (`/dashboard`) for the labelled synthetic 40-aircraft fleet. The connected operations flow is **Aircraft → Findings & evidence → Maintenance → Spares & supply → recorded work → Overview**. Maintenance combines its work board, bays/timeline and work register; supply combines inventory forecasts and actual parts requests. Aircraft/component context follows the handoff links, with aggregate views explicitly identified.
 
-On first start the worker builds and verifies the engine bundle, which takes about 30 s. The C-MAPSS screens below remain available under **Engine RUL lab** in the sidebar. Design, substitutions and limitations: [ADR 0006](docs/decisions/0006-fleet-health-workspace.md).
+The separate **Research** menu opens engine evidence, the constraint planner, retained inventory/approvals, what-if comparisons and guided trials. Those records use their own dataset and cutoffs; fleet replay does not control them. The optional workflow guide is `/welcome`; it is not a mandatory entry screen. Design and limitations: [user flow](docs/product/user_flow.md), [site audit](docs/design/site_flow_audit.md), [ADR 0006](docs/decisions/0006-fleet-health-workspace.md).
+
+On first start the worker builds and verifies the fleet-health bundle. Missing records and unavailable model evidence remain explicit states.
 
 ## Current implemented boundary
 
-The default local entry now opens **Start**, with a concise offer and the flow **Review a component → Check maintenance options → Review approval & work**. Primary navigation is Start, Fleet and Planning; supporting tools are grouped under More tools. See the [defined user flow](docs/product/user_flow.md) for screen responsibilities, exception paths and implementation limits.
-
-The website now includes **AI & evidence** (`/ai`) and an explanation on the Fleet entry screen. It explains how supported sensor history becomes an engine-life estimate and how that evidence connects to alerts, constrained planning and simulated downtime. Component selection shows saved API evidence with quality and unavailable states. See [current project status and remaining work](docs/team/project_status.md) for the latest source audit; the original release remains incomplete.
+The interface connects recorded evidence, review, planning, supply and work history. It retains the engine research and customer-trial tools because their planner, exact approvals and saved simulations have distinct responsibilities. See [current project status and remaining work](docs/team/project_status.md); the original release remains incomplete.
 
 The repository currently provides:
 

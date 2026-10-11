@@ -45,3 +45,43 @@
 }
 @media (max-width: 1000px) { .bp-workspace { grid-template-columns: minmax(0,1fr) 230px; }.bp-drawing-footer { flex-wrap: wrap; }.bp-header { padding: 22px; }.bp-header h2 { font-size: 22px; }.bp-inspection-body { grid-template-columns: minmax(0,1fr) 240px; }.bp-part-evidence { padding: 20px; } }
 @media (max-width: 760px) { .bp-header { align-items: flex-start; flex-direction: column; gap: 12px; padding: 20px; }.bp-workspace { grid-template-columns: minmax(0,1fr); }.bp-toolbar { padding: 14px 12px 0; gap: 8px; }.bp-toolbar button { font-size: 10px; padding: 8px; }.bp-drawing-surface { aspect-ratio: auto; }.bp-drawing-footer { padding: 13px; font-size: 9px; }.bp-drawing-footer > div { gap: 10px; }.bp-register-list { position: static; max-height: 290px; }.bp-component-register > header { padding: 17px; }.bp-provenance { padding: 15px 20px; }.bp-inspection-dialog { width: calc(100vw - 24px); max-height: calc(100svh - 24px); }.bp-inspection-header { padding: 18px; align-items: flex-start; }.bp-inspection-header h2 { font-size: 21px; }.bp-inspection-body { grid-template-columns: 1fr; }.bp-part-stage { padding: 15px; }.bp-part-canvas { height: 250px; }.bp-part-evidence { border-left: 0; border-top: 1px solid #dce5ec; }.bp-part-evidence dl { grid-template-columns: 1fr 1fr; }.bp-part-toolbar button { font-size: 10px; padding: 8px; } }
+
+/* Cyanotype drafting sheet: restrained grid, distinct skin/structure line weights. */
+.aircraft-blueprint .bp-drawing-panel {
+  color: #d6ebfa;
+  background-color: #123e64;
+  background-image: linear-gradient(#9dcef00a 1px,transparent 1px),linear-gradient(90deg,#9dcef00a 1px,transparent 1px),linear-gradient(#9dcef018 1px,transparent 1px),linear-gradient(90deg,#9dcef018 1px,transparent 1px),radial-gradient(ellipse at 35% 30%,#255d8340,transparent 75%);
+  background-size: 20px 20px,20px 20px,100px 100px,100px 100px,100% 100%;
+}
+.aircraft-blueprint .bp-airframe { color: #c7e5f8; stroke-width: .85; }
+.bp-airframe .bp-outline { stroke: #edf8ff; stroke-width: 1.65; }
+.bp-airframe .bp-skin { fill: #acd9f5; fill-opacity: .035; stroke-width: 1.4; }
+.bp-airframe .bp-canopy { fill: #a8daf6; fill-opacity: .1; stroke-width: 1.2; }
+.bp-airframe .bp-internal { stroke: #95c4e4; opacity: .6; stroke-width: .65; }
+.bp-airframe .bp-centerline { stroke: #8db6d4; stroke-dasharray: 8 3 2 3; stroke-width: .6; }
+.bp-airframe .bp-dimension { stroke: #82afcc; stroke-width: .65; }
+.bp-sheet-frame { fill: none; stroke: #9cc8e443; stroke-width: .8; }
+.aircraft-blueprint .bp-view-labels { fill: #bdddf0; font-size: 8px; opacity: 1; }
+.bp-title-block { stroke: #94bfdc; fill: none; stroke-width: .65; }
+.bp-title-block text { stroke: none; fill: #bad8ea; font: 7px "Roboto Mono",monospace; letter-spacing: .06em; }
+.aircraft-blueprint .bp-part-fill { fill-opacity: .10; stroke: #b6dfed; stroke-width: .95; }
+.aircraft-blueprint .bp-part-detail { stroke: #d1ebf8; }
+.aircraft-blueprint .bp-part-number { fill: #d5efff; font-size: 8px; }
+.aircraft-blueprint :is(.bp-assembly,.bp-side-assembly).is-alert .bp-part-fill { fill-opacity: .86; stroke: #ffc4c7; }
+.aircraft-blueprint :is(.bp-assembly,.bp-side-assembly).is-alert .bp-part-detail { stroke: #491923; }
+.aircraft-blueprint :is(.bp-assembly,.bp-side-assembly).is-alert .bp-part-number { fill: #ffb6ba; }
+.aircraft-blueprint :is(.bp-assembly,.bp-side-assembly):is(:hover,:focus-visible) .bp-part-fill { stroke: #fff; stroke-width: 2; fill-opacity: .4; }
+.aircraft-blueprint .bp-toolbar > div { background: #0c2b48a6; border-color: #a5d4f142; }
+.aircraft-blueprint .bp-toolbar button { color: #c9e5f7; }
+.aircraft-blueprint .bp-toolbar button[aria-pressed="true"] { background: #e5f3fc; color: #173d58; }
+.aircraft-blueprint .bp-toolbar .bp-filter { border-color: #a5d4f14d; }
+.aircraft-blueprint .bp-drawing-footer { color: #c7e3f4; border-color: #9bc8e630; }
+.aircraft-blueprint .bp-camera-toolbar button { color: #c7e3f4; border-color: #a5d4f14d; background: #0c2b48a6; }
+.aircraft-blueprint .bp-camera-toolbar button[aria-pressed="true"] { color: #173d58; background: #e5f3fc; }
+.bp-component-register { border-left: 1px solid #dce5ec; }
+.bp-register-list { scrollbar-width: thin; scrollbar-color: #bdcbd3 transparent; scrollbar-gutter: stable; }
+.aircraft-blueprint .bp-register-item { border-radius: 0; }
+/* Scale the drafting sheet with its available width, including wide desktops. */
+.aircraft-blueprint .bp-drawing-surface { height: auto; aspect-ratio: 1.5; }
+.aircraft-blueprint .bp-drawing-surface:has(.bp-spatial-scene) { height: clamp(380px,42vw,650px); aspect-ratio: auto; }
+@media(max-width:760px) { .aircraft-blueprint .bp-drawing-surface { height: 360px; aspect-ratio: auto; } }

@@ -1,12 +1,9 @@
-import { HeadingReplay } from "./ReplaySlider";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
-import { useSession } from "../access/SessionGate";
 import { addDays, dayDiff, useAsOf } from "./AsOf";
-import { useRescheduleWorkOrder, useSchedule, useUpdateWorkOrder, useWorkOrders, type PlannedWorkOrder, type Schedule } from "./api";
+import { useRescheduleWorkOrder, useSchedule, useWorkOrders, type PlannedWorkOrder, type Schedule } from "./api";
 import { BayFlow } from "./BayFlow";
-import { CannibalizeButton } from "./Cannibalize";
 import { availabilityLabel, longDate, num, pct, shortDate } from "./format";
 import { can, useRole } from "./roles";
 import { Card, EmptyState, Kpi, Modal, Pill, Query, Segmented, useToast } from "./ui";
@@ -19,24 +16,22 @@ export function MaintenancePage() {
   const schedule = useSchedule();
   const k = orders.data?.kpis as { backlog: { open_work_orders: number; man_hours: number; planned_from_advisories: number }; mean_turnaround_days: number; on_time_rate: number; closed_last_120_days: number } | undefined;
   return <>
-    <div className="o-screen-head"><h1>Maintenance Planning</h1><span>Bays · work orders · agency turnaround</span><Link className="o-btn sm" style={{ marginLeft: "auto" }} to="/advisories"><Icon name="plus" size={14}/>Plan from the risk queue</Link><HeadingReplay/></div>
     <div className="o-kpis">
       <Kpi label="Open backlog" icon="wrench" tone="degraded" value={k?.backlog.open_work_orders ?? null} format={v => v.toFixed(0)} detail={k ? `≈ ${num(k.backlog.man_hours)} man-hours outstanding` : undefined}/>
       <Kpi label="Planned from advisories" icon="calendar" tone="maint" value={k?.backlog.planned_from_advisories ?? null} format={v => v.toFixed(0)} detail="Predictive work orders"/>
       <Kpi label="Mean turnaround" icon="clock" tone="accent" value={k?.mean_turnaround_days ?? null} format={v => `${v.toFixed(1)} d`} detail={k ? `${k.closed_last_120_days} work orders closed in 120 days` : undefined}/>
       <Kpi label="On-time rate" icon="check" tone="healthy" value={k?.on_time_rate ?? null} format={v => pct(v)} detail="Closed by the agency’s promised date"/>
     </div>
-    <CannibalizeButton/>
     <Card title="Bay flow · now" subtitle="Each panel is a bay; lit cells show how far its job has run. Lines lead to the aircraft in the bay; amber lines are aircraft queued for a bay or a part. Click a bay for details.">
       <Query query={schedule} rows={8}>{data => <BayFlow data={data}/>}</Query>
     </Card>
     <Card title="Bay timeline · next 14 days" subtitle="One row per bay. Blue bars are planned from advisories; supervisors can drag them to another bay or day.">
       <Query query={schedule} rows={8}>{data => <Gantt data={data}/>}</Query>
     </Card>
-    <PlannedCard/>
-    <RecordedCard/>
   </>;
 }
+
+export function WorkRegister() { return <><PlannedCard/><RecordedCard/></>; }
 
 const WINDOW_DAYS = 15; // T0 … T+14
 
@@ -139,14 +134,6 @@ function RescheduleDialog({ work, agencies, t0, onClose, onSave }: { work: Plann
 
 function PlannedCard() {
   const orders = useWorkOrders();
-  const update = useUpdateWorkOrder();
-  const session = useSession();
-  const toast = useToast();
-  const allowed = ["planner", "supervisor", "administrator"].includes(session?.role ?? "");
-  const act = (order: PlannedWorkOrder, status: "in_progress" | "completed" | "cancelled") => update.mutate({ id: order.id, status, expected_version: order.version }, {
-    onSuccess: () => toast({ tone: "success", title: `${order.id} ${status.replace("_", " ")}` }),
-    onError: error => toast({ tone: "error", title: "Update failed", body: error.message }),
-  });
   return <Card title="Planned work orders" subtitle="Created from advisories. Each one reserves a spare and is included in every new simulation baseline.">
     <Query query={orders} rows={4}>{data => data.planned.length === 0 ? <EmptyState title="No planned work yet" icon="calendar">Schedule an advisory from the risk queue or a component page.</EmptyState> :
       <div className="o-table-wrap"><table className="o-table">
@@ -157,7 +144,7 @@ function PlannedCard() {
           <td>{order.agency_id}</td><td>{longDate(order.planned_start)}</td><td className="num">{order.duration_days} d</td>
           <td><span className={(impact.availability_pct_points ?? 0) >= 0 ? "o-tone-healthy" : "o-tone-critical"}>{(impact.availability_pct_points ?? 0) >= 0 ? "+" : ""}{(impact.availability_pct_points ?? 0).toFixed(2)} pts</span><small>{(impact.aircraft_days_lost ?? 0) > 0 ? "+" : ""}{(impact.aircraft_days_lost ?? 0).toFixed(1)} aircraft-days{impact.spare_waits ? " · waits for spare" : ""}</small></td>
           <td><Pill tone={order.status === "planned" ? "scheduled" : order.status === "in_progress" ? "accent" : order.status}>{order.status.replace("_", " ")}</Pill></td>
-          <td>{allowed && <div className="o-row-actions">{order.status === "planned" && <button type="button" className="o-btn sm ghost" onClick={() => act(order, "in_progress")}>Start</button>}{order.status === "in_progress" && <button type="button" className="o-btn sm success" onClick={() => act(order, "completed")}>Complete</button>}{["planned", "in_progress"].includes(order.status) && <button type="button" className="o-btn sm ghost" onClick={() => act(order, "cancelled")}>Cancel</button>}</div>}</td>
+          <td><Link className="o-link" to={`/maintenance?aircraft=${encodeURIComponent(order.aircraft)}`}>Manage work</Link></td>
         </tr>; })}</tbody>
       </table></div>}</Query>
   </Card>;

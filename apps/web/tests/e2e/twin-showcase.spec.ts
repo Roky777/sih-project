@@ -53,7 +53,7 @@ test("illustrative model, camera views and animated browsing keep aircraft recor
   await expect(stage.getByRole("heading", { level: 1 })).toContainText("AC-002");
   await expect(stage.locator(".twin-scene canvas")).toHaveAttribute("data-test-persistent", "yes");
   await expect(stage.locator("dl")).toContainText("9,000");
-  await page.getByText("Component records", { exact: false }).filter({ hasText: "Health, remaining life" }).click();
+  await page.getByRole("tab", { name: "Components", exact: true }).click();
   await expect(page.getByRole("link", { name: "View evidence", exact: true })).toHaveAttribute("href", "/health/AC-002-ENGINE");
   await stage.getByRole("button", { name: "Previous aircraft", exact: true }).press("ArrowUp");
   await expect(page).toHaveURL(/\/aircraft\/AC-001$/);
@@ -103,7 +103,7 @@ test("unavailable model leaves aircraft data and evidence navigation usable", as
   const stage = page.getByRole("region", { name: "Aircraft digital twin showcase" });
   await expect(stage.getByText(/3D view unavailable/)).toBeVisible();
   await expect(stage.locator("dl")).toContainText("8,000");
-  await page.getByText("Component records", { exact: false }).filter({ hasText: "Health, remaining life" }).click();
+  await page.getByRole("tab", { name: "Components", exact: true }).click();
   await expect(page.getByRole("link", { name: "View evidence", exact: true })).toHaveAttribute("href", "/health/AC-001-ENGINE");
   await page.screenshot({ path: info.outputPath("twin-fallback.png"), fullPage: true });
 });

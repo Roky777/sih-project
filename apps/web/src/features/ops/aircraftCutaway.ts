@@ -33,7 +33,10 @@ export function createAircraftCutaway(source: Group, components: ArchitectureCom
     const engine = ["compressor", "turbine"].includes(component.layout.kind);
     const actuator = ["actuator", "strut"].includes(component.layout.kind);
     const scale = engine ? .48 : actuator ? .25 : ["brake", "tyre"].includes(component.layout.kind) ? .30 : .18;
-    model.scale.setScalar(scale); model.rotation.y = Math.PI / 2;
+    model.scale.setScalar(scale);
+    // Wheel structures already use a transverse X axle. Keep their Y/Z rolling
+    // plane aligned with the authored landing gear rather than turning it 90°.
+    if (!["brake", "tyre"].includes(component.layout.kind)) model.rotation.y = Math.PI / 2;
     if (component.layout.kind === "strut") model.rotation.z = Math.PI / 2;
     model.position.set(...component.layout.position);
     model.name = component.name;

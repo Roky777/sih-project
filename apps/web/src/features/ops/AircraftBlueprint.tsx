@@ -2,7 +2,7 @@ import { Component, Suspense, lazy, useMemo, useRef, useState, type ReactNode } 
 import * as Dialog from "@radix-ui/react-dialog";
 import { Link } from "react-router-dom";
 import type { AircraftDetail } from "./api";
-import { architectureColor, architectureComponents, structureLabels } from "./componentArchitecture";
+import { architectureComponents, structureLabels } from "./componentArchitecture";
 import { num, pct, rulText, shortDate, stateLabel } from "./format";
 import { Icon } from "../../shared/ui/Icon";
 import { BlueprintDrawing } from "./BlueprintDrawing";
@@ -30,7 +30,7 @@ export function AircraftBlueprint({ data }: { data: AircraftDetail }) {
   const visible = useMemo(() => components.filter(item => !findingsOnly || item.attention), [components, findingsOnly]);
   const select = (id: string) => { lastSelection.current = id; setSelectedId(id); setMode("assembled"); setReset(0); };
   return <section className="aircraft-blueprint" aria-label="Aircraft component blueprint" id="aircraft-blueprint">
-    <header className="bp-header"><div><span className="bp-eyebrow">AIRFRAME / COMPONENT INSPECTION</span><h2>Aircraft blueprint</h2><p>{String(data.aircraft.id)} · {shortDate(data.as_of)} · Select a component to inspect its structure and condition.</p></div><span className={`bp-finding-count${!components.length ? " is-unavailable" : findings ? " has-findings" : ""}`}><Icon name={findings ? "warning" : "aircraft"} size={16}/>{!components.length ? "Component records unavailable" : findings ? `${findings} condition ${findings === 1 ? "finding" : "findings"}` : "No condition findings"}</span></header>
+    <header className="bp-header"><div><span className="bp-eyebrow">AIRFRAME / COMPONENT INSPECTION</span><h2>Aircraft blueprint</h2><p>Select a component to inspect its structure and condition.</p></div><span className={`bp-finding-count${!components.length ? " is-unavailable" : findings ? " has-findings" : ""}`}><Icon name={findings ? "warning" : "aircraft"} size={16}/>{!components.length ? "Component records unavailable" : findings ? `${findings} condition ${findings === 1 ? "finding" : "findings"}` : "No condition findings"}</span></header>
     <div className="bp-workspace">
       <div className="bp-drawing-panel">
         <div className="bp-toolbar"><div role="group" aria-label="Blueprint view">{(["drawing", "spatial"] as const).map(item => <button key={item} type="button" aria-pressed={view === item} onClick={() => setView(item)}>{item === "drawing" ? "Blueprint" : "3D architecture"}</button>)}</div><button type="button" className="bp-filter" aria-pressed={findingsOnly} onClick={() => setFindingsOnly(value => !value)}>Findings only</button></div>
@@ -48,7 +48,7 @@ export function AircraftBlueprint({ data }: { data: AircraftDetail }) {
       </div>
       <aside className="bp-component-register" aria-label="Blueprint component register"><header><h3>Component register</h3><span>{visible.length} / {components.length}</span></header><div className="bp-register-list">
         {visible.map(item => <button type="button" key={item.id} onClick={() => select(item.id)} className={`bp-register-item${item.attention ? " has-finding" : ""}`} data-component-id={item.id} data-attention={item.attention}>
-          <span className="bp-number" style={{ color: architectureColor(item) }}>{String(components.indexOf(item) + 1).padStart(2, "0")}</span><span><strong>{item.name}</strong><small>{item.system} · {stateLabel[item.state]}</small></span><Icon name="chevron" size={14}/>
+          <span className="bp-number" style={{ color: item.attention ? "#bf3344" : item.state === "under_maintenance" ? "#287aab" : "#477969" }}>{String(components.indexOf(item) + 1).padStart(2, "0")}</span><span><strong>{item.name}</strong><small>{item.system} · {stateLabel[item.state]}</small></span><Icon name="chevron" size={14}/>
         </button>)}
         {!visible.length && <p className="bp-empty">{components.length && findingsOnly ? "No condition findings in this snapshot. Turn off Findings only to inspect all components." : "No component records available for this aircraft."}</p>}
       </div></aside>

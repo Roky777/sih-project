@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 
 // Read-only layout checks against the selected local synthetic demonstration.
-const routes = ["/dashboard", "/aircraft", "/aircraft/AC-001", "/component-health", "/advisories", "/maintenance", "/spares", "/simulator", "/review", "/plan", "/parts", "/status", "/notifications", "/analytics", "/data", "/welcome", "/fleet/register", "/planning", "/inventory", "/scenarios", "/ai"];
+const routes = ["/dashboard", "/aircraft", "/aircraft/AC-001", "/component-health", "/advisories", "/maintenance", "/spares", "/simulator", "/review", "/plan", "/parts", "/status", "/notifications", "/analytics", "/data", "/welcome", "/fleet/register", "/planning", "/inventory", "/scenarios", "/ai", "/alerts", "/research", "/demo", "/fleet"];
 
 for (const [width, height] of [[1440, 900], [390, 844]] as const) {
-  test(`workspace layout audit at ${width}px`, async ({ page }, info) => {
+  test(`workspace layout audit at ${width}px`, async ({ page, request }, info) => {
     test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
     test.setTimeout(120_000);
     await page.setViewportSize({ width, height });
@@ -12,7 +12,12 @@ for (const [width, height] of [[1440, 900], [390, 844]] as const) {
     const errors: string[] = [];
     const findings: unknown[] = [];
     page.on("pageerror", error => errors.push(error.message));
-    for (const route of routes) {
+    const fleetResponse = await request.get("/api/fleet");
+    expect(fleetResponse.ok()).toBe(true);
+    const engineFleet = await fleetResponse.json();
+    const component = engineFleet.flatMap((aircraft: { component_ids: string[] }) => aircraft.component_ids)[0];
+    expect(component).toBeTruthy();
+    for (const route of [...routes, `/components/${encodeURIComponent(component)}`]) {
       await page.goto(route);
       await expect(page.locator("main h1").first(), route).toBeVisible({ timeout: 30_000 });
       await page.waitForTimeout(500); // Let responsive charts and record layout settle.
@@ -51,12 +56,12 @@ test("spares sections have consistent spacing at laptop and tablet widths", asyn
   for (const width of [1366, 900]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/spares");
-    await expect(page.getByRole("heading", { name: "Spares Inventory", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Spares & supply", exact: true })).toBeVisible();
+    await expect(page.locator("main .o-kpis").first()).toBeVisible();
     const metrics = await page.evaluate(() => {
-      const head = document.querySelector(".o-screen-head")!.getBoundingClientRect();
-      const kpis = document.querySelector("main > .o-kpis")!.getBoundingClientRect();
-      const charts = document.querySelector("main > .o-grid")!.getBoundingClientRect();
-      return { headGap: kpis.top - head.bottom, chartGap: charts.top - kpis.bottom, overflow: document.documentElement.scrollWidth - innerWidth };
+      const kpis = document.querySelector("main .o-kpis")!.getBoundingClientRect();
+      const charts = document.querySelector("main .o-grid")!.getBoundingClientRect();
+      return { headGap: kpis.top - document.querySelector(".operations-workspace > .o-segmented")!.getBoundingClientRect().bottom, chartGap: charts.top - kpis.bottom, overflow: document.documentElement.scrollWidth - innerWidth };
     });
     expect(metrics.headGap).toBeGreaterThanOrEqual(19);
     expect(metrics.chartGap).toBeGreaterThanOrEqual(19);
