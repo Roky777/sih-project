@@ -135,3 +135,16 @@ This supersedes the enterprise shell geometry and the dark default described abo
 ## Presentation consolidation — 11 October 2026
 
 The historical role-route and navbar descriptions above are superseded by the [canonical user flow](../product/user_flow.md). `/review`, `/plan`, `/parts` and `/status` redirect to the findings queue, maintenance work board, supply requests and dashboard grounding detail, retaining selection. One navigation inventory contains Operations, More and Research. Fleet operations and engine research retain their independent record semantics; no engine data/API/scientific decision is changed by this consolidation. See [site audit](../design/site_flow_audit.md).
+
+## Addendum 2026-10-11: mixed synthetic fleet and generated blueprints
+
+- **Fleet mix.** The synthetic fleet is no longer one generic type. `engine.py` labels every five tails as three light combat aircraft, one advanced jet trainer and one medium transport (`FLEET_TYPES`), using class labels only. The labels do not change the simulation, the models or the decisions; they choose each tail's visual model, cutaway and blueprint. The web client mirrors the order (`airframeForIndex`) so that bundles made before this change still show a consistent mix.
+- **Per-airframe architecture.** Component installation zones are defined per airframe in metres (`AIRFRAMES[*].layouts`); the cutaway internals are derived from each airframe's geometry.
+- **Blueprint.** The hand-drawn fighter sheet is replaced by a sheet generated from the airframe definition (three views to stated scales, dimensions, stations, title block, callouts). It is a public-data approximation and is labelled "not for manufacture".
+
+**2026-10-12 update.** Two more classes were added (heavy multirole fighter, utility helicopter). The fleet now repeats a ten-tail cycle: 4 light combat aircraft, 2 trainers, 2 transports, 1 heavy fighter and 1 helicopter (`FLEET_TYPES` / `FLEET_CYCLE`). The cycle keeps every tail that was already a trainer or transport in that class. Aircraft browsing on the aircraft page is now sideways (horizontal swipe, shift + wheel, ← → keys, left/right buttons); vertical scrolling only scrolls the page. The transport model was rebuilt: a radome/fuselage gap was fixed, and it gained framed glazing, winglets, refined nacelles and composite propellers.
+
+
+## Addendum 2026-10-12: AI Maintenance Copilot
+
+An optional, isolated assistant (`services/assistant/`, `api/routes/assistant.py`, `apps/web/src/features/assistant/`) explains fleet data through allowlisted tools that wrap the existing services. Qwen3-8B via Ollama is the configurable default model. Calculations remain with the existing engine, decisions overlay and Simulator; the model interprets questions and explains results. It has no write access to records. What-if runs are separate Simulator scenarios. Approval of any proposal stays in the existing workflow and is not flight clearance. `FLEET_ASSISTANT_ENABLED=false` restores the previous experience. Details, configuration and limits: `docs/operations/ai_copilot.md`.

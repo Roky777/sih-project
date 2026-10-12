@@ -36,6 +36,12 @@ services:
       FLEET_DATABASE_URL: postgresql+psycopg://fleet:fleet@postgres:5432/fleet
       FLEET_BROKER_URL: amqp://fleet:fleet@rabbitmq:5672//
       FLEET_ARTIFACT_ROOT: /var/lib/fleet-maintenance/artifacts
+      # AI Maintenance Copilot: Ollama on the host machine (server-side only).
+      FLEET_ASSISTANT_ENABLED: ${FLEET_ASSISTANT_ENABLED:-true}
+      FLEET_ASSISTANT_OLLAMA_URL: ${FLEET_ASSISTANT_OLLAMA_URL:-http://host.docker.internal:11434}
+      FLEET_ASSISTANT_MODEL: ${FLEET_ASSISTANT_MODEL:-qwen3:8b}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: ["sh", "-c", "alembic upgrade head && uvicorn fleet_maintenance.main:app --host 0.0.0.0 --port 8000"]
     depends_on:
       postgres: { condition: service_healthy }

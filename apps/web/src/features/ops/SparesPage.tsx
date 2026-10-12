@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ExplainWithAI } from "../assistant/AssistantPanel";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
 import { useAdvisories, useDemand, useInventory, type Advisory, type InventoryItem } from "./api";
@@ -122,6 +123,7 @@ function PartDrawer({ part, onClose, item }: { part: string | null; onClose: () 
           { name: "Baseline", type: "line", data: series.map(s => Number(s.baseline_moving_average.toFixed(2))), lineStyle: { color: p.muted, type: "dashed" }, itemStyle: { color: p.muted } }],
       })}/>
       <Link className="o-btn ghost" style={{ marginTop: 14 }} to={`/simulator?kind=spare_unavailable&part=${part}`}><Icon name="sliders" size={15}/>Simulate this part unavailable</Link>
+      {part && <div style={{ marginTop: 10 }}><ExplainWithAI selection={{ part_number: part }} question="Explain this spare's risk and which planned work depends on it."/></div>}
     </>}
   </Drawer>;
 }

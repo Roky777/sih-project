@@ -1,4 +1,5 @@
 import { lazy, Suspense, type ReactNode } from "react";
+import { AssistantProvider } from "../features/assistant/AssistantProvider";
 import { createBrowserRouter, createHashRouter, Link, Navigate, useLocation, useRouteError } from "react-router-dom";
 import { SessionGate } from "../features/access/SessionGate";
 import { AsOfProvider } from "../features/ops/AsOf";
@@ -48,7 +49,7 @@ function RouteFailure() {
 const loading = <div className="async-state loading-state" role="status"><span className="spinner"/><strong>Opening workspace…</strong></div>;
 const createRouter = import.meta.env.VITE_PAGES === 'true' ? createHashRouter : createBrowserRouter;
 const page = (element: ReactNode) => <Suspense fallback={loading}>{element}</Suspense>;
-export const router = createRouter([{ path:"/", element:<SessionGate><RoleProvider><AsOfProvider><ToastProvider><OpsLayout/></ToastProvider></AsOfProvider></RoleProvider></SessionGate>, errorElement:<RouteFailure/>, children:[
+export const router = createRouter([{ path:"/", element:<SessionGate><RoleProvider><AsOfProvider><ToastProvider><AssistantProvider><OpsLayout/></AssistantProvider></ToastProvider></AsOfProvider></RoleProvider></SessionGate>, errorElement:<RouteFailure/>, children:[
   { index:true, element:import.meta.env.VITE_PAGES === 'true' ? <Navigate to="/demo" replace/> : page(<HomeRedirect/>) },
   { path:"home", element:page(<HomeRedirect/>) },
   { path:"welcome", element:page(<WelcomePage/>) },

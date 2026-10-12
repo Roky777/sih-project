@@ -114,3 +114,6 @@
 :root[data-theme="dark"] .o-twin-atmosphere :is(.twin-eyebrow,.twin-heading h1 span,.twin-stats dt,.twin-stats dd small,.twin-browse small) { color: #b5c9c1; }
 :root[data-theme="dark"] .o-twin-atmosphere .twin-views::before { color: #b5c9c1; }
 :root[data-theme="dark"] .o-twin-atmosphere .twin-details { color: #edf4f2; border-color: #b5c9c1; }
+/* Sideways browsing: previous / next sit side by side. */
+.twin-browse { flex-direction: row; align-items: center; }
+.twin-browse > span { margin: 0 0 0 6px; }

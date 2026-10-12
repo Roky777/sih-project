@@ -393,3 +393,14 @@ i.t-plan { background: var(--o-accent-2); } i.t-crit { background: var(--o-criti
 }
 .o-mobile-nav-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 14px 0 22px; }
 .o-mobile-nav-head strong { font-size: 17px; font-weight: 600; letter-spacing: -.3px; }
+
+/* Backdrop band behind the floating header: repeats the page canvas (same fixed gradients)
+   so scrolled content is hidden above and around the header rather than showing through. */
+.o-header-backdrop { position: fixed; inset: 0 0 auto 0; height: 104px; z-index: 39; pointer-events: none; opacity: 0; transition: opacity .18s ease;
+  background: radial-gradient(ellipse 65vw 110vh at 0% 0%, var(--o-glow-1), transparent 72%),
+    radial-gradient(ellipse 55vw 100vh at 0% 75%, var(--o-glow-lime), transparent 75%),
+    radial-gradient(900px 520px at 100% 0%, var(--o-glow-2), transparent 60%), var(--o-bg);
+  background-attachment: fixed;
+  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent); mask-image: linear-gradient(to bottom, #000 82%, transparent); }
+.o-shell.is-scrolled .o-header-backdrop { opacity: 1; }
+@media (max-width: 760px) { .o-header-backdrop { height: 84px; } }

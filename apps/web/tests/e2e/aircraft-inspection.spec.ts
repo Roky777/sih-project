@@ -6,6 +6,7 @@ async function fixture(page:Page){
   if(path==='/api/events')return route.fulfill({contentType:'text/event-stream',body:': test\n\n'});
   if(path==='/api/access/session')return route.fulfill({json:{id:'test-supervisor',role:'supervisor',authentication:'demonstration header',csrf_token:null}});
   if(path==='/api/health/ready')return route.fulfill({json:{status:'ready',database:'ok'}});
+  if(path==='/api/assistant/status')return route.fulfill({json:{enabled:false,available:false,model:null,detail:'off',can_run_scenarios:false}});
   if(path==='/api/fleet')return route.fulfill({json:fleet});
   if(path==='/api/alerts')return route.fulfill({json:[]});
   // Labelled fixture for the shared workspace navbar, also present on research routes.

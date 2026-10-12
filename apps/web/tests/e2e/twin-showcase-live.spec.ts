@@ -7,14 +7,14 @@ test("authored fighter replaces the transport and renders each camera view", asy
   const assets: string[] = [];
   page.on("request", request => { if (request.url().endsWith(".glb")) assets.push(request.url()); });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/aircraft/AC-026");
+  await page.goto("/aircraft/AC-027"); // a light-combat-aircraft tail in the fleet mix
   const stage = page.getByRole("region", { name: "Aircraft digital twin showcase" });
   await expect(stage.locator(".twin-scene canvas")).toBeVisible();
   await expect(stage.getByText("Loading aircraft model…")).toHaveCount(0);
   await expect(stage.getByText(/3D view unavailable/)).toHaveCount(0);
   await expect(stage.getByText("Tejas-inspired visual · Not engineering-validated", { exact: true })).toHaveCount(0);
   await expect(stage.locator(".twin-caption")).toHaveCount(0);
-  await expect(stage.getByText("Tejas-inspired fighter · Visual model")).toBeVisible();
+  await expect(stage.getByText("Tejas-class light fighter · 1:1 visual model")).toBeVisible();
   expect(assets.some(url => url.endsWith("/models/tejas-visual.glb"))).toBe(true);
   expect(assets.some(url => url.endsWith("/models/aircraft.glb"))).toBe(false);
   const response = await page.request.get("/models/tejas-visual.glb");

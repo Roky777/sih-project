@@ -592,3 +592,56 @@ class CannibalizeStrategyResponse(BaseModel):
     days_with_blocked_aircraft: list[str]
     method: str
     assumptions: list[str]
+
+
+class AssistantMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=4000)
+
+
+class AssistantContext(BaseModel):
+    as_of: date | None = None
+    aircraft_id: str | None = Field(default=None, pattern=r"^AC-\d{3}$")
+    component_id: str | None = Field(default=None, max_length=40)
+    advisory_id: str | None = Field(default=None, max_length=80)
+    part_number: str | None = Field(default=None, max_length=20)
+    scenario_id: str | None = Field(default=None, max_length=40)
+
+
+class AssistantChatRequest(BaseModel):
+    messages: list[AssistantMessage] = Field(min_length=1, max_length=30)
+    context: AssistantContext = AssistantContext()
+
+
+class AssistantToolCall(BaseModel):
+    name: str
+    arguments: dict[str, Any]
+    ok: bool
+    error: str | None = None
+
+
+class AssistantCitation(BaseModel):
+    id: str
+    kind: str
+    label: str
+    href: str
+    cited: bool = False
+
+
+class AssistantChatResponse(BaseModel):
+    reply: str
+    tool_calls: list[AssistantToolCall]
+    artifacts: list[dict[str, Any]]
+    citations: list[AssistantCitation]
+    warnings: list[str]
+    context: AssistantContext
+    model: str
+    data_label: str
+
+
+class AssistantStatusResponse(BaseModel):
+    enabled: bool
+    available: bool
+    model: str | None
+    detail: str
+    can_run_scenarios: bool

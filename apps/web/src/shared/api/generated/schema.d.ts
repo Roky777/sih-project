@@ -1323,6 +1323,40 @@ export interface paths {
         patch: operations["reschedule_work_order_api_fleet_health_work_orders__work_order_id__schedule_patch"];
         trace?: never;
     };
+    "/api/assistant/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status */
+        get: operations["status_api_assistant_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Chat */
+        post: operations["chat_api_assistant_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1655,6 +1689,100 @@ export interface components {
             input_version: string;
             /** Quality Findings */
             quality_findings: components["schemas"]["QualityFindingResponse"][];
+        };
+        /** AssistantChatRequest */
+        AssistantChatRequest: {
+            /** Messages */
+            messages: components["schemas"]["AssistantMessage"][];
+            /** @default {} */
+            context: components["schemas"]["AssistantContext"];
+        };
+        /** AssistantChatResponse */
+        AssistantChatResponse: {
+            /** Reply */
+            reply: string;
+            /** Tool Calls */
+            tool_calls: components["schemas"]["AssistantToolCall"][];
+            /** Artifacts */
+            artifacts: {
+                [key: string]: unknown;
+            }[];
+            /** Citations */
+            citations: components["schemas"]["AssistantCitation"][];
+            /** Warnings */
+            warnings: string[];
+            context: components["schemas"]["AssistantContext"];
+            /** Model */
+            model: string;
+            /** Data Label */
+            data_label: string;
+        };
+        /** AssistantCitation */
+        AssistantCitation: {
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /** Href */
+            href: string;
+            /**
+             * Cited
+             * @default false
+             */
+            cited: boolean;
+        };
+        /** AssistantContext */
+        AssistantContext: {
+            /** As Of */
+            as_of?: string | null;
+            /** Aircraft Id */
+            aircraft_id?: string | null;
+            /** Component Id */
+            component_id?: string | null;
+            /** Advisory Id */
+            advisory_id?: string | null;
+            /** Part Number */
+            part_number?: string | null;
+            /** Scenario Id */
+            scenario_id?: string | null;
+        };
+        /** AssistantMessage */
+        AssistantMessage: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Content */
+            content: string;
+        };
+        /** AssistantStatusResponse */
+        AssistantStatusResponse: {
+            /** Enabled */
+            enabled: boolean;
+            /** Available */
+            available: boolean;
+            /** Model */
+            model: string | null;
+            /** Detail */
+            detail: string;
+            /** Can Run Scenarios */
+            can_run_scenarios: boolean;
+        };
+        /** AssistantToolCall */
+        AssistantToolCall: {
+            /** Name */
+            name: string;
+            /** Arguments */
+            arguments: {
+                [key: string]: unknown;
+            };
+            /** Ok */
+            ok: boolean;
+            /** Error */
+            error?: string | null;
         };
         /** Attribution */
         Attribution: {
@@ -6121,6 +6249,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlannedWorkOrderResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    status_api_assistant_status_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string;
+                "x-demo-role"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantStatusResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chat_api_assistant_chat_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string;
+                "x-demo-role"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantChatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantChatResponse"];
                 };
             };
             /** @description Validation Error */

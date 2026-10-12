@@ -7,6 +7,7 @@ import { useAsOf } from "./AsOf";
 import { fetchAircraftDetail, useAircraftList, type AircraftDetail } from "./api";
 import { availabilityLabel, num, rulText, shortDate, stateLabel, stateRank } from "./format";
 import "./twin-showcase.css";
+import { airframeOf } from "./airframes";
 import { FlowGrid } from "./FlowGrid";
 import type { FlowSignal } from "./elasticGridMath";
 
@@ -19,7 +20,7 @@ class StudioBoundary extends Component<{ children: ReactNode }, { failed: boolea
   render() { return this.state.failed ? <StudioPoster failed/> : this.props.children; }
 }
 export function StudioPoster({ failed = false }: { failed?: boolean }) {
-  return <div className="twin-poster"><img src={`${import.meta.env.BASE_URL}models/fighter-poster.svg`} alt="Illustrative delta-wing fighter silhouette"/>
+  return <div className="twin-poster"><img src={`${import.meta.env.BASE_URL}models/fighter-poster.svg`} alt="Illustrative aircraft silhouette"/>
     <span role="status">{failed ? "3D view unavailable · Aircraft records remain available below" : "Preparing aircraft model…"}</span></div>;
 }
 function recordNumber(data: AircraftDetail, field: string) {
@@ -103,19 +104,33 @@ export function TwinShowcase({ data, onExploreBlueprint }: { data: AircraftDetai
     const surface = stage.current?.querySelector(".twin-scene");
     if (!surface) return;
     let distance = 0, lastWheel = 0;
+    // Sideways browsing only: a horizontal trackpad swipe (or shift + wheel) changes aircraft;
+    // ordinary vertical scrolling is left alone so the page scrolls normally.
     const wheel = (raw: Event) => {
       const event = raw as WheelEvent;
-      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+      const sideways = event.shiftKey ? event.deltaY || event.deltaX : event.deltaX;
+      if (event.ctrlKey || !sideways || (!event.shiftKey && Math.abs(event.deltaX) <= Math.abs(event.deltaY))) return;
       event.preventDefault();
       if (locked.current) { distance = 0; return; }
       const now = performance.now();
       if (now - lastWheel > 250) distance = 0;
       lastWheel = now;
-      distance += event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1);
+      distance += sideways * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1);
       if (Math.abs(distance) > 70) { browse.current(Math.sign(distance)); distance = 0; }
     };
+    // Touch: a quick horizontal swipe on the stage (outside the orbitable canvas) browses.
+    const host = stage.current!;
+    let start: { x: number; y: number; t: number } | null = null;
+    const down = (event: TouchEvent) => { const target = event.target as Element; start = event.touches.length === 1 && !target.closest("canvas, button, select, a, [role=dialog]") ? { x: event.touches[0].clientX, y: event.touches[0].clientY, t: performance.now() } : null; };
+    const up = (event: TouchEvent) => {
+      if (!start || locked.current) return;
+      const dx = event.changedTouches[0].clientX - start.x, dy = event.changedTouches[0].clientY - start.y;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && performance.now() - start.t < 600) browse.current(dx < 0 ? 1 : -1);
+      start = null;
+    };
     surface.addEventListener("wheel", wheel, { passive: false });
-    return () => surface.removeEventListener("wheel", wheel);
+    host.addEventListener("touchstart", down, { passive: true }); host.addEventListener("touchend", up);
+    return () => { surface.removeEventListener("wheel", wheel); host.removeEventListener("touchstart", down); host.removeEventListener("touchend", up); };
   }, []);
   const shown = motion?.next ?? data;
   const shownId = String(shown.aircraft.id);
@@ -126,18 +141,18 @@ export function TwinShowcase({ data, onExploreBlueprint }: { data: AircraftDetai
   return <section ref={stage} className={`twin-showcase${motion ? " is-changing" : ""}`} aria-label="Aircraft digital twin showcase" aria-busy={Boolean(pending)}
     onKeyDown={event => {
       if (event.target instanceof HTMLElement && ["INPUT", "SELECT", "TEXTAREA"].includes(event.target.tagName)) return;
-      if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); step(event.key === "ArrowDown" ? 1 : -1); }
+      if (event.key === "ArrowRight" || event.key === "ArrowLeft") { event.preventDefault(); step(event.key === "ArrowRight" ? 1 : -1); }
     }}>
     <div className="twin-masthead"><span><Icon name="aircraft" size={19}/> DIGITAL TWIN</span>
       <label className="twin-picker"><span className="sr-only">Select aircraft twin</span><select value={id} disabled={Boolean(pending) || !rows.length} onChange={event => void changeAircraft(event.target.value, rows.findIndex(row => row.id === event.target.value) >= number ? 1 : -1)}>{rows.length ? rows.map(row => <option key={row.id} value={row.id}>{row.id}</option>) : <option>{id}</option>}</select></label>
     </div>
     <div className="twin-heading" key={shownId}>
-      <div><span className="twin-eyebrow">{base} <i>·</i> Synthetic aircraft record</span><h1>{shownId}<span>Tejas-inspired fighter · Visual model</span></h1></div>
+      <div><span className="twin-eyebrow">{base} <i>·</i> Synthetic aircraft record</span><h1>{shownId}<span>{airframeOf(shown.aircraft as { id?: unknown; type?: unknown }).subtitle}</span></h1></div>
       <div className="twin-condition"><strong><i className={`twin-dot state-${shown.state}`}/>{stateLabel[shown.state]}</strong><span>{availabilityLabel[shown.availability_state] ?? shown.availability_state}</span><small>{shown.replay ? "Replay" : "Snapshot"} · {shortDate(shown.as_of)}</small></div>
     </div>
     <div className="twin-floor"/>
     <FlowGrid stage={stage} pose={flowPose} reduced={reduced} paused={evidenceOpen}/>
-    <div className="twin-scene" aria-label="Interactive aircraft model"><StudioBoundary><Suspense fallback={<StudioPoster/>}><Studio motion={motion} view={view} viewRevision={viewRevision} onOrbit={onOrbit} reduced={reduced} flowPose={flowPose}/></Suspense></StudioBoundary></div>
+    <div className="twin-scene" aria-label="Interactive aircraft model"><StudioBoundary><Suspense fallback={<StudioPoster/>}><Studio model={airframeOf(data.aircraft as { id?: unknown; type?: unknown }).model} motion={motion} view={view} viewRevision={viewRevision} onOrbit={onOrbit} reduced={reduced} flowPose={flowPose}/></Suspense></StudioBoundary></div>
     <div className="twin-controls">
     <div className="twin-views" role="group" aria-label="Aircraft camera views">{(["front", "perspective", "profile", "top"] as const).map(name => <button type="button" key={name} aria-pressed={!manualView && view === name} disabled={Boolean(pending)} onClick={() => { setView(name); setManualView(false); setViewRevision(value => value + 1); }}>{name === "front" ? "Front view" : name === "perspective" ? "3/4 view" : name === "profile" ? "Side view" : "Top view"}</button>)}</div>
     <aside className="twin-evidence" aria-label="Selected aircraft component condition">
@@ -152,13 +167,13 @@ export function TwinShowcase({ data, onExploreBlueprint }: { data: AircraftDetai
         <p>{component.system}</p><div className="twin-component-values"><span>Health index <b>{num(component.hi)}<small>/100</small></b></span><span>Remaining life <b>{rulText(component.rul)}</b></span></div><span className="twin-evidence-link">View evidence <Icon name="arrow" size={14}/></span>
       </Link>)}</div>
       {!components.length && <p className="twin-evidence-empty">Component records unavailable.</p>}
-      <details className="twin-model-source"><summary>Illustrative fighter · accuracy limits</summary><p>Authored Tejas-inspired geometry, not engineering-validated CAD or the selected aircraft's verified airframe. Cockpit, intakes, exhaust, gear and surface details are visual approximations. Component records are not physical installation mappings. Synthetic records are not airworthiness evidence.</p></details>
+      <details className="twin-model-source"><summary>Model accuracy and limits</summary><p>{airframeOf(shown.aircraft as { id?: unknown; type?: unknown }).basis}</p></details>
       </div>
       <footer className="twin-panel-footer"><button type="button" onClick={() => { setEvidenceOpen(false); if (onExploreBlueprint) onExploreBlueprint(); else document.getElementById("aircraft-blueprint")?.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" }); }}>Explore aircraft blueprint <Icon name="arrow" size={16}/></button></footer>
       </Dialog.Content></Dialog.Portal></Dialog.Root>
     </aside>
     </div>
-    <div className="twin-browse" aria-label="Browse aircraft"><button type="button" aria-label="Previous aircraft" disabled={Boolean(pending) || rows.length < 2} onClick={() => step(-1)}><Icon name="arrow" size={22} style={{ transform: "rotate(-90deg)" }}/></button><button type="button" className="twin-next" aria-label="Next aircraft" disabled={Boolean(pending) || rows.length < 2} onClick={() => step(1)}><Icon name="arrow" size={22} style={{ transform: "rotate(90deg)" }}/></button><span>{String(number + 1).padStart(2, "0")}<small>/ {String(rows.length).padStart(2, "0")}</small></span></div>
+    <div className="twin-browse" aria-label="Browse aircraft"><button type="button" aria-label="Previous aircraft" disabled={Boolean(pending) || rows.length < 2} onClick={() => step(-1)}><Icon name="arrow" size={22} style={{ transform: "rotate(180deg)" }}/></button><button type="button" className="twin-next" aria-label="Next aircraft" disabled={Boolean(pending) || rows.length < 2} onClick={() => step(1)}><Icon name="arrow" size={22}/></button><span>{String(number + 1).padStart(2, "0")}<small>/ {String(rows.length).padStart(2, "0")}</small></span></div>
     <div className="twin-stats" key={`stats-${shownId}`}>
       <dl><div><dt>Flight hours</dt><dd>{recordNumber(shown, "total_flight_hours")}<small>FH</small></dd></div><div><dt>Total cycles</dt><dd>{recordNumber(shown, "total_cycles")}</dd></div><div><dt>Health index</dt><dd>{num(shown.health_index)}<small>/ 100</small></dd></div><div><dt>Open advisories</dt><dd>{active.toString().padStart(2, "0")}</dd></div></dl>
       <button type="button" className="twin-details" disabled={Boolean(pending)} onClick={() => { if (onExploreBlueprint) onExploreBlueprint(); else document.getElementById("aircraft-blueprint")?.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" }); }}>Explore blueprint <Icon name="arrow" size={22}/></button>

@@ -15,6 +15,8 @@ services:
       FLEET_ENVIRONMENT: tunnel_demo
       FLEET_COOKIE_SAMESITE: strict
       FLEET_ALLOW_SIGNUP: "true"
+      # No model service is deployed on EC2; keep the existing experience unchanged.
+      FLEET_ASSISTANT_ENABLED: "false"
   worker:
     environment: *aws_demo_environment
     command: [celery, -A, fleet_maintenance.workers.celery_app:app, worker, --loglevel=INFO, --concurrency=2, --without-mingle, --without-gossip]

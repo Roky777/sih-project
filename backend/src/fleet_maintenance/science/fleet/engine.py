@@ -132,6 +132,18 @@ def snapshot_from_world(world: World, rul: np.ndarray, risk30: np.ndarray) -> Sn
     )
 
 
+# Synthetic fleet mix: a repeating cycle of ten tails (4 light combat aircraft, 2 advanced jet
+# trainers, 2 medium transports, 1 heavy multirole fighter, 1 utility helicopter). Class labels
+# only (no real type names); the web client's `FLEET_CYCLE` mirrors this order to choose each
+# tail's visual model.
+_LCA = "Light combat aircraft (synthetic)"
+_AJT = "Advanced jet trainer (synthetic)"
+_MTA = "Medium transport aircraft (synthetic)"
+_MKI = "Heavy multirole fighter (synthetic)"
+_ALH = "Utility helicopter (synthetic)"
+FLEET_TYPES = (_LCA, _LCA, _LCA, _AJT, _MTA, _MKI, _LCA, _ALH, _AJT, _MTA)
+
+
 def _records(world: World, unwarned_share: dict[str, float]) -> dict[str, object]:
     first_recent = world.days - RECENT_DAYS
     config = world.config
@@ -139,7 +151,7 @@ def _records(world: World, unwarned_share: dict[str, float]) -> dict[str, object
     for index, tail in enumerate(world.aircraft_ids):
         aircraft.append({
             "id": tail,
-            "type": "Generic Twin-Engine Transport (synthetic)",
+            "type": FLEET_TYPES[index % len(FLEET_TYPES)],
             "base": BASES[int(world.aircraft_base[index])].id,
             "commissioned": world.aircraft_commissioned[index].isoformat(),
             "utilisation_flights_per_day": round(float(world.utilisation[index]), 2),

@@ -60,4 +60,27 @@ describe("illustrative aircraft cutaway", () => {
     disposeAircraftCutaway(source);
   });
 
+  it("places every component inside each airframe and keeps wheel assemblies on its gear", async () => {
+    const { AIRFRAMES } = await import("./airframes");
+    const { createTrainerVisual } = await import("./trainerGeometry");
+    const { createTransportVisual } = await import("./transportGeometry");
+    const { createHeavyFighterVisual } = await import("./heavyFighterGeometry");
+    const { createHelicopterVisual } = await import("./helicopterGeometry");
+    for (const [spec, source] of [[AIRFRAMES.ajt, createTrainerVisual()], [AIRFRAMES.mta, createTransportVisual()], [AIRFRAMES.mki, createHeavyFighterVisual()], [AIRFRAMES.alh, createHelicopterVisual()]] as const) {
+      const items = Object.keys(spec.layouts).map((type, i) => ({ id: `${spec.id}-${i}`, type, name: type, state: "healthy" } as TwinComponent));
+      const components = architectureComponents({ aircraft: { id: "X", type: spec.fleetType }, systems: [{ name: "S", components: items }], advisories: [] } as unknown as AircraftDetail);
+      const model = createAircraftCutaway(source, components, false, spec);
+      const airframe = new Box3();
+      model.traverse(object => { if (object instanceof Mesh && !object.userData.componentId) airframe.expandByObject(object); });
+      for (const component of components) {
+        const assembly = model.children.find(child => child.userData.componentId === component.id)!;
+        expect(airframe.containsPoint(new Box3().setFromObject(assembly).getCenter(new Vector3())), `${spec.id} ${component.type}`).toBe(true);
+      }
+      const tyre = model.children.find(child => child.name === "LG-TYR")!.getObjectByName("Tyre")!;
+      const reference = model.getObjectByName("Main gear 1 tyre")!;
+      expect(new Box3().setFromObject(tyre).getCenter(new Vector3()).distanceTo(new Box3().setFromObject(reference).getCenter(new Vector3())), spec.id).toBeLessThan(.1);
+      disposeAircraftCutaway(model);
+    }
+  });
 });
+

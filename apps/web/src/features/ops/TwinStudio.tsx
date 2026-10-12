@@ -5,14 +5,15 @@ import { Box3, Group, Mesh, MeshStandardMaterial, PerspectiveCamera, PMREMGenera
 import { fittedCameraPosition, modelFitPoints } from "./cameraFit";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { StudioPoster, type TwinMotion } from "./TwinShowcase";
+import { airframeOf } from "./airframes";
 import type { FlowSignal } from "./elasticGridMath";
 import type { RefObject } from "react";
 
 const ease = (t: number) => t * t * (3 - 2 * t);
-type Props = { motion: TwinMotion | null; view: "front" | "perspective" | "profile" | "top"; viewRevision: number; onOrbit: () => void; reduced: boolean; flowPose: RefObject<FlowSignal> };
+type Props = { model: string; motion: TwinMotion | null; view: "front" | "perspective" | "profile" | "top"; viewRevision: number; onOrbit: () => void; reduced: boolean; flowPose: RefObject<FlowSignal> };
 
-function Model({ onReady }: { onReady: (bounds: Vector3[]) => void }) {
-  const gltf = useGLTF(`${import.meta.env.BASE_URL}models/tejas-visual.glb`, false, false);
+function Model({ url, onReady }: { url: string; onReady: (bounds: Vector3[]) => void }) {
+  const gltf = useGLTF(`${import.meta.env.BASE_URL}${url}`, false, false);
   const model = useMemo(() => {
     const copy = gltf.scene.clone(true);
     const box = new Box3().setFromObject(copy);
@@ -49,7 +50,7 @@ function StudioEnvironment() {
   }, [gl, scene, invalidate]);
   return null;
 }
-function Motion({ motion, view, viewRevision, onOrbit, reduced, flowPose, onReady }: Props & { onReady: () => void }) {
+function Motion({ model, motion, view, viewRevision, onOrbit, reduced, flowPose, onReady }: Props & { onReady: () => void }) {
   const outgoing = useRef<Group>(null), incoming = useRef<Group>(null);
   const orbit = useRef<ComponentRef<typeof OrbitControls>>(null);
   const { camera, size, invalidate, gl } = useThree();
@@ -104,19 +105,19 @@ function Motion({ motion, view, viewRevision, onOrbit, reduced, flowPose, onRead
     const t = Math.min(1, (performance.now() - current.started) / current.duration);
     const out = ease(Math.min(1, t / .82)), enter = ease(Math.max(0, (t - .05) / .95));
     const direction = current.direction;
-    outgoing.current.position.y = -direction * out * 8.5;
-    outgoing.current.rotation.x = -direction * out * 1.12;
-    outgoing.current.rotation.z = direction * out * .12;
-    incoming.current.position.y = direction * (1 - enter) * 8.5;
-    incoming.current.rotation.x = direction * (1 - enter) * 1.12;
-    incoming.current.rotation.z = -direction * (1 - enter) * .12;
-    flowPose.current.y += direction * Math.sin(t * Math.PI * 2) * .16;
+    // Sideways slide: the current aircraft taxis off to one side while the next rolls in
+    // from the other, with a slight yaw into the turn.
+    outgoing.current.position.x = -direction * out * 16;
+    outgoing.current.rotation.y = direction * out * .5;
+    incoming.current.position.x = direction * (1 - enter) * 16;
+    incoming.current.rotation.y = -direction * (1 - enter) * .5;
+    flowPose.current.x += direction * Math.sin(t * Math.PI * 2) * .12;
     flowPose.current.wake?.();
     if (t < 1) invalidate();
   });
   return <>
-    <group ref={outgoing}><Model onReady={modelReady}/></group>
-    {motion && <group ref={incoming} position={[0, motion.direction * 8.5, 0]}><Model onReady={modelReady}/></group>}
+    <group ref={outgoing}><Model url={model} onReady={modelReady}/></group>
+    {motion && <group ref={incoming} position={[motion.direction * 16, 0, 0]}><Model url={airframeOf(motion.next.aircraft as { id?: unknown; type?: unknown }).model} onReady={modelReady}/></group>}
     <OrbitControls ref={orbit} makeDefault enabled={!motion} enablePan={false} enableZoom={false} enableDamping={false} minPolarAngle={.02} maxPolarAngle={Math.PI / 2.1} target={[0, 0, 0]} onStart={() => { cameraStart.current = 0; onOrbit(); fitOrbit(); }} onChange={fitOrbit}/>
   </>;
 }

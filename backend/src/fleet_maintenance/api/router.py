@@ -5,6 +5,7 @@ from fleet_maintenance.api.routes import (
     access,
     alerts,
     assessments,
+    assistant,
     components,
     demo,
     events,
@@ -40,5 +41,6 @@ for route in (
     workspace.router,
     evidence.router,
     fleet_health.router,
+    assistant.router,
 ):
     router.include_router(route, dependencies=[Depends(current_actor)])

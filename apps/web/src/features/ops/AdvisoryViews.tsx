@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ExplainWithAI } from "../assistant/AssistantPanel";
 import { Link } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
 import { addDays, useAsOf } from "./AsOf";
@@ -84,6 +85,7 @@ export function AdvisoryCommandCard({ advisory: a, replay }: { advisory: Advisor
   return <section className={`o-command p-${level.toLowerCase()}`} aria-label={`${level} maintenance advisory`}>
     <header><span>{level} MAINTENANCE ADVISORY</span><Pill tone={a.status}>{statusLabel[a.status]}</Pill></header>
     <p className="o-command-target">{a.aircraft} · {a.system_name} · {a.component_name}</p>
+    <ExplainWithAI selection={{ advisory_id: a.id, component_id: a.component_id, aircraft_id: a.aircraft, part_number: a.spare.part_number }} question="Explain this finding with evidence."/>
     <div className="o-command-action"><Icon name={a.action.code === "ground_now" ? "warning" : "wrench"} size={15}/>{a.action.label}</div>
     <div className="o-command-metric"><span>14-Day Failure Risk:</span><b className={`t-${riskTone}`}>{pct(a.risk_14d)}</b>
       <span className="o-command-bar"><i className={`t-${riskTone}`} style={{ width: `${Math.max(2, a.risk_14d * 100)}%` }}/></span></div>

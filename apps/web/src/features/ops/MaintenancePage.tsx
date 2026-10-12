@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ExplainWithAI } from "../assistant/AssistantPanel";
 import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
 import { addDays, dayDiff, useAsOf } from "./AsOf";
@@ -140,7 +141,7 @@ function PlannedCard() {
         <thead><tr><th>Work order</th><th>Aircraft · task</th><th>Agency</th><th>Start</th><th className="num">Duration</th><th>Simulated impact (30 d)</th><th>Status</th><th/></tr></thead>
         <tbody>{data.planned.map(order => { const impact = order.impact as { availability_pct_points?: number; aircraft_days_lost?: number; spare_waits?: boolean }; return <tr key={order.id}>
           <td><span className="o-mono o-strong">{order.id}</span>{order.priority && <small>{order.priority} advisory</small>}</td>
-          <td><Link className="o-strong" to={order.component_id ? `/health/${order.component_id}` : `/aircraft/${order.aircraft}`}>{order.aircraft}</Link> · {order.title}<small>{order.notes || order.part}</small></td>
+          <td><Link className="o-strong" to={order.component_id ? `/health/${order.component_id}` : `/aircraft/${order.aircraft}`}>{order.aircraft}</Link> · {order.title}<small>{order.notes || order.part}</small>{order.component_id && <ExplainWithAI selection={{ aircraft_id: order.aircraft, component_id: order.component_id, part_number: order.part ?? undefined }} question="Compare starting this replacement now, in 7 or in 14 days." label="Compare with AI"/>}</td>
           <td>{order.agency_id}</td><td>{longDate(order.planned_start)}</td><td className="num">{order.duration_days} d</td>
           <td><span className={(impact.availability_pct_points ?? 0) >= 0 ? "o-tone-healthy" : "o-tone-critical"}>{(impact.availability_pct_points ?? 0) >= 0 ? "+" : ""}{(impact.availability_pct_points ?? 0).toFixed(2)} pts</span><small>{(impact.aircraft_days_lost ?? 0) > 0 ? "+" : ""}{(impact.aircraft_days_lost ?? 0).toFixed(1)} aircraft-days{impact.spare_waits ? " · waits for spare" : ""}</small></td>
           <td><Pill tone={order.status === "planned" ? "scheduled" : order.status === "in_progress" ? "accent" : order.status}>{order.status.replace("_", " ")}</Pill></td>

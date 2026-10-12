@@ -85,3 +85,17 @@
 .aircraft-blueprint .bp-drawing-surface { height: auto; aspect-ratio: 1.5; }
 .aircraft-blueprint .bp-drawing-surface:has(.bp-spatial-scene) { height: clamp(380px,42vw,650px); aspect-ratio: auto; }
 @media(max-width:760px) { .aircraft-blueprint .bp-drawing-surface { height: 360px; aspect-ratio: auto; } }
+
+/* Generated general-arrangement sheet: callouts, stations, dimensions, zones and title block. */
+.bp-leader { stroke: #cfe9f8; stroke-width: .55; fill: none; opacity: .75; }
+.bp-balloon { fill: #0f3a5f; stroke: #d6efff; stroke-width: .9; }
+:is(.bp-assembly).is-alert .bp-balloon { fill: #5b1d28; stroke: #ff9aa3; }
+:is(.bp-assembly):hover .bp-balloon, :is(.bp-assembly):focus-visible .bp-balloon { stroke-width: 1.8; }
+.bp-station path { stroke: #8db6d4; stroke-width: .45; stroke-dasharray: 2 3; }
+.bp-station text { fill: #a9cde4; font: 6.5px "Roboto Mono", monospace; stroke: none; }
+.bp-dim-text { fill: #cde7f7; stroke: none; font: 7.5px "Roboto Mono", monospace; letter-spacing: .06em; }
+.bp-zones text { fill: #8fb8d4; font: 7px "Roboto Mono", monospace; }
+.bp-notes text { fill: #9cc4dd; font: 6.5px "Roboto Mono", monospace; letter-spacing: .04em; }
+.bp-title-block .bp-title-main { font-size: 9px; font-weight: 600; fill: #e6f5ff; }
+.aircraft-blueprint .bp-side-assembly { opacity: .85; }
+.bp-airframe .bp-ground { stroke: #8db6d4; stroke-width: .9; stroke-dasharray: 12 2 2 2; }

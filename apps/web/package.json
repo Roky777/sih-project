@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "test": "vitest run --exclude '**/tests/e2e/**' --passWithNoTests",
     "test:e2e": "playwright test",
-    "model:fighter": "node scripts/build-fighter-model.mjs"
+    "model:aircraft": "node --import ./scripts/ts-resolve.mjs scripts/build-fighter-model.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",

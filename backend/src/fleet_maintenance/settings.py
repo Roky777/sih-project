@@ -31,6 +31,14 @@ class Settings(BaseSettings):
     outbox_batch_size: int = Field(default=50, ge=1, le=1000)
     maximum_request_bytes: int = Field(default=4000000, ge=1024, le=16000000)
     deployment_scope: str = "single_agency"
+    # AI Maintenance Copilot (server-side only; never sent to the browser).
+    assistant_enabled: bool = True
+    assistant_ollama_url: str = "http://localhost:11434"
+    assistant_model: str = "qwen3:8b"
+    assistant_timeout_seconds: float = Field(default=120, ge=5, le=600)
+    assistant_max_tool_iterations: int = Field(default=4, ge=1, le=8)
+    # Larger windows raise model memory use; 8k fits Qwen3-8B on a 16 GB machine.
+    assistant_context_tokens: int = Field(default=8192, ge=2048, le=32768)
 
     @model_validator(mode="after")
     def validate_release(self) -> "Settings":

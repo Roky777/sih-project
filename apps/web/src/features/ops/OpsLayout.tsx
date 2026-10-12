@@ -1,4 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
+import { AskAIButton, AssistantPanel } from "../assistant/AssistantPanel";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -43,6 +44,14 @@ export function OpsLayout() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
   useEffect(() => { setMobileOpen(false); }, [location.pathname, location.search, location.hash]);
+  // Once the page scrolls, a backdrop band fills the gap around the floating header so
+  // content passing upward is hidden instead of showing above and beside it.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 2);
+    update(); window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
   useEffect(() => {
     if (!location.hash) return;
     const id = decodeURIComponent(location.hash.slice(1));
@@ -58,7 +67,8 @@ export function OpsLayout() {
   }, [location.pathname, location.search, location.hash]);
   const title = titles[location.pathname] ?? (location.pathname.startsWith("/aircraft/") ? "Aircraft Detail" : location.pathname.startsWith("/health/") ? "Component Health" : location.pathname === "/welcome" ? "Welcome" : "Workspace");
 
-  return <div ref={shell} className={`o-shell${location.pathname.startsWith("/aircraft/") ? " o-twin-atmosphere" : ""}`}>
+  return <div ref={shell} className={`o-shell${location.pathname.startsWith("/aircraft/") ? " o-twin-atmosphere" : ""}${scrolled ? " is-scrolled" : ""}`}>
+    <div className="o-header-backdrop" aria-hidden="true"/>
     {!location.pathname.startsWith("/aircraft/") && <WorkspaceGrid host={shell} paused={mobileOpen || paletteOpen}/>}
     <a className="skip-link" href="#main-content">Skip to content</a>
     <header className="o-header">
@@ -66,6 +76,7 @@ export function OpsLayout() {
       <Link to="/dashboard" className="o-header-brand" aria-label="Integrated Fleet Availability Platform — home"><OfficialMarks/><span className="o-wordmark"><strong>FleetAvail</strong><small>DSSC · Integrated Fleet Availability</small></span></Link>
       <TopNav/>
       <div className="o-header-tools">
+        <AskAIButton/>
         <button type="button" className="o-round-btn" onClick={() => setPaletteOpen(true)} aria-label="Search (⌘K)" title="Search  ⌘K"><Icon name="search" size={17}/></button>
         <button type="button" className="o-round-btn" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}><Icon name={theme === "dark" ? "sun" : "moon"} size={17}/></button>
         <AlertsMenu/>
@@ -73,6 +84,8 @@ export function OpsLayout() {
       </div>
     </header>
     <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}><Dialog.Portal><Dialog.Overlay className="o-overlay"/><Dialog.Content className="o-mobile-nav" aria-describedby={undefined} onCloseAutoFocus={event => { event.preventDefault(); menuButton.current?.focus(); }}><Dialog.Title className="sr-only">Workspace navigation</Dialog.Title><div className="o-mobile-nav-head"><strong>FleetAvail</strong><Dialog.Close asChild><button type="button" className="o-round-btn" aria-label="Close navigation"><Icon name="close" size={16}/></button></Dialog.Close></div><Sidebar/></Dialog.Content></Dialog.Portal></Dialog.Root>
+    <AssistantPanel/>
+    <AskAIButton floating/>
     <div className="o-main">
       {/* Keyed by theme as well: legacy charts and the 3D stage read colour tokens once when drawn. */}
       <main id="main-content" tabIndex={-1} className={lab ? "o-content legacy-surface" : "o-content"} key={`${location.pathname.startsWith("/aircraft/") ? "/aircraft/twin" : location.pathname}:${theme}`} aria-label={title}>

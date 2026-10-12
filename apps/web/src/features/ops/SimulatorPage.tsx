@@ -21,7 +21,9 @@ const result = (run: ScenarioRun) => run.results as unknown as Result;
 
 export function SimulatorPage() {
   const scenarios = useScenarios();
-  const [compare, setCompare] = useState<string[]>([]);
+  const [query] = useSearchParams();
+  // ?scenario=<id> (e.g. "Open in Simulator" from the copilot) selects that saved run.
+  const [compare, setCompare] = useState<string[]>(() => query.get("scenario") ? [query.get("scenario")!] : []);
   useEffect(() => { if (scenarios.data && compare.length === 0 && scenarios.data.length) setCompare([scenarios.data[0].id]); }, [scenarios.data, compare.length]);
   const chosen = (scenarios.data ?? []).filter(run => compare.includes(run.id));
   return <div className="o-screen">

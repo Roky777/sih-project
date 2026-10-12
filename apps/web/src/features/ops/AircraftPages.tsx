@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { ExplainWithAI } from "../assistant/AssistantPanel";
+import { airframeOf } from "./airframes";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
 import { TwinShowcase } from "./TwinShowcase";
@@ -22,7 +24,7 @@ export function AircraftListPage() {
   const [sort, setSort] = useState<"risk" | "tail" | "hi">("risk");
   const rows = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return (list.data ?? []).filter(row => (!query || `${row.id} ${row.base}`.toLowerCase().includes(query))
+    return (list.data ?? []).filter(row => (!query || `${row.id} ${row.base} ${airframeOf(row).title}`.toLowerCase().includes(query))
       && (filter === "all" || (filter === "attention" ? stateRank[row.state] >= 1 && row.availability_state === "available" : row.availability_state !== "available")))
       .sort((a, b) => sort === "tail" ? a.id.localeCompare(b.id) : sort === "hi" ? a.health_index - b.health_index : stateRank[b.state] - stateRank[a.state] || a.health_index - b.health_index);
   }, [list.data, search, filter, sort]);
@@ -37,7 +39,7 @@ export function AircraftListPage() {
     </div>
     <Query query={list} rows={8}>{() => rows.length === 0 ? <EmptyState title="No aircraft match these filters" icon="search"/> :
       <div className="o-aircraft-grid">{rows.map((row, index) => <button type="button" key={row.id} className={`o-aircraft-card state-${row.state}`} style={{ animationDelay: `${Math.min(index, 20) * 18}ms` }} onClick={() => navigate(`/aircraft/${row.id}`)}>
-        <div className="o-aircraft-card-top"><div><strong>{row.id}</strong><small>{row.base.replace("BASE-", "Base ")} · {num(row.total_flight_hours)} FH</small></div><Ring value={row.health_index} size={50} tone={hiTone(row.health_index)} label={`Health index ${row.health_index.toFixed(0)}`}/></div>
+        <div className="o-aircraft-card-top"><div><strong>{row.id}</strong><small>{airframeOf(row).title} · {row.base.replace("BASE-", "Base ")} · {num(row.total_flight_hours)} FH</small></div><Ring value={row.health_index} size={50} tone={hiTone(row.health_index)} label={`Health index ${row.health_index.toFixed(0)}`}/></div>
         <div className="o-aircraft-card-mid"><StateBadge state={row.state} compact/><Pill tone={row.availability_state === "available" ? "healthy" : "maint"}>{availabilityLabel[row.availability_state]}</Pill></div>
         <div className="o-aircraft-card-foot">{row.driver ? <span>Driver: {row.driver.replace(`${row.id}-`, "")}</span> : <span className="o-muted">No findings</span>}{row.top_priority && <span className="o-adv-count"><PriorityBadge level={row.top_priority}/>{row.open_advisories}</span>}</div>
       </button>)}</div>}
@@ -70,7 +72,7 @@ export function AircraftDetailPage() {
     <section className="aircraft-detail-workspace" id="aircraft-workspace" aria-label="Aircraft inspection workspace">
       <header className="aircraft-workspace-head">
         <div><span className="bp-eyebrow">AIRCRAFT / INSPECTION & RECORDS</span><h2>Inspection workspace</h2><p>{String(data.aircraft.id)} · {shortDate(data.as_of)}{data.replay ? " · Historical snapshot" : " · Latest snapshot"}</p></div>
-        <div className="aircraft-workspace-context"><StateBadge state={data.state} compact/><Pill tone={data.availability_state === "available" ? "healthy" : "maint"}>{availabilityLabel[data.availability_state]}</Pill><span>{data.systems.length} systems · {data.systems.reduce((count, system) => count + system.components.length, 0)} components</span></div>
+        <div className="aircraft-workspace-context"><StateBadge state={data.state} compact/><Pill tone={data.availability_state === "available" ? "healthy" : "maint"}>{availabilityLabel[data.availability_state]}</Pill><span>{data.systems.length} systems · {data.systems.reduce((count, system) => count + system.components.length, 0)} components</span><ExplainWithAI selection={{ aircraft_id: String(data.aircraft.id) }} question="Show the evidence behind this aircraft's alert."/></div>
       </header>
       <nav className="aircraft-workspace-nav" aria-label="Aircraft workspace sections">
         <Tabs value={currentTab} onChange={value => chooseTab(value)} tabs={[["twin", "Blueprint", "aircraft"], ["components", "Components", "list"], ["history", "History", "history"], ["advisories", `Advisories (${data.advisories.length})`, "warning"]] as const}/>
