@@ -78,13 +78,14 @@ def snapshot_from_world(world: World, rul: np.ndarray, risk30: np.ndarray) -> Sn
     """Capture the as-of state used by the availability simulator."""
     day = world.as_of_day
     config = world.config
-    repair_days = np.array(
-        [t.repair_days * config.repair_scale for t in COMPONENT_TYPES]
-    )[world.slot_type]
+    repair_days = np.array([t.repair_days * config.repair_scale for t in COMPONENT_TYPES])[
+        world.slot_type
+    ]
     fh_per_day = max(float(world.flight_hours[:, -30:].mean()), 0.5)
-    life_days = np.array(
-        [t.mean_life_fh * config.life_scale for t in COMPONENT_TYPES]
-    )[world.slot_type] / fh_per_day
+    life_days = (
+        np.array([t.mean_life_fh * config.life_scale for t in COMPONENT_TYPES])[world.slot_type]
+        / fh_per_day
+    )
     open_work = []
     for wo in world.work_orders:
         if not wo.is_open:
@@ -100,8 +101,11 @@ def snapshot_from_world(world: World, rul: np.ndarray, risk30: np.ndarray) -> Sn
         else:
             remaining = wo.remaining
             cause = "unscheduled" if wo.kind == "unscheduled" else "scheduled"
-        open_work.append(OpenWork(wo.aircraft, max(1, int(remaining)), cause, wo.agency,
-                                  wo.bay_start is not None))
+        open_work.append(
+            OpenWork(
+                wo.aircraft, max(1, int(remaining)), cause, wo.agency, wo.bay_start is not None
+            )
+        )
     receipts = tuple(
         (r.part, r.quantity, r.arrival - day) for r in world.pending_receipts if r.arrival > day
     )
@@ -149,40 +153,47 @@ def _records(world: World, unwarned_share: dict[str, float]) -> dict[str, object
     config = world.config
     aircraft = []
     for index, tail in enumerate(world.aircraft_ids):
-        aircraft.append({
-            "id": tail,
-            "type": FLEET_TYPES[index % len(FLEET_TYPES)],
-            "base": BASES[int(world.aircraft_base[index])].id,
-            "commissioned": world.aircraft_commissioned[index].isoformat(),
-            "utilisation_flights_per_day": round(float(world.utilisation[index]), 2),
-            "total_flight_hours": round(float(world.flight_hours[index].sum()) + 6000.0, 1),
-            "total_cycles": int(world.cycles[index].sum()) + 4000,
-            "inspection_hours_since": round(float(world.inspection_hours_since[index]), 1),
-        })
+        aircraft.append(
+            {
+                "id": tail,
+                "type": FLEET_TYPES[index % len(FLEET_TYPES)],
+                "base": BASES[int(world.aircraft_base[index])].id,
+                "commissioned": world.aircraft_commissioned[index].isoformat(),
+                "utilisation_flights_per_day": round(float(world.utilisation[index]), 2),
+                "total_flight_hours": round(float(world.flight_hours[index].sum()) + 6000.0, 1),
+                "total_cycles": int(world.cycles[index].sum()) + 4000,
+                "inspection_hours_since": round(float(world.inspection_hours_since[index]), 1),
+            }
+        )
     slots = []
     current: dict[int, dict[str, object]] = {}
     for instance in world.instances:
         if instance.removed is None:
-            current[instance.slot] = {"serial": instance.serial,
-                                      "installed": world.day_date(instance.installed).isoformat()}
+            current[instance.slot] = {
+                "serial": instance.serial,
+                "installed": world.day_date(instance.installed).isoformat(),
+            }
     for slot in range(world.slots):
         component_type = COMPONENT_TYPES[int(world.slot_type[slot])]
         tail = world.aircraft_ids[int(world.slot_aircraft[slot])]
-        slots.append({
-            "id": f"{tail}-{component_type.code}",
-            "aircraft": tail,
-            "type": component_type.code,
-            "serial": current[slot]["serial"],
-            "installed": current[slot]["installed"],
-            "hours_since_install": round(float(world.hours_since_install[slot, -1]), 1),
-        })
+        slots.append(
+            {
+                "id": f"{tail}-{component_type.code}",
+                "aircraft": tail,
+                "type": component_type.code,
+                "serial": current[slot]["serial"],
+                "installed": current[slot]["installed"],
+                "hours_since_install": round(float(world.hours_since_install[slot, -1]), 1),
+            }
+        )
     instances = [
         {
             "slot": instance.slot,
             "serial": instance.serial,
             "installed": world.day_date(instance.installed).isoformat(),
             "removed": world.day_date(instance.removed).isoformat()
-            if instance.removed is not None else None,
+            if instance.removed is not None
+            else None,
             "reason": instance.removal_reason,
         }
         for instance in world.instances
@@ -214,19 +225,35 @@ def _records(world: World, unwarned_share: dict[str, float]) -> dict[str, object
         for wo in world.work_orders
     ]
     faults = [
-        {"day": event.day, "aircraft": world.aircraft_ids[event.aircraft], "slot": event.slot,
-         "code": event.code, "severity": event.severity, "description": event.description}
+        {
+            "day": event.day,
+            "aircraft": world.aircraft_ids[event.aircraft],
+            "slot": event.slot,
+            "code": event.code,
+            "severity": event.severity,
+            "description": event.description,
+        }
         for event in world.faults
         if event.day >= first_recent or event.severity >= 4
     ]
     transactions = [
-        {"day": t.day, "part": COMPONENT_TYPES[t.part].part_number, "quantity": t.quantity,
-         "kind": t.kind, "work_order": t.work_order}
-        for t in world.transactions if t.day >= first_recent
+        {
+            "day": t.day,
+            "part": COMPONENT_TYPES[t.part].part_number,
+            "quantity": t.quantity,
+            "kind": t.kind,
+            "work_order": t.work_order,
+        }
+        for t in world.transactions
+        if t.day >= first_recent
     ]
     receipts = [
-        {"part": COMPONENT_TYPES[r.part].part_number, "quantity": r.quantity,
-         "arrival_day": r.arrival, "kind": r.kind}
+        {
+            "part": COMPONENT_TYPES[r.part].part_number,
+            "quantity": r.quantity,
+            "arrival_day": r.arrival,
+            "kind": r.kind,
+        }
         for r in world.pending_receipts
     ]
     return {
@@ -246,20 +273,31 @@ def _records(world: World, unwarned_share: dict[str, float]) -> dict[str, object
             "systems": [{"code": code, "name": name} for code, name in SYSTEMS],
             "component_types": [
                 {
-                    "code": t.code, "system": t.system, "name": t.name,
-                    "criticality": t.criticality, "part_number": t.part_number,
-                    "lead_time_days": t.lead_time_days, "unit_cost": t.unit_cost,
+                    "code": t.code,
+                    "system": t.system,
+                    "name": t.name,
+                    "criticality": t.criticality,
+                    "part_number": t.part_number,
+                    "lead_time_days": t.lead_time_days,
+                    "unit_cost": t.unit_cost,
                     "repairable": t.repairable,
                     "repair_days": round(t.repair_days * config.repair_scale, 1),
-                    "agency": t.agency, "reorder_level": t.reorder_level,
+                    "agency": t.agency,
+                    "reorder_level": t.reorder_level,
                     "hard_time_fh": t.hard_time_fh,
                     "additive_printable": t.additive_printable,
                     "mean_life_fh": round(t.mean_life_fh * config.life_scale),
                     "unwarned_failure_share": unwarned_share.get(t.code),
                     "parameters": [
-                        {"name": p.name, "unit": p.unit, "direction": p.direction,
-                         "baseline": p.baseline, "noise": p.noise, "signature": p.signature,
-                         "minimum": p.minimum}
+                        {
+                            "name": p.name,
+                            "unit": p.unit,
+                            "direction": p.direction,
+                            "baseline": p.baseline,
+                            "noise": p.noise,
+                            "signature": p.signature,
+                            "minimum": p.minimum,
+                        }
                         for p in t.parameters
                     ],
                 }
@@ -353,8 +391,9 @@ def run_engine(directory: Path, run_id: str, seed: int = 42) -> dict[str, object
         window = window[features.has_reading[slot, window]]
         code = COMPONENT_TYPES[int(world.slot_type[slot])].code
         hit = bool(window.size) and bool(
-            (predict_risk(models, features.values[slot, window].astype(np.float64), 14) >= 0.5)
-            .any()
+            (
+                predict_risk(models, features.values[slot, window].astype(np.float64), 14) >= 0.5
+            ).any()
         )
         warned.setdefault(code, []).append(hit)
     unwarned = {code: round(1.0 - float(np.mean(hits)), 3) for code, hits in warned.items()}
@@ -418,19 +457,33 @@ def run_engine(directory: Path, run_id: str, seed: int = 42) -> dict[str, object
         ],
     }
     _json(directory / "evaluation.json", evaluation)
-    _json(directory / "forecast.json", {"horizon_days": FORECAST_HORIZON, "runs": FORECAST_RUNS,
-                                         "seed": FORECAST_SEED, **forecast})
+    _json(
+        directory / "forecast.json",
+        {
+            "horizon_days": FORECAST_HORIZON,
+            "runs": FORECAST_RUNS,
+            "seed": FORECAST_SEED,
+            **forecast,
+        },
+    )
     _json(directory / "integration.json", integration)
-    _json(directory / "truth.json", {
-        "warning": "Hidden simulation truth. Evaluation and demo storytelling only; never used "
-        "as a model feature.",
-        "future_failure_days": {str(k): v for k, v in world.truth.future_failures.items()},
-        "recent_failures": [
-            {"slot": slot, "day": day, "sudden": sudden}
-            for slot, day, sudden in world.truth.failure_days if day >= recent
-        ],
-    })
+    _json(
+        directory / "truth.json",
+        {
+            "warning": "Hidden simulation truth. Evaluation and demo storytelling only; never used "
+            "as a model feature.",
+            "future_failure_days": {str(k): v for k, v in world.truth.future_failures.items()},
+            "recent_failures": [
+                {"slot": slot, "day": day, "sudden": sudden}
+                for slot, day, sudden in world.truth.failure_days
+                if day >= recent
+            ],
+        },
+    )
     joblib.dump(models, directory / "models.joblib", compress=3)
+    from fleet_maintenance.science.fleet.online import save_context
+
+    save_context(directory, world, values, flags, normaliser)
     mark("persist")
     manifest = {
         "run_id": run_id,
@@ -438,7 +491,9 @@ def run_engine(directory: Path, run_id: str, seed: int = 42) -> dict[str, object
         "as_of": world.config.as_of.isoformat(),
         "created_at": datetime.now(UTC).isoformat(),
         "data": "synthetic",
-        "hashes": {name: _sha256(directory / name) for name in BUNDLE_FILES},
+        "hashes": {
+            name: _sha256(directory / name) for name in (*BUNDLE_FILES, "ingestion_context.npz")
+        },
         "timings_seconds": timings,
     }
     _json(directory / "manifest.json", manifest)

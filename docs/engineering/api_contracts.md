@@ -107,3 +107,25 @@ A tagged immutable Scenario JSON record stores trial relationships/request hash;
 Approval also treats snapshot precondition failures (including active pre-resource work without crew/bay bookings) as HTTP 409, matching proposal/revision/job submission. It returns the actionable blocker, preserves the proposed plan and creates no reservations/work/audit/outbox effects. Empty schedules cannot be approved and return a no-scheduled-work conflict; the browser disables their approval/comparison controls. Repeated approval of an already accepted plan remains idempotent, including historical plans.
 
 OpenAPI and browser declarations are generated from implemented routes; runtime validation remains required.
+
+## Registration and grounding objective — 2026-10-14
+
+Authenticated `/aircraft-registry` reads are paginated/searchable; writes enforce registration roles,
+replay read-only, uniqueness and atomic import validation. See the registration contract. Registered
+IDs and source provenance remain distinct from the synthetic scored fleet and engine research.
+
+New proposal configuration `grounding-cpsat-v3` uses a composite lexicographic score: union aircraft
+grounding slots × (horizon + 1) + makespan. Objective/bound values are not hours/cost and must not be
+compared with legacy makespan scores. Saved plans retain their original inputs/configuration. Use
+matched simulation downtime/availability for cross-policy comparison.
+
+Copilot responses include `answer_mode`; REG context reads user-entered records without assigning
+synthetic health or simulation eligibility. Common questions use direct service answers. Historical
+maintenance uses cutoff-specific records and omits later completions/current-only phase data.
+
+### Telemetry demonstration transport
+
+Authenticated configured-demo `/api/telemetry` endpoints and frame/snapshot/role/freshness semantics
+are specified in [live_telemetry_demo.md](live_telemetry_demo.md). Mutation uses the existing shared
+import/job transaction with explicit `commit=False` composition; direct engine imports retain their
+default commit behavior. No public unauthenticated device route or production protocol adapter added.

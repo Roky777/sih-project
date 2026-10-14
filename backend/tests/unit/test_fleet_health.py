@@ -149,8 +149,18 @@ def test_reliability_kpis_match_hand_computed_fixture() -> None:
     state = np.zeros((2, 10), dtype=np.int8)
     state[0, 2] = 3
     state[0, 3:5] = 2
-    orders = [{"kind": "unscheduled", "slot": 0, "opened_day": 1, "bay_start_day": 3,
-               "done_day": 4, "promised_day": 4, "part": "P-1", "spare_wait_days": 1}]
+    orders = [
+        {
+            "kind": "unscheduled",
+            "slot": 0,
+            "opened_day": 1,
+            "bay_start_day": 3,
+            "done_day": 4,
+            "promised_day": 4,
+            "part": "P-1",
+            "spare_wait_days": 1,
+        }
+    ]
     bundle = SimpleNamespace(
         arrays={"aircraft_state": state, "flight_hours": np.full((2, 10), 2.0)},
         records={"work_orders": orders},
@@ -168,12 +178,14 @@ def test_reliability_kpis_match_hand_computed_fixture() -> None:
     assert k["failure_rate_per_1000_fh"] == pytest.approx(1000 / 40, abs=1e-3)
     assert k["spare_fill_rate"] == 0.0
     assert k["downtime_days_by_cause"] == {
-        "scheduled_maintenance": 0, "unscheduled_repair": 2, "awaiting_spares": 1,
+        "scheduled_maintenance": 0,
+        "unscheduled_repair": 2,
+        "awaiting_spares": 1,
         "awaiting_agency": 0,
     }
 
 
-def test_workspace_decisions_change_effective_availability() -> None:
+def test_workspace_decisions_change_effective_availability(monkeypatch) -> None:  # type: ignore[no-untyped-def]
     from types import SimpleNamespace
 
     from fleet_maintenance.science.fleet.decisions import Overlay, effective_aircraft_state
@@ -181,16 +193,26 @@ def test_workspace_decisions_change_effective_availability() -> None:
     state = np.zeros((3, 5), dtype=np.int8)
     state[0, 4] = 2  # AC-A grounded by one agency repair
     state[1, 4] = 4  # AC-B grounded by two orders
-    orders = [{"id": "WO-1", "aircraft": "A"}, {"id": "WO-2", "aircraft": "B"},
-              {"id": "WO-3", "aircraft": "B"}]
+    orders = [
+        {"id": "WO-1", "aircraft": "A"},
+        {"id": "WO-2", "aircraft": "B"},
+        {"id": "WO-3", "aircraft": "B"},
+    ]
     bundle = SimpleNamespace(
-        replay_start_day=0, arrays={"aircraft_state": state},
+        replay_start_day=0,
+        arrays={"aircraft_state": state},
         aircraft=[{"id": "A"}, {"id": "B"}, {"id": "C"}],
         aircraft_index={"A": 0, "B": 1, "C": 2},
         open_work_orders=lambda day: orders,
     )
     planned = [{"id": "PWO-1", "aircraft": "C", "status": "in_progress", "component_id": "C-X"}]
     overlay = Overlay({}, planned, (), frozenset({"WO-1", "WO-2"}))
+    monkeypatch.setattr(
+        "fleet_maintenance.science.fleet.decisions.component_states", lambda *args: []
+    )
+    monkeypatch.setattr(
+        "fleet_maintenance.science.fleet.decisions.scheduled_tasks", lambda *args: []
+    )
     result = effective_aircraft_state(bundle, 4, overlay)  # type: ignore[arg-type]
     assert list(result) == [0, 4, 1]  # A returned; B still has WO-3; C grounded by started work
 
@@ -199,9 +221,18 @@ def test_project_forge_prints_zero_stock_part_in_a_day() -> None:
     from fleet_maintenance.science.fleet.catalog import PRINT_DAYS
     from fleet_maintenance.science.fleet.decisions import spare_check
 
-    position = {"part_number": "HYD-020", "on_hand": 0, "reserved": 0, "on_order": 0,
-                "next_receipt": None, "next_receipt_in_days": None, "lead_time_days": 45,
-                "available": 0, "competing_components": ["X"], "competing_rul_days": [3.0]}
+    position = {
+        "part_number": "HYD-020",
+        "on_hand": 0,
+        "reserved": 0,
+        "on_order": 0,
+        "next_receipt": None,
+        "next_receipt_in_days": None,
+        "lead_time_days": 45,
+        "available": 0,
+        "competing_components": ["X"],
+        "competing_rul_days": [3.0],
+    }
     supplier = spare_check(position, "X", 3.0)
     assert supplier["status"] == "short" and supplier["lead_time_exceeds_rul"]
     printed = spare_check({**position, "additive_printable": True}, "X", 3.0)
@@ -220,7 +251,8 @@ def test_project_forge_beats_supplier_in_simulation() -> None:
     # Even with the supplier cut off, the print route keeps parts flowing.
     cut = (Intervention("spare_unavailable", part=0, lead_time_days=90),)
     assert simulate_fleet(printed, 30, 100, 3, cut).availability.mean() == pytest.approx(
-        forge.availability.mean())
+        forge.availability.mean()
+    )
 
 
 def _cannibal_case(seed: int):  # type: ignore[no-untyped-def]
@@ -230,20 +262,34 @@ def _cannibal_case(seed: int):  # type: ignore[no-untyped-def]
 
     rng = np.random.default_rng(seed)
     codes = ["P", "Q", "R"]
-    types = [{"code": c, "part_number": f"PN-{c}", "repair_days": float(rng.uniform(1, 6)),
-              "lead_time_days": 45} for c in codes]
+    types = [
+        {
+            "code": c,
+            "part_number": f"PN-{c}",
+            "repair_days": float(rng.uniform(1, 6)),
+            "lead_time_days": 45,
+        }
+        for c in codes
+    ]
     aircraft = [{"id": f"AC-{i}", "base": "N" if i % 2 else "S"} for i in range(7)]
     bundle = SimpleNamespace(
-        types=types, part_index={t["part_number"]: i for i, t in enumerate(types)},
-        aircraft=aircraft, aircraft_index={a["id"]: i for i, a in enumerate(aircraft)})
+        types=types,
+        part_index={t["part_number"]: i for i, t in enumerate(types)},
+        aircraft=aircraft,
+        aircraft_index={a["id"]: i for i, a in enumerate(aircraft)},
+    )
     needs: dict[str, list[Need]] = {}
     for a in rng.choice(7, size=4, replace=False):
         picks = rng.choice(3, size=int(rng.integers(1, 3)), replace=False)
-        needs[f"AC-{a}"] = [Need(f"AC-{a}", codes[p], f"PN-{codes[p]}", None, f"WO-{a}{p}", 30.0)
-                            for p in picks]
-    donors = [Donor(f"AC-{a}", f"AC-{a}-{codes[p]}{k}", codes[p], 90.0, aircraft[a]["base"])
-              for a in range(7) for k, p in enumerate(rng.choice(3, size=2))
-              if rng.random() < 0.5]
+        needs[f"AC-{a}"] = [
+            Need(f"AC-{a}", codes[p], f"PN-{codes[p]}", None, f"WO-{a}{p}", 30.0) for p in picks
+        ]
+    donors = [
+        Donor(f"AC-{a}", f"AC-{a}-{codes[p]}{k}", codes[p], 90.0, aircraft[a]["base"])
+        for a in range(7)
+        for k, p in enumerate(rng.choice(3, size=2))
+        if rng.random() < 0.5
+    ]
     return bundle, needs, donors
 
 
@@ -259,7 +305,8 @@ def test_cannibalization_plan_is_feasible_and_checked_against_optimum(seed: int)
     assert not {d.aircraft for _, d in swaps} & set(restored)  # donors stay down
     for aircraft in restored:  # every unblocked aircraft gets all its parts
         assert sorted(n.type_code for n, _ in swaps if n.aircraft == aircraft) == sorted(
-            n.type_code for n in needs[aircraft])
+            n.type_code for n in needs[aircraft]
+        )
     best = exact(bundle, needs, donors)
     assert best is not None
     labour = sum(_swap_hours(bundle, n, d) for n, d in swaps)

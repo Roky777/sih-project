@@ -102,3 +102,31 @@ The 75-test backend unit/verification/integration run passed with the PostgreSQL
 **The customer-trial feature is complete; the original release still has the eight workstreams above.** The trial closes the local entered-data demonstration and work-entry gap. Qualified bays, independent alert validation, broader robustness/explanation acceptance, exhaustive recovery, agreed performance/usability, a pinned full release walkthrough and deployment acceptance remain open. No completion percentage or delivery-date estimate is invented. Existing large lazy 3D/chart bundle warnings remain.
 
 Final upload check: a fourth live customer case supplied an edited FD001 JSON file, downloaded the exact imported prefix and verified that the real assessment retained its import identity/source hash. It passed. The expanded full run passed 34/35; its upload assertion initially compared a pre-serialization object containing negative zero against JSON-transmitted zero. The assertion now compares the actual transmitted JSON, and the upload test passed separately. **All 35 distinct browser checks passed across these final runs; a single 35/35 run is not claimed.** No application change was needed for that serialization assertion. All six Compose services remain running; API/PostgreSQL/broker report healthy.
+
+## Pre-video implementation — 14 October 2026
+
+The current [pre-video delivery report](pre_video_delivery.md) records onboarding/source imports,
+reproducible multi-aircraft availability study, grounding objective, connected verified-work flow,
+private fast copilot routes, UI checks and fresh backup/restore. It supersedes earlier assumed local
+installation/results for this workspace; it retains unsupported legacy evidence and external
+scientific/security/operational gates. Video preparation is excluded by the user's instruction.
+
+## Live telemetry / connected visual demonstration — 14 October 2026
+
+The supported FD001 replay is now a working authenticated live transport at `/telemetry`, reachable
+from Data & integrations. It preserves accepted frames, rejection quality logs, timestamps and stale
+state, submits immutable snapshots through existing model jobs, and connects results/review links
+to one explicitly mapped 3D engine assembly and top-down schematic. Remaining parts are unassessed;
+actual aircraft protocols and engineering geometry remain external gates. Backend 186 unit/
+verification tests, 176-file type checks (optional Torch excluded), web 28 unit tests, six real local
+browser journeys and both independent/browser producers passed. A final camera-fit correction was
+visually verified at desktop/phone widths. See [contract and evidence](../engineering/live_telemetry_demo.md).
+
+## Operator pilot preparation package — 14 October 2026
+
+[The pilot handover package](../pilot/README.md) now provides source/interface requirements,
+connector acceptance cases, model/geometry qualification gates, an operational evaluation design
+and blank versioned manifests/mapping/acceptance templates. It documents current implemented demo
+interfaces separately from proposed real-system adapter work. No agency was contacted, no real
+telemetry acquired, and no model/geometry/pilot acceptance was granted. This is documentation and
+handover preparation; the existing application and approval behaviour are unchanged.

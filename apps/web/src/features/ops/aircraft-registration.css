@@ -1,0 +1,51 @@
+.registered-aircraft-section { padding: 22px; background: var(--o-glass-strong); border: 1px solid var(--o-border); border-radius: 16px; margin-bottom: 0; }
+.registered-aircraft-section > header,.registration-coverage { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.registered-aircraft-section h2 { font-size: 18px; margin: 0 0 6px; color: var(--o-text); }
+.registered-aircraft-section h2 small { font-size: 12px; font-weight: 400; color: var(--o-text-3); }
+.registered-aircraft-section header p,.registration-coverage p { font-size: 12px; color: var(--o-text-2); margin: 0; line-height: 1.6; }
+.registration-form { display: grid; gap: 16px; padding-block: 18px; }
+.registration-form h3,.registration-form p { margin: 0; }
+.registration-form > button { justify-self: start; }
+.registration-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.registration-form label { display: grid; gap: 8px; color: var(--o-text-2); font-size: 12px; }
+.registration-form input { width: 100%; min-width: 0; min-height: 42px; border: 1px solid var(--o-border); border-radius: 8px; padding: 10px; color: var(--o-text); background: var(--o-surface); }
+.registration-form [role=alert] { color: var(--o-critical); }
+.registration-secondary { display: block; color: var(--o-text-3); font-size: 11px; margin-top: 6px; overflow-wrap: anywhere; }
+.registration-coverage { padding: 0 2px; margin: 0; background: transparent; border: 0; }
+.registration-coverage strong { display: block; color: var(--o-text-2); margin-bottom: 4px; font-size: 12px; font-weight: 500; }
+.registration-coverage a { flex: none; }
+.registration-status,.registration-import-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 12px; color: var(--o-text-2); }
+.registration-usage { display: flex; gap: 48px; padding-block: 20px; }
+.registration-usage strong,.registration-usage span { display: block; }
+.registration-usage strong { font-size: 24px; color: var(--o-text); }
+.registration-usage span { color: var(--o-text-3); margin-top: 8px; font-size: 12px; }
+.registration-source-list { list-style: none; margin: 0; padding: 0; }
+.registration-source-list li { display: flex; justify-content: space-between; align-items: start; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--o-border); }
+.registration-source-list span { display: block; margin-top: 6px; font-size: 12px; color: var(--o-text-2); }
+.registration-source-list small { color: var(--o-text-3); font-size: 11px; }
+.registration-source-list p { color: var(--o-text-3); font-size: 12px; }
+.registration-component-form { padding-top: 16px; }
+.registration-component-form summary { cursor: pointer; color: var(--o-accent-ink); }
+.registration-preview { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; color: var(--o-text-2); background: var(--o-surface-2); padding: 12px; font-size: 11px; }
+@media(max-width:600px) { .registered-aircraft-section { padding: 16px; } .registered-aircraft-section > header,.registration-coverage { align-items: flex-start; flex-direction: column; gap: 12px; } .registration-fields { grid-template-columns: 1fr; } .registration-source-list li { flex-direction: column; gap: 8px; } .registration-usage { gap: 24px; } }
+.availability-study { display: grid; gap: 24px; min-width: 0; }
+.availability-study .o-card { min-width: 0; }
+.availability-study .registration-import-actions > label { display: grid; gap: 6px; min-width: 0; max-width: 100%; font-size: 12px; }
+.availability-study select { width: min(440px,100%); max-width: 100%; min-width: 0; padding: 10px; border-radius: 8px; border: 1px solid var(--o-border); background: var(--o-surface); color: var(--o-text); }
+.availability-study details { margin-top: 16px; font-size: 12px; color: var(--o-text-2); }
+.availability-study summary { cursor: pointer; color: var(--o-accent-ink); }
+.availability-study .o-table-wrap { max-width: 100%; overflow-x: auto; }
+.availability-study details { overflow-wrap: anywhere; }
+
+.registration-coverage details { font-size: 11px; color: var(--o-text-3); }
+.registration-coverage summary { cursor: pointer; width: fit-content; }
+.registration-coverage p { max-width: 760px; padding-top: 8px; }
+.registration-coverage > a { font-size: 12px; min-height: 40px; display: inline-flex; align-items: center; }
+.registered-aircraft-section > header { padding-bottom: 20px; }
+.registration-dialog { position: fixed; z-index: 100; top: 50%; left: 50%; transform: translate(-50%,-50%); width: min(620px,calc(100vw - 32px)); max-height: calc(100svh - 48px); overflow-y: auto; padding: 24px; border: 1px solid var(--o-border); border-radius: 16px; background: var(--o-surface); color: var(--o-text); box-shadow: 0 24px 80px #0004; }
+.registration-dialog > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.registration-dialog h2 { margin: 0 0 8px; font-size: 24px; }
+.registration-dialog header p { margin: 0; color: var(--o-text-3); font-size: 12px; line-height: 1.6; }
+.registration-dialog .registration-form h3 { font-size: 15px; }
+.registration-dialog .registration-form p { color: var(--o-text-3); font-size: 12px; line-height: 1.6; }
+@media(max-width:600px) { .registration-dialog { padding: 20px; } .registration-coverage { gap: 4px; } }

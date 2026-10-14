@@ -12,7 +12,7 @@ export function modelFitPoints(model: Object3D) {
   model.updateMatrixWorld(true);
   model.traverse(object => {
     if (!(object instanceof Mesh)) return;
-    object.geometry.computeBoundingBox();
+    if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
     const box = object.geometry.boundingBox;
     if (!box) return;
     const count = object instanceof InstancedMesh ? object.count : 1;
@@ -26,13 +26,14 @@ export function modelFitPoints(model: Object3D) {
 }
 
 /** Fit every bound corner, including depth, to the current perspective direction. */
-export function fittedCameraPosition(direction: Vector3, bounds: Box3 | Vector3[], fov: number, aspect: number, margin = .88) {
+export function fittedCameraPosition(direction: Vector3, bounds: Box3 | Vector3[], fov: number, aspect: number, margin = .88, verticalMargin = margin) {
   const forward = direction.clone().normalize();
   const basis = new Matrix4().lookAt(forward, new Vector3(), new Vector3(0, 1, 0));
   const right = new Vector3().setFromMatrixColumn(basis, 0);
   const up = new Vector3().setFromMatrixColumn(basis, 1);
-  const vertical = Math.tan(fov * Math.PI / 360) * margin;
-  const horizontal = vertical * Math.max(.01, aspect);
+  const tangent = Math.tan(fov * Math.PI / 360);
+  const vertical = tangent * verticalMargin;
+  const horizontal = tangent * margin * Math.max(.01, aspect);
   let distance = 0;
   for (const point of bounds instanceof Box3 ? corners(bounds) : bounds) {
     distance = Math.max(distance, point.dot(forward) + Math.max(Math.abs(point.dot(right)) / horizontal, Math.abs(point.dot(up)) / vertical));

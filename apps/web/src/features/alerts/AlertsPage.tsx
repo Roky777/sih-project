@@ -1,3 +1,4 @@
+import { useActorRole } from "../ops/roles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -6,11 +7,10 @@ import { AsyncState } from "../../shared/ui/AsyncState";
 import { Icon } from "../../shared/ui/Icon";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
 import { Notice, PageHeader, RefreshButton, StatCard } from "../../shared/ui/WorkspaceUI";
-import { useSession } from "../access/SessionGate";
 const titles: Record<string,string> = { data_unavailable: "Component evidence needs review", critical: "Critical life estimate", warning: "Life estimate requires attention", normal: "Assessment within policy limits" };
 export function AlertsPage() {
-  const session=useSession();
-  const canReview=session?.role==='engineer'||session?.role==='supervisor';
+  const actorRole = useActorRole();
+  const canReview=actorRole==='engineer'||actorRole==='supervisor';
   const client = useQueryClient();
   const [filter, setFilter] = useState<"all"|"pending"|"reviewed">("all");
   const query = useQuery({ queryKey:["alerts"], queryFn: () => api<Alert[]>("/alerts", undefined, arrayOf(isAlert)) });

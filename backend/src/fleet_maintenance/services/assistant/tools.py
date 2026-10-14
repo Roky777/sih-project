@@ -81,6 +81,10 @@ class AircraftArgs(Strict):
     aircraft_id: str | None = Field(default=None, pattern=r"^AC-\d{3}$")
 
 
+class RegisteredAircraftArgs(Strict):
+    aircraft_id: str | None = Field(default=None, pattern=r"^REG-[a-f0-9]{20}$")
+
+
 class FindingArgs(Strict):
     advisory_id: str | None = Field(default=None, max_length=80)
     component_id: str | None = Field(default=None, max_length=40)
@@ -268,6 +272,89 @@ def aircraft_health(session: Session, actor: Actor, ctx: Context, args: Aircraft
     return ToolResult(data, [], cites)
 
 
+def registered_aircraft(
+    session: Session, actor: Actor, ctx: Context, args: RegisteredAircraftArgs
+) -> ToolResult:
+    from fleet_maintenance.services.registration import detail
+
+    identifier = args.aircraft_id or ctx.aircraft_id
+    if not identifier or not identifier.startswith("REG-"):
+        raise ToolError("Select a registered aircraft first")
+    row = detail(session, identifier, ctx.as_of)
+    data = {
+        key: row[key]
+        for key in (
+            "id",
+            "tail_number",
+            "aircraft_type",
+            "base",
+            "as_of",
+            "flight_hours",
+            "cycles",
+            "availability_state",
+            "assessment_status",
+            "limitations",
+        )
+    }
+    data["component_count"] = len(row["components"])
+    data["requirements"] = [r for r in row["records"] if r["kind"] == "maintenance_requirement"][:8]
+    data["provenance"] = "user_supplied, unassessed"
+    return ToolResult(
+        data,
+        citations=[
+            _cite(
+                "aircraft",
+                identifier,
+                f"{row['tail_number']} onboarding records",
+                f"/aircraft/registered/{identifier}",
+            )
+        ],
+    )
+
+
+def priority_findings(
+    session: Session, actor: Actor, ctx: Context, args: AircraftArgs
+) -> ToolResult:
+    bundle, _, _ = _date_label(session, ctx)
+    _, _, items = service.advisories(session, ctx.as_of)
+    tail = args.aircraft_id or ctx.aircraft_id
+    rows = sorted(
+        (
+            a
+            for a in items
+            if a["status"] not in {"completed", "dismissed"} and (not tail or a["aircraft"] == tail)
+        ),
+        key=lambda a: (-a["priority"]["score"], a["id"]),
+    )[:8]
+    return ToolResult(
+        {
+            "as_of": (ctx.as_of or bundle.as_of).isoformat(),
+            "scope": tail or "fleet",
+            "findings": [
+                {
+                    "id": a["id"],
+                    "aircraft": a["aircraft"],
+                    "component": a["component_name"],
+                    "priority": a["priority"]["level"],
+                    "score": a["priority"]["score"],
+                    "action": a["action"]["label"],
+                    "factors": sorted(a["priority"]["factors"], key=lambda f: -f["points"])[:2],
+                }
+                for a in rows
+            ],
+        },
+        citations=[
+            _cite(
+                "finding",
+                a["id"],
+                f"{a['aircraft']} · {a['component_name']}",
+                f"/health/{a['component_id']}",
+            )
+            for a in rows
+        ],
+    )
+
+
 def _find_advisory(session: Session, ctx: Context, args: FindingArgs) -> dict[str, Any]:
     _, _, items = service.advisories(session, ctx.as_of)
     wanted_id = args.advisory_id or (None if args.component_id else ctx.advisory_id)
@@ -420,7 +507,29 @@ def maintenance_records(
 ) -> ToolResult:
     bundle, _, replay = _date_label(session, ctx)
     tail = args.aircraft_id or ctx.aircraft_id
-    w = service.work_orders(session, args.status, tail, None)
+    if replay:
+        if not tail:
+            raise ToolError("Select an aircraft to inspect maintenance at a historical cutoff")
+        historical = service.aircraft_detail(session, tail, ctx.as_of)
+        names = {c["id"]: c["name"] for group in historical["systems"] for c in group["components"]}
+        w = {
+            "recorded": [
+                {
+                    **row,
+                    "aircraft": tail,
+                    "component_name": names.get(row["component_id"], "Not mapped"),
+                    "phase": "Not recorded at this cutoff",
+                    "promised": None,
+                    "late": None,
+                    "delay_reason": None,
+                }
+                for row in historical["work_orders"]
+                if not args.status or row["status"] == args.status
+            ],
+            "planned": [],
+        }
+    else:
+        w = service.work_orders(session, args.status, tail, None)
     component = args.component_id
     limit_date = (ctx.as_of or bundle.as_of).isoformat()
     recorded = [
@@ -644,6 +753,8 @@ def compare_plans(session: Session, actor: Actor, ctx: Context, args: PlanArgs) 
 
 
 def what_if(session: Session, actor: Actor, ctx: Context, args: ScenarioArgs) -> ToolResult:
+    if ctx.aircraft_id and ctx.aircraft_id.startswith("REG-"):
+        raise ToolError("Registered aircraft are not part of the synthetic fleet simulation")
     if actor.role not in SCENARIO_ROLES:
         raise ToolError("Running a scenario needs the fleet manager, planner or supervisor role.")
     bundle, _, replay = _date_label(session, ctx)
@@ -759,6 +870,20 @@ class Tool:
 TOOLS: dict[str, Tool] = {
     t.name: t
     for t in (
+        Tool(
+            "get_registered_aircraft",
+            "Customer-entered REG aircraft onboarding, source usage and mandatory requirements. "
+            "Availability and health are unassessed; no synthetic forecast is assigned.",
+            RegisteredAircraftArgs,
+            registered_aircraft,
+        ),
+        Tool(
+            "get_priority_findings",
+            "Up to eight open findings ordered by recorded priority score, "
+            "optionally for the selected aircraft. Priority factors are not physical fault causes.",
+            AircraftArgs,
+            priority_findings,
+        ),
         Tool(
             "get_fleet_summary",
             "Fleet availability today and over the last 14 days with downtime "

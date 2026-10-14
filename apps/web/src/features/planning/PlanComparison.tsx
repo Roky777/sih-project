@@ -1,6 +1,6 @@
+import { useActorRole } from "../ops/roles";
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api, arrayOf, isJob, isSimulationRun, type Job } from '../../shared/api/client';
-import { useSession } from '../access/SessionGate';
 import { Notice } from '../../shared/ui/WorkspaceUI';
 
 type Projection = { availability: number; downtime_aircraft_hours: number; resource_wait_hours: number; late_tasks?: number; resource_window_violations?: string[] };
@@ -10,8 +10,8 @@ const projection = (v: unknown): v is Projection => object(v) && ['availability'
 const isCase = (v: unknown): v is Case => object(v) && typeof v.name === 'string' && projection(v.actual) && (v.baseline === null || projection(v.baseline)) && (v.downtime_difference_hours === null || typeof v.downtime_difference_hours === 'number' && Number.isFinite(v.downtime_difference_hours));
 
 export function PlanComparison({ planId }: { planId: string }) {
-  const session = useSession();
-  const canCalculate = session?.role === 'planner' || session?.role === 'supervisor';
+  const actorRole = useActorRole();
+  const canCalculate = actorRole === 'planner' || actorRole === 'supervisor';
   const submit = useMutation({ mutationFn: () => api(`/plans/${encodeURIComponent(planId)}/comparison`, { method: 'POST' }, isJob) });
   const job = useQuery({ queryKey: ['comparison-job', submit.data?.id], queryFn: () => api(`/jobs/${submit.data!.id}`, undefined, isJob), enabled: !!submit.data, refetchInterval: q => ['queued', 'running'].includes((q.state.data as Job | undefined)?.state ?? '') ? 1000 : false });
   const runs = useQuery({ queryKey: ['plan-comparison', planId, job.data?.state], queryFn: () => api(`/scenarios/runs/all?plan_id=${encodeURIComponent(planId)}&limit=10`, undefined, arrayOf(isSimulationRun)) });

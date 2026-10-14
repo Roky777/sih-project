@@ -1,3 +1,4 @@
+import { useActorRole } from "../ops/roles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -7,15 +8,14 @@ import { Icon } from "../../shared/ui/Icon";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
 import { Notice, PageHeader, RefreshButton, StatCard } from "../../shared/ui/WorkspaceUI";
 import { JobProgress } from "../jobs/JobProgress";
-import { useSession } from "../access/SessionGate";
 import { PlanTimeline } from "./PlanTimeline";
 import { PlanHistory } from "./PlanHistory";
 import { PlanApproval } from "./PlanApproval";
 import { PlanComparison } from "./PlanComparison";
 import { ResourcePanel } from "./ResourcePanel";
-export function PlanningPage() {
-  const session=useSession();
-  const canPlan=session?.role==='planner'||session?.role==='supervisor';
+export function PlanningPage({ embedded = false }: { embedded?: boolean } = {}) {
+  const actorRole = useActorRole();
+  const canPlan=actorRole==='planner'||actorRole==='supervisor';
   const [context]=useSearchParams();
   const client = useQueryClient();
   const [selectedId, setSelectedId] = useState("");
@@ -27,7 +27,7 @@ export function PlanningPage() {
   const proposedCount = query.data?.filter((plan) => plan.status === "proposed").length;
   const approvedCount = query.data?.filter((plan) => plan.status === "approved").length;
   return <section>
-    <PageHeader eyebrow="MAINTENANCE PLANNING" title="Maintenance planning" description="Generate a checked schedule, inspect its constraints and review the exact proposal before approval." actions={<><RefreshButton fetching={query.isFetching} onClick={() => void query.refetch()}/><button onClick={() => propose.mutate()} disabled={propose.isPending||!canPlan}><Icon name="calendar" size={17}/>{propose.isPending ? "Submitting…" : "Calculate maintenance schedule"}</button></>}/>
+    <PageHeader level={embedded ? "section" : "page"} eyebrow="MAINTENANCE PLANNING" title="Maintenance planning" description="Generate a checked schedule, inspect its constraints and review the exact proposal before approval." actions={<><RefreshButton fetching={query.isFetching} onClick={() => void query.refetch()}/><button onClick={() => propose.mutate()} disabled={propose.isPending||!canPlan}><Icon name="calendar" size={17}/>{propose.isPending ? "Submitting…" : "Calculate maintenance schedule"}</button></>}/>
     {!canPlan&&<Notice title="Read-only planning">Planner or supervisor permission is required to calculate a proposal. Saved evidence remains available.</Notice>}
     {context.get("component")?.startsWith("trial-")&&<Notice title="Customer trial scope">This component belongs to a dedicated customer trial. <Link to={`/demo?trial=${encodeURIComponent(context.get("component")!.replace(/-engine$/, ""))}`}>Return to the trial’s evidence, schedule and work</Link>. Ordinary fleet proposals below exclude trial tasks and stock.</Notice>}
     {context.get("component")&&!context.get("component")?.startsWith("trial-")&&<Notice title="Inspection context">Selected component: {context.get("component")}. Proposals cover the configured fleet task set; this selection does not restrict the solver. <Link to={`/components/${encodeURIComponent(context.get("component")!)}`}>Return to component evidence</Link></Notice>}

@@ -22,7 +22,7 @@ def test_future_delivery_cannot_be_consumed_early_or_twice():
     assert result.status == "optimal" and validate_result(source, result) == []
     starts = sorted(item.start for item in result.assignments)
     assert starts[0] >= 3 and starts[1] == 5
-    assert result.objective == 6
+    assert result.objective == (4 + 6) * (source.horizon + 1) + 6
     early = PlanningResult("feasible", (Assignment("a", 3, 4), Assignment("b", 3, 4)))
     assert any("unavailable" in error for error in validate_result(source, early))
     baseline = earliest_deadline_first(source)

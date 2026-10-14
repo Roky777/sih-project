@@ -90,3 +90,10 @@ export function stageCounts(advisories: Advisory[] | undefined) {
 
 export const statusLabel: Record<string, string> = { proposed: "Needs review", accepted: "Confirmed", scheduled: "Scheduled", completed: "Done", dismissed: "Dismissed" };
 export const partsLabel: Record<string, string> = { open: "Part needed", reserved: "Part reserved", ordered: "Part on order", received: "Part received", cancelled: "Cancelled" };
+
+/** Effective API role: session roles stay fixed; local demo follows the selected role. */
+export function useActorRole() {
+  const session = useSession();
+  const { role } = useRole();
+  return session?.authentication === "server session" ? session.role : role.id;
+}

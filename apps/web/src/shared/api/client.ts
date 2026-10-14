@@ -26,6 +26,12 @@ export function setCsrfToken(token: string | null) { csrfToken = token; }
 // Local demo mode only: the role chosen in the workspace. Session mode ignores these headers.
 let demoRole = "supervisor";
 export function setDemoRole(role: string) { demoRole = role; }
+function replayHeaders(): Record<string, string> {
+  try {
+    const date = window.sessionStorage.getItem("ops:replay-as-of");
+    return date ? { "X-Fleet-Replay-Date": date } : {};
+  } catch { return {}; }
+}
 export class ApiError extends Error {
   constructor(message: string, public readonly status: number, public readonly retryAfterSeconds: number | null = null) { super(message); }
 }
@@ -182,6 +188,21 @@ export const isComponentDetail: Validator<ComponentDetail> = (
       Array.isArray(value.assessment.quality_findings) &&
       value.assessment.quality_findings.every((finding) => record(finding) && string(finding.code) && string(finding.severity) && string(finding.message))));
 
+function responseError(body: unknown, fallback: string): string {
+  if (!record(body)) return fallback;
+  if (string(body.detail)) return body.detail;
+  if (string(body.message)) return body.message;
+  if (Array.isArray(body.detail)) {
+    const issues = body.detail.filter(record).filter(issue => string(issue.msg) && Array.isArray(issue.loc)).slice(0, 5);
+    const labels = issues.map(issue => {
+      const path = (issue.loc as unknown[]).filter(part => part !== "body" && (typeof part === "string" || typeof part === "number")).map(part => typeof part === "number" ? part + 1 : part).join(".");
+      return `${path || "Input"}: ${String(issue.msg).slice(0, 240)}`;
+    });
+    if (labels.length) return labels.join("; ");
+  }
+  return fallback;
+}
+
 export async function api<T>(
   path: string,
   init?: RequestInit,
@@ -194,6 +215,7 @@ export async function api<T>(
     headers: {
       "Content-Type": "application/json",
       "X-Demo-Role": demoRole,
+      ...replayHeaders(),
       "X-Demo-User": `demo-${demoRole.replace("_", "-")}`,
       ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
       ...(init?.headers ?? {}),
@@ -211,7 +233,7 @@ export async function api<T>(
     const fallback = response.status === 429
       ? "Too many attempts. Please wait before trying again."
       : `Request failed (${response.status}). Please try again.`;
-    const message = record(body) && string(body.detail) ? body.detail : record(body) && string(body.message) ? body.message : fallback;
+    const message = responseError(body, fallback);
     if (response.status === 401 && path !== "/access/session") window.dispatchEvent(new Event("fleet:session-expired"));
     throw new ApiError(message, response.status, retryAfterSeconds);
   }
@@ -221,6 +243,35 @@ export async function api<T>(
     throw new Error(`API response validation failed for ${path}`);
   }
   return payload as T;
+}
+
+/** Authenticated newline-delimited events; use the same session/CSRF headers as JSON calls. */
+export async function apiStream(path: string, init: RequestInit, onEvent: (event: unknown) => void): Promise<void> {
+  const response = await fetch(apiUrl(path), {
+    ...init, credentials: "include", headers: {
+      "Content-Type": "application/json", "X-Demo-Role": demoRole,
+      "X-Demo-User": `demo-${demoRole.replace("_", "-")}`,
+      ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}), ...(init.headers ?? {}),
+    },
+  });
+  if (!response.ok) {
+    const body: unknown = await response.json().catch(() => null);
+    if (response.status === 401) window.dispatchEvent(new Event("fleet:session-expired"));
+    throw new ApiError(responseError(body, `Request failed (${response.status}).`), response.status);
+  }
+  if (!response.body) throw new Error("The answer stream is unavailable.");
+  const reader = response.body.getReader(), decoder = new TextDecoder();
+  let buffer = "";
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      buffer += decoder.decode(value, { stream: !done });
+      const lines = buffer.split("\n"); buffer = lines.pop() ?? "";
+      for (const line of lines) if (line.trim()) onEvent(JSON.parse(line));
+      if (done) break;
+    }
+    if (buffer.trim()) onEvent(JSON.parse(buffer));
+  } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
 }
 
 

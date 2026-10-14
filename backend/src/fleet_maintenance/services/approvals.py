@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 
 from fleet_maintenance.persistence.models import (
     AuditEvent,
+    CaseLink,
+    MaintenanceCase,
     Plan,
     Reservation,
     WorkRecord,
@@ -108,13 +110,23 @@ def approve_plan(session: Session, plan_id: str, actor: str) -> Plan:
         task = task_by_id[task_id]
         task.status = "approved"
         task.version += 1
-        session.add(
-            WorkRecord(
-                id=f"work-{uuid.uuid5(uuid.NAMESPACE_URL, plan.id + ':' + task_id).hex}",
-                plan_id=plan.id,
-                task_id=task_id,
-            )
+        work = WorkRecord(
+            id=f"work-{uuid.uuid5(uuid.NAMESPACE_URL, plan.id + ':' + task_id).hex}",
+            plan_id=plan.id,
+            task_id=task_id,
         )
+        session.add(work)
+        session.flush()
+        # Extend the existing evidence case in the same approval transaction.
+        from fleet_maintenance.services.cases import link
+
+        for case in session.scalars(
+            select(MaintenanceCase)
+            .join(CaseLink)
+            .where(CaseLink.kind == "task", CaseLink.record_id == task_id)
+        ):
+            link(session, case, "research_work", work.id, str(work.version))
+            link(session, case, "research_plan", plan.id, plan.input_version)
     plan.status = "approved"
     plan.approved_at = datetime.now(UTC)
     plan.approved_by = actor

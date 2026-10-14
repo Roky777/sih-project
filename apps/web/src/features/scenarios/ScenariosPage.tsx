@@ -7,7 +7,7 @@ import { Notice, PageHeader, RefreshButton } from "../../shared/ui/WorkspaceUI";
 import { JobProgress } from "../jobs/JobProgress";
 import { ScenarioComparison } from "./ScenarioComparison";
 import { ScenarioEditor, type ScenarioRevisionInput } from "./ScenarioEditor";
-export function ScenariosPage() {
+export function ScenariosPage({ embedded = false }: { embedded?: boolean } = {}) {
   const [selectedId,setSelectedId]=useState('');
   const client = useQueryClient();
   const scenarios = useQuery({ queryKey:["scenarios"], queryFn: () => api<Scenario[]>("/scenarios", undefined, arrayOf(isScenario)) });
@@ -15,7 +15,7 @@ export function ScenariosPage() {
   const revise = useMutation({ mutationFn: ({id,input}:{id:string;input:ScenarioRevisionInput}) => api<Scenario>(`/scenarios/${encodeURIComponent(id)}/revisions`, {method:"POST",body:JSON.stringify(input)},isScenario), onSuccess:(saved)=>{setSelectedId(saved.id);return client.invalidateQueries({queryKey:["scenarios"]});} });
   const selected=scenarios.data?.find(item=>item.id===selectedId)??scenarios.data?.[0];
   const run = useMutation({ mutationFn:(id:string) => api<Job>(`/jobs/simulation/${id}`, { method:"POST" }, isJob), onSuccess: () => client.invalidateQueries({ queryKey:["jobs"] }) });
-  return <section><PageHeader eyebrow="WHAT-IF ANALYSIS" title="Scenario analysis" description="Explore how explicit maintenance and capacity assumptions affect projected aircraft-time availability." actions={<RefreshButton fetching={scenarios.isFetching || runs.isFetching} onClick={() => { void scenarios.refetch(); void runs.refetch(); }}/>}/>
+  return <section><PageHeader level={embedded ? "section" : "page"} eyebrow="WHAT-IF ANALYSIS" title="Scenario analysis" description="Explore how explicit maintenance and capacity assumptions affect projected aircraft-time availability." actions={<RefreshButton fetching={scenarios.isFetching || runs.isFetching} onClick={() => { void scenarios.refetch(); void runs.refetch(); }}/>}/>
     <Notice title="Simulated projections">These results describe synthetic scenarios. Aircraft-time availability is the proportion of available aircraft-hours within the configured horizon.</Notice>
     <div className="section-heading"><div><h2>Scenario inputs</h2><p>Each calculation retains its scenario identity, assumptions and seed.</p></div><span className="source-tag"><Icon name="file" size={14}/>Synthetic assumptions</span></div>
     {(run.error || revise.error) && <div className="state error" role="alert">{(run.error || revise.error)?.message}</div>}

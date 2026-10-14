@@ -1,6 +1,7 @@
+import { useActorRole } from "./roles";
+import { BrandLogo } from "../../shared/ui/BrandLogo";
 import { Fragment } from "react";
 import { Icon } from "../../shared/ui/Icon";
-import { useSession } from "../access/SessionGate";
 import { useEngine, useKpis, useModels, useRequestEngineRun } from "./api";
 import { availabilityLabel, factorLabel, longDate, num, pct } from "./format";
 import { GLASS_CSS, OpsChart, baseAxes, tooltip } from "./OpsChart";
@@ -23,13 +24,14 @@ type Evaluation = {
   training: { models: Record<string, string>; substitutions: string[]; library_versions: Record<string, string>; timings_seconds: Record<string, number>; data_hash: string; features: string[] };
 };
 
-export function AnalyticsPage() {
+export function AnalyticsPage({ section }: { section?: "reports" | "models" } = {}) {
   const kpis = useKpis();
   const models = useModels();
   return <>
-    <PageHead eyebrow="Explore" title="Reports & models" description="How reliable the fleet has been over three years, and how well the prediction models perform."/>
-    <Query query={kpis} rows={6}>{raw => <ReliabilitySection k={raw as unknown as Kpis}/>}</Query>
-    <Query query={models} rows={10}>{raw => <ModelSection data={raw as unknown as { run_id: string; manifest: { created_at: string; seed: number; hashes: Record<string, string> }; evaluation: Evaluation; priority_rule: { version: string; weights: Record<string, number>; bands: Record<string, number> } }}/>}</Query>
+    <header className="report-brand"><BrandLogo/><div><strong>AeroCare · {section === "models" ? "Model evaluation" : "Availability report"}</strong><p>Recorded and synthetic demonstrator evidence · PS 26249</p></div></header>
+    {!section && <PageHead eyebrow="Explore" title="Reports & models" description="Recorded reliability and model evaluation"/>}
+    {section !== "models" && <Query query={kpis} rows={6}>{raw => <ReliabilitySection k={raw as unknown as Kpis}/>}</Query>}
+    {section !== "reports" && <Query query={models} rows={10}>{raw => <ModelSection data={raw as unknown as { run_id: string; manifest: { created_at: string; seed: number; hashes: Record<string, string> }; evaluation: Evaluation; priority_rule: { version: string; weights: Record<string, number>; bands: Record<string, number> } }}/>}</Query>}
   </>;
 }
 
@@ -135,13 +137,13 @@ function ModelSection({ data }: { data: { run_id: string; manifest: { created_at
 }
 
 function EngineCard({ data }: { data: { run_id: string; manifest: { created_at: string; seed: number; hashes: Record<string, string> }; evaluation: Evaluation } }) {
-  const session = useSession();
+  const actorRole = useActorRole();
   const engine = useEngine();
   const request = useRequestEngineRun();
   const toast = useToast();
   const t = data.evaluation.training;
   return <Card title="Engine run & provenance" subtitle={`${data.run_id} · seed ${data.manifest.seed} · ${longDate(data.manifest.created_at)}`}
-    actions={session?.role === "supervisor" && <button type="button" className="o-btn sm ghost" disabled={request.isPending || Boolean(engine.data?.pending_run)} onClick={() => request.mutate(data.manifest.seed, { onSuccess: () => toast({ tone: "info", title: "Engine run queued", body: "The current bundle stays active until the new one is verified." }) })}><Icon name="refresh" size={14}/>{engine.data?.pending_run ? "Run in progress…" : "Re-run engine"}</button>}>
+    actions={actorRole === "supervisor" && <button type="button" className="o-btn sm ghost" disabled={request.isPending || Boolean(engine.data?.pending_run)} onClick={() => request.mutate(data.manifest.seed, { onSuccess: () => toast({ tone: "info", title: "Engine run queued", body: "The current bundle stays active until the new one is verified." }) })}><Icon name="refresh" size={14}/>{engine.data?.pending_run ? "Run in progress…" : "Re-run engine"}</button>}>
     <dl className="o-kv">{Object.entries(t.models).map(([name, text]) => <Fragment key={name}><dt>{name.replace(/_/g, " ")}</dt><dd className="o-kv-text">{text}</dd></Fragment>)}</dl>
     <hr className="o-divider"/>
     <ul className="o-plain-list">{t.substitutions.map(item => <li key={item}><Icon name="info" size={13}/>{item}</li>)}</ul>

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAdvisories } from "./api";
 import { LoadingCard } from "./ui";
 
@@ -13,9 +13,14 @@ export function useRememberFocus(kind: Kind, id: string | undefined) {
 
 /** Opens the remembered target, or the highest-priority open advisory when none is remembered. */
 export function FocusRedirect({ kind }: { kind: Kind }) {
-  const remembered = read(kind);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const explicit = params.get(kind === "component" ? "component" : "aircraft") ?? params.get(`${kind}Id`) ?? params.get("id");
+  const remembered = explicit ?? read(kind);
+  const suffix = `${location.search}${location.hash}`;
+  const path = kind === "aircraft" ? "/aircraft" : params.get("dataset") === "research" ? "/components" : "/health";
   const advisories = useAdvisories(!remembered);
-  if (remembered) return <Navigate to={kind === "aircraft" ? `/aircraft/${remembered}` : `/health/${remembered}`} replace/>;
+  if (remembered) return <Navigate to={`${path}/${encodeURIComponent(remembered)}${suffix}`} replace/>;
   if (advisories.isLoading) return <LoadingCard rows={6}/>;
   const top = advisories.data?.find(a => !["completed", "dismissed"].includes(a.status));
   if (!top) return <Navigate to={kind === "aircraft" ? "/aircraft" : "/advisories"} replace/>;

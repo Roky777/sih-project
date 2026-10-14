@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { airframeOf } from "../../src/features/ops/airframes";
 import { rulText } from "../../src/features/ops/format";
 import type { AircraftDetail } from "../../src/features/ops/api";
 
@@ -14,7 +15,7 @@ test("authored fighter replaces the transport and renders each camera view", asy
   await expect(stage.getByText(/3D view unavailable/)).toHaveCount(0);
   await expect(stage.getByText("Tejas-inspired visual · Not engineering-validated", { exact: true })).toHaveCount(0);
   await expect(stage.locator(".twin-caption")).toHaveCount(0);
-  await expect(stage.getByText("Tejas-class light fighter · 1:1 visual model")).toBeVisible();
+  await expect(stage.locator(".twin-overview-caption")).toContainText("Illustrative airframe");
   expect(assets.some(url => url.endsWith("/models/tejas-visual.glb"))).toBe(true);
   expect(assets.some(url => url.endsWith("/models/aircraft.glb"))).toBe(false);
   const response = await page.request.get("/models/tejas-visual.glb");
@@ -81,10 +82,10 @@ test("live twin statistics match the API and responsive layouts contain the view
   expect(response.ok()).toBe(true);
   const record: AircraftDetail = await response.json();
   const formatted = (value: number) => new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
-  await expect(stage.getByRole("heading", { level: 1 })).toContainText(record.aircraft.id);
+  await expect(page.locator(".aircraft-record-identity h1")).toContainText(record.aircraft.id);
   await expect(stage.locator("dl")).toContainText(formatted(record.aircraft.total_flight_hours));
   await expect(stage.locator("dl")).toContainText(formatted(record.aircraft.total_cycles));
-  await expect(page.locator("#twin-system-details")).toContainText(record.systems[0].name);
+  await expect(page.getByRole("tab", { name: "Components", exact: true })).toBeVisible();
   const components = record.systems.flatMap(system => system.components);
   const evidence = stage.locator(".twin-evidence");
   await expect(page.getByRole("dialog", { name: "Component condition" })).toHaveCount(0);
@@ -119,12 +120,9 @@ test("live twin statistics match the API and responsive layouts contain the view
     const separation = await stage.evaluate(element => {
       const stats = element.querySelector(".twin-stats")!.getBoundingClientRect();
       const views = element.querySelector(".twin-views")!.getBoundingClientRect();
-      const picker = element.querySelector(".twin-picker")!.getBoundingClientRect();
-      const condition = element.querySelector(".twin-condition")!.getBoundingClientRect();
-      return { viewsBottom: views.bottom, statsTop: stats.top, pickerBottom: picker.bottom, conditionTop: condition.top };
+      return { viewsBottom: views.bottom, statsTop: stats.top };
     });
     expect(separation.viewsBottom, `${name}: camera controls precede statistics`).toBeLessThanOrEqual(separation.statsTop);
-    expect(separation.pickerBottom, `${name}: aircraft picker precedes condition`).toBeLessThanOrEqual(separation.conditionTop);
     if (width > 760) {
       expect(await stage.evaluate(element => {
         const views = element.querySelector(".twin-views")!.getBoundingClientRect();
@@ -134,7 +132,7 @@ test("live twin statistics match the API and responsive layouts contain the view
     }
     const stageBounds = await stage.boundingBox();
     const tabsBounds = await page.getByRole("tablist").boundingBox();
-    expect(tabsBounds!.y).toBeGreaterThanOrEqual(stageBounds!.y + stageBounds!.height);
+    expect(tabsBounds!.y + tabsBounds!.height).toBeLessThanOrEqual(stageBounds!.y);
     if (width > 1000) {
       const bounds = await stage.evaluate(element => {
         const scene = element.querySelector(".twin-scene")!.getBoundingClientRect();
@@ -204,4 +202,44 @@ test("component condition supports keyboard, evidence navigation and mobile syst
   await panel.getByRole("button", { name: "Explore aircraft blueprint" }).click();
   await expect(panel).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Aircraft blueprint", exact: true })).toBeInViewport();
+});
+
+test("airframe families share clear mobile controls and themed component drawers", async ({ page, request }, info) => {
+  test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
+  test.setTimeout(90_000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const response = await request.get("/api/fleet-health/aircraft");
+  expect(response.ok()).toBe(true);
+  const rows = await response.json() as { id: string; type: string }[];
+  const families = [...new Map(rows.map(row => [airframeOf(row).id, row])).values()];
+  expect(families).toHaveLength(5);
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const row of families) {
+      await page.goto(`/aircraft/${row.id}`);
+      await expect(page.locator(".twin-scene canvas")).toBeVisible();
+      await expect(page.getByText("Loading aircraft model…")).toHaveCount(0);
+      await expect(page.locator(".twin-overview-caption")).toContainText("Illustrative airframe");
+      await page.waitForTimeout(500);
+      if (width < 760) {
+        const clear = await page.evaluate(() => {
+          const action = document.querySelector(".twin-details")!.getBoundingClientRect();
+          const ai = document.querySelector(".o-header .o-ask-ai")!.getBoundingClientRect();
+          return action.right <= ai.left || action.bottom <= ai.top || action.top >= ai.bottom;
+        });
+        expect(clear, `${row.type}: blueprint action stays clear of copilot`).toBe(true);
+      }
+      await page.screenshot({ path: info.outputPath(`family-${row.id}-${width}.png`) });
+    }
+  }
+  await page.getByRole("button", { name: "Switch to dark theme" }).click();
+  await page.getByRole("button", { name: "Component condition", exact: true }).click();
+  const panel = page.getByRole("dialog", { name: "Component condition" });
+  await expect(panel).toBeVisible();
+  const colours = await panel.evaluate(element => ({ background: getComputedStyle(element).backgroundColor, text: getComputedStyle(element).color }));
+  expect(colours.background).toBe("rgb(23, 27, 25)");
+  expect(colours.text).toBe("rgb(242, 245, 243)");
+  await panel.screenshot({ path: info.outputPath("component-condition-dark.png") });
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Switch to light theme" }).click();
 });

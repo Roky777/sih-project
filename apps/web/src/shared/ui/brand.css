@@ -1,0 +1,15 @@
+.aerocare-logo { display: block; width: 172px; height: auto; aspect-ratio: 3 / 1; object-fit: contain; flex-shrink: 0; }
+.o-header .o-header-brand { min-width: 180px; }
+.aerocare-logo-login { width: 250px; max-width: 100%; margin: -8px 0 24px; }
+.aerocare-logo-compact { width: 155px; }
+.report-brand { display: flex; align-items: center; gap: 22px; padding: 14px 20px; margin-top: 18px; border-bottom: 1px solid var(--o-border); }
+.report-brand .aerocare-logo { width: 150px; }
+.report-brand strong { display: block; font-size: 16px; font-weight: 500; color: var(--o-text); }
+.report-brand p { margin: 5px 0 0; font-size: 12px; color: var(--o-text-3); }
+:root[data-theme="dark"] .aerocare-logo { filter: brightness(0) invert(1); }
+@media(max-width:760px) { .o-header .o-header-brand { min-width: 0; }.o-header .aerocare-logo { width: 112px; }.report-brand { flex-wrap: wrap; gap: 10px; } }
+@media print { .aerocare-logo { filter: none !important; }.report-brand { break-after: avoid; }.o-header-tools,.o-topnav,.o-footer-connection,.o-flow-strip,.o-replay-banner { display: none !important; } }
+.login-card form > button[type="submit"] { background: #1f7a45; border-color: #1f7a45; color: #fff; border-radius: 10px; min-height: 44px; }
+.login-card .account-switch-button { color: #1f7a45; }
+:root[data-theme="dark"] .login-card form > button[type="submit"] { background: #90e0b2; border-color: #90e0b2; color: #10271c; }
+:root[data-theme="dark"] .login-card .account-switch-button { color: #90e0b2; }

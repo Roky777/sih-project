@@ -15,7 +15,7 @@
 .aircraft-workspace-head h2 { margin: 7px 0 8px; font-size: 24px; font-weight: 600; letter-spacing: -.5px; }
 .aircraft-workspace-head p { margin: 0; color: var(--aircraft-muted); font-size: 12px; }
 .aircraft-workspace-context { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; max-width: 360px; }
-.aircraft-workspace-context > span:last-child { width: 100%; text-align: right; color: var(--aircraft-muted); font-size: 11px; margin-top: 4px; }
+.aircraft-workspace-context > .aircraft-workspace-count { width: 100%; text-align: right; color: var(--aircraft-muted); font-size: 11px; margin-top: 4px; }
 .aircraft-workspace-nav { padding: 0 32px; background: transparent; border-bottom: 1px solid var(--aircraft-line); }
 .aircraft-workspace-nav .o-tabs { gap: 6px; padding: 10px 0; margin: 0; border: 0; }
 .aircraft-workspace-nav .o-tabs button { border-radius: 8px; color: var(--aircraft-muted); padding: 0 16px; flex-shrink: 0; }
@@ -55,7 +55,7 @@
   .aircraft-workspace-head { padding: 22px 20px; align-items: flex-start; flex-direction: column; gap: 16px; }
   .aircraft-workspace-head h2 { font-size: 22px; }
   .aircraft-workspace-context { justify-content: flex-start; max-width: none; }
-  .aircraft-workspace-context > span:last-child { text-align: left; }
+  .aircraft-workspace-context > .aircraft-workspace-count { text-align: left; }
   .aircraft-workspace-nav { padding: 0 12px; }
   .aircraft-workspace-nav .o-tabs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); overflow: visible; }
   .aircraft-workspace-nav .o-tabs button { padding: 0 10px; font-size: 12px; justify-content: center; }
@@ -86,3 +86,120 @@
 .aircraft-detail-workspace .bp-header { background: transparent; }
 .o-shell.o-twin-atmosphere .workspace-connections { max-width: none; }
 @media(max-width:760px) { .o-shell.o-twin-atmosphere .aircraft-detail-screen > .aircraft-detail-workspace { width: calc(100% - 32px); } }
+
+:root[data-theme="dark"] :is(.bp-inspection-dialog,.bp-inspection-header) { background: var(--o-surface); color: var(--o-text); }
+:root[data-theme="dark"] :is(.bp-inspection-header,.bp-part-evidence) { border-color: var(--o-border); }
+:root[data-theme="dark"] .bp-part-stage { background: var(--o-surface-2); }
+:root[data-theme="dark"] :is(.bp-part-toolbar button,.bp-inspection-header button) { background: var(--o-surface); color: var(--o-text-2); border-color: var(--o-border); }
+:root[data-theme="dark"] .bp-part-toolbar button[aria-pressed="true"] { background: var(--o-accent-soft); color: var(--o-accent-ink); border-color: var(--o-accent); }
+:root[data-theme="dark"] .bp-part-legend span { color: var(--o-text-2); border-color: var(--o-border); }
+
+/* Reserve the showroom footprint before its chunk arrives: lower inspection must
+   not become visible and start loading during that short fallback. */
+.aircraft-showcase-loading { height: 100svh; min-height: 700px; margin-top: -88px; display: grid; place-items: center; }
+@media (max-width: 760px) { .aircraft-showcase-loading { height: 820px; min-height: 820px; margin-top: -72px; } }
+
+/* Aircraft-detail: compact record context, contained model, then linked operations. */
+.o-shell .aircraft-detail-screen { padding-top: 24px; }
+.o-shell.o-twin-atmosphere .aircraft-detail-screen > .aircraft-detail-workspace { width: calc(100% - 48px); margin-inline: auto; min-width: 0; }
+.o-shell .aircraft-detail-screen .aircraft-workspace-head { padding: 0 0 16px; align-items: center; flex-wrap: wrap; gap: 16px; }
+.aircraft-back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--o-text-2); margin-bottom: 8px; }
+.o-shell .aircraft-detail-screen .aircraft-record-identity h1 { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 6px; font-size: 28px; line-height: 1.25; letter-spacing: -.8px; color: var(--o-text); }
+.aircraft-record-identity h1 span { font-size: 16px; font-weight: 400; letter-spacing: 0; color: var(--o-text-2); }
+.o-shell .aircraft-detail-screen .aircraft-workspace-context { padding: 0; max-width: 440px; gap: 8px; }
+.o-shell .aircraft-detail-screen .aircraft-workspace-context .o-state-failed { color: var(--o-critical); background: var(--o-critical-soft); padding: 6px 10px; border-radius: 999px; }
+.o-shell .aircraft-detail-screen .aircraft-workspace-nav { padding: 0; min-width: 0; }
+.o-shell .aircraft-detail-screen .aircraft-workspace-nav .o-tabs { display: flex; gap: 6px; padding: 0 0 10px; overflow-x: auto; overflow-y: hidden; max-width: 100%; scrollbar-width: thin; }
+.o-shell .aircraft-detail-screen .aircraft-workspace-nav .o-tabs button { flex: 0 0 auto; min-height: 42px; padding: 0 14px; white-space: nowrap; }
+.o-shell .aircraft-detail-screen .aircraft-workspace-nav .o-tabs button.on { background: var(--o-accent-soft); color: var(--o-accent-ink); }
+.o-shell .aircraft-detail-screen .aircraft-workspace-body { padding: 24px 0 0; }
+.aircraft-summary-content { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.aircraft-status-summary { padding: 16px 20px; border: 1px solid var(--o-border); border-left: 3px solid var(--o-accent); border-radius: 16px; background: var(--o-glass-strong); }
+.aircraft-status-summary.is-restricted { border-left-color: var(--o-critical); }
+.aircraft-status-summary > header, .aircraft-related-section > header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.aircraft-section-eyebrow { display: block; font-size: 10px; letter-spacing: .07em; color: var(--o-text-3); margin-bottom: 4px; }
+.aircraft-status-summary h2 { margin: 0; font-size: 17px; color: var(--o-text); font-weight: 600; }
+.aircraft-status-summary.is-restricted h2 { color: var(--o-critical); }
+.aircraft-status-fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px 24px; margin: 0; }
+.aircraft-status-fields dt { font-size: 11px; color: var(--o-text-3); margin-bottom: 4px; }
+.aircraft-status-fields dd { margin: 0; font-size: 12px; color: var(--o-text); overflow-wrap: anywhere; line-height: 1.5; }
+.aircraft-status-fields dd small { display: block; color: var(--o-text-3); font-size: 10px; margin-top: 2px; }
+.aircraft-status-fields a { color: var(--o-accent-ink); text-decoration: underline; text-underline-offset: 3px; }
+.aircraft-statistics { padding: 18px 20px; background: var(--o-glass-strong); border: 1px solid var(--o-border); border-radius: 16px; }
+.aircraft-statistics dl { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); margin: 0; }
+.aircraft-statistics dl > div { display: flex; flex-direction: column-reverse; gap: 8px; padding-inline: 20px; border-left: 1px solid var(--o-border); }
+.aircraft-statistics dl > div:first-child { padding-left: 0; border: 0; }
+.aircraft-statistics dt { font-size: 12px; color: var(--o-text-2); }
+.aircraft-statistics abbr { text-decoration: underline dotted; text-underline-offset: 3px; cursor: help; }
+.aircraft-statistics dd { margin: 0; font-size: 29px; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--o-text); letter-spacing: -.6px; }
+.aircraft-statistics dd small { font-size: 12px; color: var(--o-text-3); letter-spacing: 0; }
+.aircraft-inspection-link { display: flex; align-items: center; gap: 8px; margin-top: 16px; font-size: 12px; }
+.aircraft-related-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
+.aircraft-related-section { padding: 20px; border-radius: 16px; border: 1px solid var(--o-border); background: var(--o-surface); min-width: 0; }
+.aircraft-related-section h2 { margin: 0; font-size: 16px; color: var(--o-text); font-weight: 600; }
+.aircraft-related-section h2 span { font-size: 11px; font-weight: 400; color: var(--o-text-3); margin-left: 8px; }
+.aircraft-related-section ul { list-style: none; padding: 0; margin: 0; }
+.aircraft-related-section li { padding: 12px 0; border-top: 1px solid var(--o-border); display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 12px; color: var(--o-text-2); }
+.aircraft-related-section li:first-child { border-top: 0; padding-top: 0; }
+.aircraft-related-section li > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; }
+.aircraft-related-section li > div span { color: var(--o-text-3); }
+.aircraft-related-section li a { display: inline-flex; align-items: center; gap: 5px; color: var(--o-accent-ink); }
+.aircraft-summary-empty { margin: 0; color: var(--o-text-3); font-size: 12px; line-height: 1.6; }
+.o-shell .aircraft-detail-screen .aircraft-overview-loading { height: 430px; min-height: 0; max-height: none; margin: 0; display: grid; place-items: center; background: var(--o-glass-strong); border: 1px solid var(--o-border); border-radius: 16px; }
+.o-shell .aircraft-detail-screen .pane-visual > .o-segmented { margin-bottom: 16px; width: fit-content; max-width: 100%; }
+@media(max-width:900px) { .aircraft-status-fields { grid-template-columns: repeat(2,minmax(0,1fr)); } .aircraft-related-grid { grid-template-columns: 1fr; } }
+@media(max-width:760px) {
+  .o-shell.o-twin-atmosphere .aircraft-detail-screen > .aircraft-detail-workspace { width: calc(100% - 32px); }
+  .o-shell .aircraft-detail-screen .aircraft-workspace-head { flex-direction: row; align-items: flex-start; }
+  .o-shell .aircraft-detail-screen .aircraft-record-identity h1 { display: grid; font-size: 26px; }
+  .o-shell .aircraft-detail-screen .aircraft-workspace-context { justify-content: flex-start; }
+  .aircraft-statistics dl { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 0; }
+  .aircraft-statistics dl > div { padding-inline: 12px; }
+  .aircraft-statistics dl > div:nth-child(3) { border: 0; padding-left: 0; }
+  .aircraft-statistics dd { font-size: 25px; }
+  .aircraft-statistics dt { font-size: 11px; }
+  .aircraft-status-summary { padding: 16px; }
+  .aircraft-status-fields { gap: 12px 16px; }
+}
+
+/* Aircraft-local maintenance: one issue once, with a clear next action. */
+.aircraft-maintenance-view { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.aircraft-maintenance-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+.aircraft-maintenance-heading h2 { margin: 0 0 6px; color: var(--o-text); font-size: 21px; font-weight: 600; }
+.aircraft-maintenance-heading p { margin: 0; color: var(--o-text-3); font-size: 12px; }
+.aircraft-work-section { background: var(--o-glass-strong); border: 1px solid var(--o-border); border-radius: 16px; padding: 20px; min-width: 0; }
+.aircraft-work-section > header { margin-bottom: 16px; }
+.aircraft-work-section h3 { margin: 0; color: var(--o-text); font-size: 15px; font-weight: 600; }
+.aircraft-work-section h3 > span { color: var(--o-text-3); font-size: 12px; margin-left: 8px; }
+.aircraft-work-section header p { margin: 5px 0 0; font-size: 11px; color: var(--o-text-3); }
+.aircraft-maintenance-grid { display: grid; grid-template-columns: minmax(0,1.6fr) minmax(0,1fr); gap: 24px; align-items: start; }
+.aircraft-maintenance-list { display: grid; }
+.aircraft-maintenance-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 0; border-top: 1px solid var(--o-border); }
+.aircraft-maintenance-item:first-child { padding-top: 0; border-top: 0; }
+.aircraft-maintenance-item:last-child { padding-bottom: 0; }
+.aircraft-maintenance-item-main { min-width: 0; flex: 1; }
+.aircraft-maintenance-item-title { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; color: var(--o-text); font-size: 13px; }
+.aircraft-work-state { padding: 3px 8px; background: var(--o-watch-soft); color: var(--o-text-2); border-radius: 999px; font-size: 10px; }
+.aircraft-maintenance-item p { margin: 8px 0 0; color: var(--o-text-3); font-size: 12px; line-height: 1.6; }
+.aircraft-maintenance-item .aircraft-work-blocker { color: var(--o-critical); }
+.aircraft-maintenance-item .o-btn { flex: none; }
+.aircraft-review-facts { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; font-size: 11px; color: var(--o-text-2); line-height: 1.5; }
+.aircraft-review-facts b { font-weight: 500; color: var(--o-text); }
+.aircraft-maintenance-item details { margin-top: 12px; font-size: 11px; color: var(--o-text-3); }
+.aircraft-maintenance-item summary { cursor: pointer; }
+.aircraft-maintenance-item details a { color: var(--o-accent-ink); }
+.aircraft-maintenance-empty { display: flex; gap: 12px; align-items: center; padding: 2px 0; color: var(--o-text-3); }
+.aircraft-maintenance-empty strong { font-size: 13px; font-weight: 500; color: var(--o-text-2); }
+.aircraft-maintenance-empty p { margin: 4px 0 0; font-size: 11px; line-height: 1.5; }
+.aircraft-requirement-list { display: grid; gap: 16px; }
+.aircraft-requirement-list article { display: flex; align-items: flex-start; gap: 12px; }
+.aircraft-requirement-icon { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 10px; color: var(--o-accent-ink); background: var(--o-accent-soft); }
+.aircraft-requirement-icon.overdue { color: var(--o-critical); background: var(--o-critical-soft); }
+.aircraft-requirement-list strong { color: var(--o-text); font-size: 12px; font-weight: 500; }
+.aircraft-requirement-list p { color: var(--o-text-3); font-size: 11px; margin: 6px 0; }
+.aircraft-requirement-list a { display: inline-flex; align-items: center; gap: 5px; color: var(--o-accent-ink); font-size: 11px; }
+@media(max-width:900px) { .aircraft-maintenance-grid { grid-template-columns: 1fr; } }
+@media(max-width:600px) { .aircraft-work-section { padding: 16px; } .aircraft-maintenance-item { flex-direction: column; gap: 12px; } .aircraft-maintenance-heading h2 { font-size: 19px; } }
+.aircraft-work-section.work-empty { display: flex; align-items: center; gap: 24px; padding-block: 14px; }
+.aircraft-work-section.work-empty > header { margin: 0; flex: none; }
+@media(max-width:600px) { .aircraft-work-section.work-empty { align-items: flex-start; flex-direction: column; gap: 10px; } }

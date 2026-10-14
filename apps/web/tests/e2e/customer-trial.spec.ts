@@ -24,9 +24,8 @@ test('customer enters a case and follows real AI, schedule, supply comparison, a
   test.setTimeout(120_000);
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/');
-  await expect(page.getByRole('img', { name: 'Illustrative aircraft used in the interactive trial' })).toBeVisible();
-  await page.getByRole('link', { name: 'Try it with your data' }).click();
+  await page.goto('/demo');
+  await expect(page.getByRole('img', { name: 'Illustrative aircraft for this customer case' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Engine · customer trial', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Explore interactive aircraft' }).click();
   await expect(page.getByRole('button', { name: 'Reset view', exact: true })).toBeEnabled({ timeout:20_000 });
@@ -81,6 +80,8 @@ test('customer enters a case and follows real AI, schedule, supply comparison, a
   await page.getByRole('button', { name: 'Record work started' }).click();
   await expect(page.getByRole('button', { name: 'Record inspection completed' })).toBeEnabled();
   await page.getByRole('button', { name: 'Record inspection completed' }).click();
+  await expect(page.getByRole('heading', { name: 'Work record · awaiting verification' })).toBeVisible();
+  await page.getByRole('button', { name: 'Verify demo inspection outcome', exact: true }).click();
   await expect(page.getByText('You’ve followed the full decision flow.')).toBeVisible();
   const commitment = await (await request.get(`/api/plans/${next.id}/commitment`)).json();
   expect(commitment.plan_id).toBe(next.id);

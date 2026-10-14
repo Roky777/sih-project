@@ -1,18 +1,24 @@
+import { RegistrationCoverage } from "./AircraftRegistration";
+import type { components } from "../../shared/api/generated/schema";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../../shared/api/client";
+import { CaseHeader } from "./CaseWorkspace";
+import { useRole } from "./roles";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
 import { useAsOf } from "./AsOf";
-import { useAdvisories, useAlerts, useHeatGrid, useSummary, useTrend, type Advisory, type HeatGrid } from "./api";
-import { availabilityLabel, longDate, num, pct, rulText, shortDate, stateLabel } from "./format";
+import { useAdvisories, useAlerts, useHeatGrid, useSummary, useTrend, type HeatGrid } from "./api";
+import { availabilityLabel, longDate, pct, shortDate, stateLabel } from "./format";
 import { MONO, OpsChart, areaFill, baseAxes, tooltip, withAlpha } from "./OpsChart";
-import { FlowStrip } from "./FlowStrip";
-import { FleetGroundingDetails } from "./WorkflowPages";
 import { HeadingReplay } from "./ReplaySlider";
-import { Card, PriorityBadge, Query, Segmented, StateBadge } from "./ui";
+import { Card, Query, Segmented } from "./ui";
 
 /** Screen 1 · Fleet Dashboard (UI spec §3): every value is computed by the engine and simulator. */
 export function FleetDashboard() {
   const summary = useSummary();
+  const { role } = useRole();
+  const workspace = useQuery({ queryKey: ["workspace-summary"], queryFn: () => api<components["schemas"]["WorkspaceSummary"]>("/workspace/summary"), enabled: !useAsOf().asOf });
   const trend = useTrend();
   const alerts = useAlerts();
   const { asOf } = useAsOf();
@@ -21,33 +27,31 @@ export function FleetDashboard() {
   const forecast = s?.forecast_30d as { availability_mean: number; availability_p10: number; availability_p90: number } | undefined;
   const delta = s ? s.availability_today - s.availability_7d : 0;
   const falling = s && forecast ? forecast.availability_mean < s.availability_today : false;
-  const urgent = s ? (s.open_advisories.P1 ?? 0) + (s.open_advisories.P2 ?? 0) : null;
   const critical = alerts.data?.filter(alert => alert.severity === "critical" && !alert.acknowledged_by) ?? [];
   const tone = (value: number) => value >= 0.8 ? "healthy" : value >= 0.7 ? "watch" : "critical";
-  return <div className="o-screen">
+  return <div className="o-screen fleet-overview">
     <div className="o-screen-head o-dashboard-heading">
       <div className="o-dashboard-heading-copy">
         <h1>Fleet Dashboard</h1>
-        <span>{s ? `${s.aircraft} aircraft · as of ${longDate(s.as_of)}` : ""}{asOf ? " · REPLAY (read only)" : ""}</span>
+        <span>{s ? `${s.aircraft} monitored demonstration aircraft · as of ${longDate(s.as_of)}` : ""}{asOf ? " · REPLAY (read only)" : ""}</span>
         {critical.length > 0 && !asOf && <Link className="o-head-alert" to="/notifications"><Icon name="warning" size={14}/>{critical.length} critical alert{critical.length === 1 ? "" : "s"}</Link>}
       </div>
       <HeadingReplay/>
     </div>
-    <FlowStrip compact/>
+    {!asOf && <section className="workspace-next-steps" aria-label="Workspace next steps"><div><Icon name={role.icon} size={18}/><span><strong>{role.label}</strong><small>Review, plan and secure resources</small></span></div><nav aria-label="Maintenance workflow shortcuts"><Link className={role.id === "engineer" ? "current" : ""} to="/advisories?status=proposed"><b>{workspace.data?.awaiting_review ?? "—"}</b> To review <Icon name="arrow" size={15}/></Link><Link className={role.id === "supervisor" ? "current" : ""} to="/maintenance"><b>{workspace.data?.work_needing_action ?? "—"}</b> Work actions <Icon name="arrow" size={15}/></Link><Link className={role.id === "logistics" ? "current" : ""} to="/spares?view=requests">Supply readiness <Icon name="arrow" size={15}/></Link></nav></section>}
+
     <div className="o-kpi-row">
       <KpiBlock label="Fleet availability" value={s ? pct(s.availability_today, 0) : "—"} tone={s ? tone(s.availability_today) : undefined} big
         chip={s ? { text: `${delta >= 0 ? "+" : "−"}${Math.abs(delta * 100).toFixed(1)} pts`, up: delta >= 0 } : undefined}
         sub={s ? `vs 7-day average · ${s.by_availability_state.available}/${s.aircraft} aircraft available` : ""}/>
+      <KpiBlock label="Grounded aircraft" value={s ? String(s.aircraft - s.by_availability_state.available) : "—"} tone={s && s.aircraft > s.by_availability_state.available ? "critical" : "healthy"} sub="Aircraft currently unavailable" onClick={() => navigate("/aircraft?filter=grounded")}/>
+      <KpiBlock label="Urgent awaiting review" value={workspace.data ? String(workspace.data.urgent_review) : "—"} tone="watch" sub="P1/P2 findings requiring engineer review" onClick={() => navigate("/advisories?status=proposed")}/>
+      <KpiBlock label="Blocked work" value={workspace.data ? String(workspace.data.blocked_work) : "—"} tone={workspace.data?.blocked_work ? "critical" : "healthy"} sub={workspace.data?.blocked_work === 0 ? "No recorded parts or capacity blockers" : "Parts or capacity blockers recorded on cases"} onClick={() => navigate("/maintenance?caseState=blocked")}/>
       <KpiBlock label="30-day forecast" value={forecast ? pct(forecast.availability_mean, 0) : "—"} tone={forecast ? (falling ? "critical" : "healthy") : undefined} big
         chip={s && forecast ? { text: `${forecast.availability_mean >= s.availability_today ? "+" : "−"}${Math.abs((forecast.availability_mean - s.availability_today) * 100).toFixed(1)} pts`, up: forecast.availability_mean >= s.availability_today } : undefined}
         sub={forecast ? `${falling ? "Trending down" : "Stable or improving"} · P10–P90 ${pct(forecast.availability_p10)}–${pct(forecast.availability_p90)}` : ""}/>
-      <KpiBlock label="Open P1/P2 advisories" value={urgent === null ? "—" : String(urgent)} tone="watch" onClick={() => navigate("/advisories")}
-        sub={s ? `${s.open_advisories.P1 ?? 0} P1 · ${s.open_advisories.P2 ?? 0} P2` : ""}/>
-      <KpiBlock label="Current backlog" value={s ? `${num(s.backlog.man_hours)} Hrs` : "—"} onClick={() => navigate("/maintenance")}
-        sub={s ? `${s.backlog.open_work_orders} open work orders` : ""}/>
-      <KpiBlock label="Parts at risk" value={s ? String(s.parts_at_risk.length) : "—"} tone={s && s.parts_at_risk.length ? "critical" : "healthy"} onClick={() => navigate("/spares")}
-        sub={s?.parts_at_risk.slice(0, 3).join(" · ") || "No shortfall flagged"}/>
     </div>
+    <RegistrationCoverage/>
     <div className="o-grid-12">
       <Card className="span-7" title="Availability trend" subtitle="T−14 to T+30 · recorded (solid) and Monte Carlo forecast median (dotted) with P10–P90 band">
         <Query query={trend} rows={5}>{data => <TrendChart data={data}/>}</Query>
@@ -56,21 +60,22 @@ export function FleetDashboard() {
         <Query query={trend} rows={5}>{data => <DowntimeWeeks history={data.history}/>}</Query>
       </Card>
     </div>
-    <div className="o-grid-12">
-      <Card className="span-5" title="Aircraft × system health" subtitle="Worst component state per system. Hover for the driver, click to open the aircraft.">
-        <HeatMatrix/>
-      </Card>
-      <Card className="span-7" title="Highest-priority advisories" subtitle="From the predictive engine and the rule-based priority engine" actions={<Link className="o-link" to="/advisories">Full queue<Icon name="arrow" size={13}/></Link>}>
-        <TopAdvisories/>
-      </Card>
+    <div className="o-grid-12 fleet-detail-grid">
+      <Card className={asOf ? "span-12 fleet-health-panel" : "span-5 fleet-health-panel"} title="Aircraft × system health" subtitle="Select an aircraft or system to inspect its records"><HeatMatrix/></Card>
+      {!asOf && <Card title="Priority actions" className="span-7 fleet-priority-actions" subtitle="Open cases and the next responsible step" actions={<Link className="o-link" to="/advisories?status=proposed">All findings →</Link>}>
+        {workspace.error && <p role="alert">Case actions unavailable. Retry from Maintenance.</p>}
+        <div className="overview-action-grid">{workspace.data?.actions.filter(item => !["closed", "cancelled", "monitoring"].includes(item.state)).slice(0, 4).map(item => <CaseHeader compact key={item.id} record={item}/>)}</div>
+        {workspace.isLoading && <p role="status">Loading priority actions…</p>}
+        {workspace.isSuccess && !workspace.data.actions.some(item => !["closed", "cancelled", "monitoring"].includes(item.state)) && <p className="o-note">No open actions are recorded for the current snapshot.</p>}
+      </Card>}
     </div>
-    <FleetGroundingDetails/>
+
   </div>;
 }
 
 function KpiBlock({ label, value, sub, tone, big, chip, onClick }: { label: string; value: string; sub: string; tone?: string; big?: boolean; chip?: { text: string; up: boolean }; onClick?: () => void }) {
   const body = <><span className="o-kpi-block-label">{label}{chip && <span className={`o-chip-delta ${chip.up ? "up" : "down"}`}>{chip.text}</span>}</span><strong className={`${big ? "big" : ""}${tone ? ` o-tone-${tone}` : ""}`}>{value}</strong><small>{sub}</small></>;
-  return onClick ? <button type="button" className="o-kpi-block" onClick={onClick}>{body}</button> : <div className="o-kpi-block">{body}</div>;
+  return onClick ? <button type="button" className={`o-kpi-block${tone ? ` kpi-${tone}` : ""}`} onClick={onClick}>{body}</button> : <div className={`o-kpi-block${tone ? ` kpi-${tone}` : ""}`}>{body}</div>;
 }
 
 function TrendChart({ data }: { data: NonNullable<ReturnType<typeof useTrend>["data"]> }) {
@@ -102,7 +107,8 @@ function DowntimeWeeks({ history }: { history: { date: string; scheduled_mainten
       return { label: chunk.length ? `${shortDate(chunk[0].date)}–${shortDate(chunk.at(-1)!.date)}` : "", scheduled: sum("scheduled_maintenance"), supply: sum("awaiting_spares"), agency: sum("awaiting_agency"), unscheduled: sum("unscheduled_repair") };
     });
   }, [history]);
-  return <><OpsChart label="Downtime by cause, last five weeks" height={236} deps={[weeks]} build={p => ({
+  return <>
+    <OpsChart label="Downtime by cause, last five weeks" height={236} deps={[weeks]} build={p => ({
     grid: { left: 92, right: 14, top: 6, bottom: 22 },
     tooltip: { ...tooltip(p), axisPointer: { type: "shadow" } },
     xAxis: { type: "value", ...baseAxes(p), name: "aircraft-days", nameLocation: "end", nameTextStyle: { color: p.muted, fontSize: 10 } },
@@ -137,13 +143,14 @@ function HeatMatrix() {
     };
     return <>
       <div className="o-matrix-tools"><Segmented label="Sort aircraft" value={sort} onChange={setSort} options={[["risk", "By risk"], ["tail", "By tail"]] as const}/>
-        <div className="o-legend">{(["healthy", "degraded", "critical"] as const).map(state => <span key={state}><i className={`m-${state}`}/>{state === "healthy" ? "HI ≥ 80" : state === "degraded" ? "HI 40–80" : "HI < 40 / failed"}</span>)}</div></div>
+        <div className="o-legend">{(["healthy", "degraded", "critical", "under_maintenance"] as const).map(state => <span key={state}><i className={`m-${state}`}/>{state === "healthy" ? "HI ≥ 80" : state === "degraded" ? "HI 40–80" : state === "under_maintenance" ? "Maintenance" : "HI < 40 / failed"}</span>)}</div></div>
       <div className="o-matrix o-matrix-split" onMouseLeave={() => setTip(null)}>{[rows.slice(0, Math.ceil(rows.length / 2)), rows.slice(Math.ceil(rows.length / 2))].map((half, column) => <div key={column}>
         <div className="o-matrix-row head"><span className="o-matrix-tail"/>{data.systems.map(system => <span key={system.code} className="o-matrix-col" title={system.name}>{system.code}</span>)}</div>
         {half.map(row => <div className="o-matrix-row" key={row.aircraft}>
           <button type="button" className={`o-matrix-tail${row.availability_state === "available" ? "" : " down"}`} onClick={() => navigate(`/aircraft/${row.aircraft}`)} title={availabilityLabel[row.availability_state]}>{row.aircraft}</button>
           {row.cells.map((cell, index) => <button type="button" key={cell.system} className={`o-matrix-cell m-${cell.state}`} aria-label={`${row.aircraft} ${describe(row, index)}`}
             onClick={() => navigate(`/aircraft/${row.aircraft}?system=${cell.system}`)}
+            onFocus={event => { const box = event.currentTarget.getBoundingClientRect(); setTip({ x: box.left + box.width / 2, y: box.top, text: `${row.aircraft} › ${describe(row, index)}` }); }} onBlur={() => setTip(null)}
             onMouseEnter={event => { const box = event.currentTarget.getBoundingClientRect(); setTip({ x: box.left + box.width / 2, y: box.top, text: `${row.aircraft} › ${describe(row, index)}` }); }}/>)}
         </div>)}
       </div>)}
@@ -151,17 +158,4 @@ function HeatMatrix() {
       </div>
     </>;
   }}</Query>;
-}
-
-function TopAdvisories() {
-  const advisories = useAdvisories();
-  const navigate = useNavigate();
-  return <Query query={advisories} rows={8}>{items => <div className="o-table-wrap o-table-fixed"><table className="o-table dense">
-    <thead><tr><th>Aircraft</th><th>Component</th><th>Pri</th><th>State</th><th className="num">Risk 14d</th><th className="num">RUL</th><th>Action</th></tr></thead>
-    <tbody>{items.filter((a: Advisory) => !["completed", "dismissed"].includes(a.status)).slice(0, 11).map((a: Advisory) => <tr key={a.id} className="clickable" onClick={() => navigate(`/health/${a.component_id}`)}>
-      <td className="o-strong">{a.aircraft}</td><td className="o-sans">{a.component_name}</td><td><PriorityBadge level={a.priority.level}/></td>
-      <td><StateBadge state={a.health_state} compact/></td><td className="num">{pct(a.risk_14d)}</td><td className="num">{rulText(a.rul_days).split(" (")[0]}</td>
-      <td className="o-sans">{a.action.label}</td>
-    </tr>)}</tbody>
-  </table></div>}</Query>;
 }

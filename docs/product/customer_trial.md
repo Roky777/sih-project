@@ -79,3 +79,18 @@ Verification record: the full original 34-case browser suite passed in one run; 
 ## Saved-plan comparison — 2026-10-05
 
 After Calculate my schedule, choose Compare this saved plan. Inspect its actual/FIFO downtime under declared/overrun assumptions and its exact plan/hash/event timeline. The original parts comparison remains separately labelled logistics sensitivity. Receiving a kit and replanning creates a new proposal; comparing again uses the new plan, not the old result. The one-inspection example has zero advantage over FIFO under identical supply: both schedules are equal. Expected kit arrival at hour 24 yields simulated downtime 40 hours; recorded receipt/replan at hour zero yields 16 hours under the declared-duration case. These are projected scenario results, not observed saved downtime.
+
+## Verification closure and role controls — 2026-10-14
+
+Recording execution completion moves work into awaiting verification. The guided trial now provides
+an explicit supervisor **Verify demo inspection outcome** action using the existing version-checked
+work endpoint. Only verification closes the record; kit consumption remains recorded once during
+execution completion. Creation/planning, assessment, receipt and approval/work controls reflect their
+server roles. Read-only users can inspect saved evidence without an enabled mutation button.
+
+The current local database initially had no installed trial catalogue. The existing calibrated
+`artifacts/models/baseline-v1` bytes and the already acquired held-out FD001 engine-1 sample were
+installed with the documented installer under `customer-trial-v1`, retaining hashes and the
+`scientific_release=not_qualified` status. No new training, test-label tuning or operational model
+qualification was performed. Historical release-ledger evidence is not presumed installed in a
+new local database.

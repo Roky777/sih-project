@@ -45,7 +45,12 @@ def _finish_attempt(session: Session, job: Job, state: str, code: str | None = N
 
 
 def submit_job(
-    session: Session, kind: str, input_payload: dict[str, object], *, owner: str = "demo-planner"
+    session: Session,
+    kind: str,
+    input_payload: dict[str, object],
+    *,
+    owner: str = "demo-planner",
+    commit: bool = True,
 ) -> Job:
     job = Job(
         id=f"job-{uuid.uuid4().hex}",
@@ -57,8 +62,11 @@ def submit_job(
     )
     session.add(job)
     _event(session, job, "job.queued")
-    session.commit()
-    session.refresh(job)
+    if commit:
+        session.commit()
+        session.refresh(job)
+    else:
+        session.flush()
     return job
 
 

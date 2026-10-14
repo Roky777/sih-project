@@ -13,9 +13,11 @@ COPY src ./src
 RUN uv sync --locked --extra science --no-dev
 COPY alembic.ini ./
 COPY migrations ./migrations
+# Dependencies are read-only at runtime. Chown only writable artifacts; recursively
+# changing /app duplicates the full scientific environment in every rebuild layer.
 RUN useradd --uid 10001 --create-home fleet && \
     mkdir -p /var/lib/fleet-maintenance/artifacts && \
-    chown -R fleet:fleet /var/lib/fleet-maintenance /app
+    chown -R fleet:fleet /var/lib/fleet-maintenance
 USER fleet
 EXPOSE 8000
 

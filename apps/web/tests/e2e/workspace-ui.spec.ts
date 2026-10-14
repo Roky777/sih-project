@@ -169,7 +169,7 @@ test("session sign-in shows denied credentials and opens the authenticated works
     return route.fulfill({ status: signedIn ? 200 : 401, json: signedIn ? { id: "test-reviewer", role: "supervisor", authentication: "server session", csrf_token: "fixture-csrf" } : { detail: "Authentication required" } });
   });
   await page.goto("/fleet");
-  await expect(page.getByRole("heading", { name: "Sign in to Aircraft maintenance" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Sign in to AeroCare" })).toBeVisible();
   await page.getByLabel("Account ID").fill("test-reviewer");
   await page.getByLabel("Password", { exact: true }).fill("wrong-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();

@@ -119,7 +119,13 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
   return <div className="o-segmented" role="group" aria-label={label}>{options.map(([key, text]) => <button type="button" key={key} aria-pressed={value === key} className={value === key ? "on" : ""} onClick={() => onChange(key)}>{text}</button>)}</div>;
 }
 export function Tabs<T extends string>({ value, tabs, onChange }: { value: T; tabs: readonly (readonly [T, string, IconName?])[]; onChange: (value: T) => void }) {
-  return <div className="o-tabs" role="tablist">{tabs.map(([key, text, icon]) => <button type="button" role="tab" key={key} aria-selected={value === key} className={value === key ? "on" : ""} onClick={() => onChange(key)}>{icon && <Icon name={icon} size={15}/>}{text}</button>)}</div>;
+  return <div className="o-tabs" role="tablist">{tabs.map(([key, text, icon], index) => <button type="button" role="tab" key={key} tabIndex={value === key ? 0 : -1} aria-selected={value === key} className={value === key ? "on" : ""} onClick={() => onChange(key)} onKeyDown={event => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    (event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next])?.focus();
+    onChange(tabs[next][0]);
+  }}>{icon && <Icon name={icon} size={15}/>}{text}</button>)}</div>;
 }
 
 export function Drawer({ open, onOpenChange, title, subtitle, children, width = 560 }: { open: boolean; onOpenChange: (open: boolean) => void; title: ReactNode; subtitle?: ReactNode; children: ReactNode; width?: number }) {
@@ -148,6 +154,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 }
 export function useToast() { return useContext(ToastContext); }
 
-export function PageHead({ eyebrow, title, description, actions, children }: { eyebrow: string; title: ReactNode; description?: ReactNode; actions?: ReactNode; children?: ReactNode }) {
-  return <header className="o-page-head"><div><span className="o-eyebrow">{eyebrow}</span><h1>{title}</h1>{description && <p>{description}</p>}{children}</div>{actions && <div className="o-page-actions">{actions}</div>}<HeadingReplay/></header>;
+export function PageHead({ eyebrow, title, description, actions, children }: { eyebrow?: string; title: ReactNode; description?: ReactNode; actions?: ReactNode; children?: ReactNode }) {
+  return <header className="o-page-head"><div>{eyebrow && <span className="o-eyebrow">{eyebrow}</span>}<h1>{title}</h1>{description && <p>{description}</p>}{children}</div>{actions && <div className="o-page-actions">{actions}</div>}<HeadingReplay/></header>;
 }

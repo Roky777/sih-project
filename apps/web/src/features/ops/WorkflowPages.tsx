@@ -1,3 +1,4 @@
+import { useCases } from "./CaseWorkspace";
 import { useMemo, useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
@@ -42,6 +43,8 @@ export function PlanPage() {
   const { asOf } = useAsOf();
   const [scheduling, setScheduling] = useState<Advisory | null>(null);
   const items = advisories.data ?? [];
+  const cases = useCases({ aircraft: aircraftScope ?? undefined, component: componentScope ?? undefined });
+  const caseFor = (component: string) => cases.data?.items.find(item => item.component_id === component);
   const toSchedule = items.filter(a => a.status === "accepted" && inScope(a));
   const unreviewedUrgent = items.filter(a => a.status === "proposed" && inScope(a) && ["P1", "P2"].includes(a.priority.level)).length;
   const due = (tasks.data?.tasks ?? []).filter(task => task.due_in_days <= 14 && (!aircraftScope || task.aircraft === aircraftScope));
@@ -51,7 +54,7 @@ export function PlanPage() {
     <NotYourStep owner="supervisor"/>
     {unreviewedUrgent > 0 && <p className="o-note warn"><Icon name="warning" size={16}/>{unreviewedUrgent} urgent finding{unreviewedUrgent === 1 ? " is" : "s are"} still waiting for engineer review. <Link className="o-link" to={`/advisories?${new URLSearchParams({ status: "proposed", ...(aircraftScope ? { aircraft: aircraftScope } : {}), ...(componentScope ? { component: componentScope } : {}) })}`}>Open review queue</Link></p>}
     <div className="o-grid o-cols-side">
-      <Card title={`Confirmed findings to schedule (${toSchedule.length})`} subtitle="Engineers confirmed these need maintenance. Pick a date and bay; the part is reserved or requested automatically.">
+      <Card title={`Confirmed findings to schedule (${toSchedule.length})`} subtitle="Engineers confirmed these need maintenance. Prepare a tentative proposal with parts and resources, then review it for approval.">
         <Query query={advisories} rows={4}>{() => toSchedule.length === 0 ? <EmptyState title="Nothing to schedule">Confirmed findings from engineers appear here.</EmptyState> :
           <div className="o-worklist">{toSchedule.map(a => <article key={a.id} className={`o-finding p-${a.priority.level.toLowerCase()}`}>
             <div className="o-finding-main">
@@ -59,7 +62,7 @@ export function PlanPage() {
               <p><b>{a.action.label}.</b> {findingSentence(a)}</p>
               <div className="o-finding-evidence"><span>Spare {a.spare.part_number}: <b>{a.spare.available > 0 ? `${a.spare.available} in stock` : a.spare.status === "additive_print" ? "none in stock · additive print route, 1 day" : `none in stock · ${a.spare.lead_time_days}-day lead time`}</b></span><span>Planned downtime <b>{num(a.downtime.act_now_days, 1)} d</b></span><span>If it fails <b>{num(a.downtime.run_to_failure_days, 1)} d</b></span></div>
             </div>
-            <div className="o-finding-actions">{allowed ? <button type="button" className="o-btn sm" onClick={() => setScheduling(a)}><Icon name="calendar" size={14}/>Schedule</button> : <Pill tone="accent">Supervisor schedules</Pill>}</div>
+            <div className="o-finding-actions">{allowed ? <Link className="o-btn sm" to={caseFor(a.component_id) ? `/cases/${caseFor(a.component_id)!.id}` : `/health/${a.component_id}`}>Prepare maintenance plan</Link> : <Pill tone="accent">Supervisor schedules</Pill>}</div>
           </article>)}</div>}</Query>
       </Card>
       <Card title="Mandatory tasks due in 14 days" subtitle={componentScope && !aircraftScope ? "Fleet-wide mandatory tasks remain visible. Never deferred by model output." : "Inspections and hard-time replacements. Never deferred by model output."}>
@@ -73,10 +76,10 @@ export function PlanPage() {
     <Card title="Aircraft on the ground now" subtitle="Repairs in progress at the maintenance agencies. When a repair is signed off, return the aircraft to service — the fleet dashboard updates immediately.">
       <Query query={orders} rows={4}>{data => <GroundedTable rows={(data.recorded as RecordedRow[]).filter(r => r.status === "open" && inScope(r))} allowed={allowed}/>}</Query>
     </Card>
-    <Card id="scheduled-work" title="Scheduled work" subtitle="Work orders planned from findings. Starting work grounds the aircraft; completing it fits a new part and returns the aircraft to service.">
-      <Query query={orders} rows={4}>{data => data.planned.filter(w => ["planned", "in_progress"].includes(w.status) && inScope(w)).length === 0
+    <Card id="scheduled-work" title="Scheduled work" subtitle="Work orders planned from findings. Approved work starts only when ready. Execution and verification are recorded separately; remaining restrictions determine availability.">
+      <Query query={orders} rows={4}>{data => data.planned.filter(w => ["planned", "approved", "in_progress", "awaiting_verification"].includes(w.status) && inScope(w)).length === 0
         ? <EmptyState title="No scheduled work yet" icon="calendar">Schedule a confirmed finding above.</EmptyState>
-        : <ScheduledTable orders={data.planned.filter(w => ["planned", "in_progress"].includes(w.status) && inScope(w))} parts={partsByOrder} allowed={allowed}/>}</Query>
+        : <ScheduledTable orders={data.planned.filter(w => ["planned", "approved", "in_progress", "awaiting_verification"].includes(w.status) && inScope(w))} parts={partsByOrder} allowed={allowed}/>}</Query>
     </Card>
     <details className="workspace-planning-tools"><summary>Additional planning tool · compare compatible part swaps</summary><CannibalizeButton/></details>
     {scheduling && <ScheduleDialog open onOpenChange={value => !value && setScheduling(null)} componentId={scheduling.component_id} advisory={scheduling}/>}
@@ -107,14 +110,15 @@ function ReturnDialog({ row, onClose }: { row: RecordedRow; onClose: () => void 
   const close = useReturnToService();
   const toast = useToast();
   const [note, setNote] = useState("");
-  return <Modal open onOpenChange={value => !value && onClose()} title={`Return ${row.aircraft} to service`}>
-    <p className="o-muted o-small">Confirms the agency has finished {row.id} ({row.component_name.toLowerCase()} {row.finding}). The aircraft becomes available{row.component_id ? " with a new part fitted" : ""}, and Fleet status and the 30-day forecast update.</p>
-    {row.phase !== "in_work" && <p className="o-warn-line"><Icon name="warning" size={14}/>The agency still reports this job as {(phaseLabel[row.phase] ?? row.phase).toLowerCase()}. Only continue if the repair is actually signed off.</p>}
+  const [executed, setExecuted] = useState(false);
+  return <Modal open onOpenChange={value => !value && onClose()} title={`Agency work outcome · ${row.aircraft}`}>
+    <p className="o-muted o-small">Confirms the agency has finished {row.id} ({row.component_name.toLowerCase()} {row.finding}). Remaining restrictions, mandatory tasks and verification still determine demonstrator availability.</p>
+    {row.phase !== "in_work" && <p className="o-warn-line"><Icon name="warning" size={14}/>The agency still reports this job as {(phaseLabel[row.phase] ?? row.phase).toLowerCase()}. Reconcile parts and agency readiness before recording execution.</p>}
     <label className="o-field" style={{ marginTop: 12 }}>Sign-off note<input value={note} maxLength={300} onChange={event => setNote(event.target.value)} placeholder="e.g. repair inspected and signed off"/></label>
-    <div className="o-form-actions"><button type="button" className="o-btn ghost" onClick={onClose}>Cancel</button><button type="button" className="o-btn success" disabled={close.isPending} onClick={() => close.mutate({ id: row.id, note }, {
-      onSuccess: () => { toast({ tone: "success", title: `${row.aircraft} returned to service`, body: "Fleet status now counts it as available." }); onClose(); },
+    <div className="o-form-actions"><button type="button" className="o-btn ghost" onClick={onClose}>Cancel</button><button type="button" className="o-btn success" disabled={close.isPending || !note.trim() || row.phase !== "in_work"} onClick={() => close.mutate({ id: row.id, note, action: executed ? "verify" : "execute" }, {
+      onSuccess: () => { if (!executed) { setExecuted(true); setNote(""); toast({ tone: "success", title: "Execution recorded", body: "Record a separate verification note to close this work." }); } else { toast({ tone: "success", title: "Agency work verified", body: "Remaining restrictions are rechecked." }); onClose(); } },
       onError: error => toast({ tone: "error", title: "Not recorded", body: error.message }),
-    })}>Return to service</button></div>
+    })}>{executed ? "Verify outcome and close work" : "Record execution completed"}</button></div>
   </Modal>;
 }
 
@@ -128,12 +132,12 @@ function ScheduledTable({ orders, parts, allowed }: { orders: PlannedWorkOrder[]
   return <div className="o-table-wrap"><table className="o-table">
     <thead><tr><th>Aircraft · work</th><th>Bay</th><th>Starts</th><th>Part</th><th>Status</th><th/></tr></thead>
     <tbody>{orders.map(order => { const part = parts.get(order.id); const ready = !part || ["reserved", "received"].includes(part.status); return <tr key={order.id}>
-      <td><Link className="o-strong" to={order.component_id ? `/health/${order.component_id}` : `/aircraft/${order.aircraft}`}>{order.aircraft}</Link> · {order.title.replace("Planned replacement: ", "Replace ")}<small>{order.id}</small></td>
+      <td><Link className="o-strong" to={order.component_id ? `/health/${order.component_id}` : `/aircraft/${order.aircraft}`}>{order.aircraft}</Link> · {order.title.replace("Planned replacement: ", "Replace ")}<small><Link to={`/maintenance/work/${order.id}`}>{order.id}</Link></small></td>
       <td>{order.agency_id.replace("AG-", "")}</td>
       <td>{longDate(order.planned_start)}<small>{order.duration_days} days</small></td>
       <td>{part ? <><Pill tone={ready ? "ok" : part.at_risk ? "short" : "contested"}>{partsLabel[part.status]}</Pill>{part.eta && <small>arrives {shortDate(part.eta)}</small>}</> : <span className="o-muted">—</span>}</td>
-      <td><Pill tone={order.status === "in_progress" ? "accent" : "scheduled"}>{order.status === "in_progress" ? "In work" : ready ? "Ready" : "Waiting for part"}</Pill></td>
-      <td>{allowed && <div className="o-row-actions">{order.status === "planned" && <button type="button" className="o-btn sm ghost" disabled={!ready} title={ready ? undefined : "Waiting for logistics to secure the part"} onClick={() => act(order, "in_progress")}>Start</button>}{order.status === "in_progress" && <button type="button" className="o-btn sm success" onClick={() => act(order, "completed")}>Complete</button>}<button type="button" className="o-btn sm ghost" onClick={() => act(order, "cancelled")}>Cancel</button></div>}</td>
+      <td><Pill tone={order.status === "in_progress" ? "accent" : "scheduled"}>{order.status === "in_progress" ? "In progress" : order.status === "awaiting_verification" ? "Awaiting verification" : order.status === "approved" && ready ? "Ready · approved" : order.status === "planned" ? "Tentative · not approved" : "Blocked"}</Pill></td>
+      <td>{allowed && <div className="o-row-actions">{order.status === "approved" && <button type="button" className="o-btn sm ghost" disabled={!ready} title={ready ? undefined : "Waiting for logistics to secure the part"} onClick={() => act(order, "in_progress")}>Start</button>}{order.status === "in_progress" && <button type="button" className="o-btn sm success" onClick={() => act(order, "completed")}>Complete</button>}<button type="button" className="o-btn sm ghost" onClick={() => act(order, "cancelled")}>Cancel</button></div>}</td>
     </tr>; })}</tbody>
   </table></div>;
 }
@@ -151,7 +155,7 @@ export function PartsPage() {
   const update = useUpdatePartRequest();
   const toast = useToast();
   const today = engine.data?.replay_to ?? "";
-  const rows = useMemo(() => [...(requests.data ?? [])].filter(r => (!aircraftScope || r.aircraft === aircraftScope) && (!componentScope || r.component_id === componentScope)).sort((a, b) => Number(b.status === "open") - Number(a.status === "open") || Number(b.at_risk) - Number(a.at_risk) || a.needed_by.localeCompare(b.needed_by)), [requests.data, aircraftScope, componentScope]);
+  const rows = useMemo(() => [...(requests.data ?? [])].filter(r => (!aircraftScope || r.aircraft === aircraftScope) && (!componentScope || r.component_id === componentScope)).sort((a, b) => Number(b.at_risk) - Number(a.at_risk) || Number(b.status === "open") - Number(a.status === "open") || a.needed_by.localeCompare(b.needed_by)), [requests.data, aircraftScope, componentScope]);
   const shortfalls = (inventory.data ?? []).filter(item => ["short", "at_risk"].includes(item.status));
   const allowed = can.secureParts(role.id) && !asOf;
   const act = (request: PartRequest, status: "reserved" | "received" | "cancelled") => update.mutate({ id: request.id, status, expected_version: request.version }, {
@@ -166,14 +170,15 @@ export function PartsPage() {
           <thead><tr><th>Needed by</th><th>For</th><th>Part</th><th>Status</th><th>Supply</th><th/></tr></thead>
           <tbody>{rows.map(r => <tr key={r.id} className={r.at_risk ? "o-row-risk" : ""}>
             <td><strong>{longDate(r.needed_by)}</strong><small>{today ? `in ${dayDiff(today, r.needed_by)} days` : ""}</small></td>
-            <td><Link className="o-strong" to={r.component_id ? `/health/${r.component_id}` : `/aircraft/${r.aircraft}`}>{r.aircraft}</Link> · {r.component_name}<small>{r.work_order_id}</small></td>
-            <td><Link className="o-link o-mono o-strong" to={`/spares?part=${encodeURIComponent(r.part)}`}>{r.part}</Link><small>× {r.quantity}</small></td>
+            <td><Link className="o-strong" to={r.component_id ? `/health/${r.component_id}` : `/aircraft/${r.aircraft}`}>{r.aircraft}</Link> · {r.component_name}<small><Link to={`/maintenance/work/${r.work_order_id}`}>{r.work_order_id}</Link> · <Link to={`/spares/requests/${r.id}`}>{r.id}</Link></small></td>
+            <td><Link className="o-link o-mono o-strong" to={`/spares?view=inventory&part=${encodeURIComponent(r.part)}`}>{r.part}</Link><small>× {r.quantity}</small></td>
             <td><Pill tone={["reserved", "received"].includes(r.status) ? "ok" : r.at_risk ? "short" : "contested"}>{partsLabel[r.status]}</Pill>{r.eta && <small>ETA {shortDate(r.eta)}{r.at_risk ? " — late" : ""}</small>}</td>
             <td><small className="o-plain">{r.available_now} usable in stock · {r.lead_time_days}-day lead time</small><small className="o-plain">New order arrives ~{shortDate(r.earliest_order_arrival)}</small></td>
             <td>{allowed && <div className="o-row-actions">
               {r.status === "open" && r.available_now > 0 && <button type="button" className="o-btn sm" onClick={() => act(r, "reserved")}>Reserve from stock</button>}
               {r.status === "open" && <button type="button" className={`o-btn sm${r.available_now > 0 ? " ghost" : ""}`} onClick={() => setOrdering(r)}>Order</button>}
-              {r.status === "ordered" && <button type="button" className="o-btn sm success" onClick={() => act(r, "received")}>Mark received</button>}
+              {r.status === "ordered" && <Link className="o-btn sm ghost" to={`/spares?view=deliveries&request=${r.id}`}>Record receipt</Link>}
+              {["open", "ordered", "reserved"].includes(r.status) && <button type="button" className="o-btn sm ghost" disabled={update.isPending} onClick={() => act(r, "cancelled")}>Cancel request</button>}
             </div>}</td>
           </tr>)}</tbody>
         </table></div>}</Query>

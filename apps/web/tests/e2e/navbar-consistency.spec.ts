@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const routes = ["/dashboard", "/aircraft", "/aircraft/AC-033", "/component-health", "/advisories", "/maintenance", "/spares", "/simulator", "/review", "/plan", "/parts", "/status", "/notifications", "/analytics", "/data", "/welcome", "/fleet/register", "/planning", "/inventory", "/scenarios", "/ai", "/alerts", "/research", "/demo", "/fleet"];
+const routes = ["/dashboard", "/aircraft", "/aircraft/AC-033", "/component-health", "/advisories", "/maintenance", "/spares", "/simulator", "/review", "/plan", "/parts", "/status", "/notifications", "/settings", "/account", "/help", "/aircraft/AC-014?tab=blueprint", "/aircraft/AC-014?tab=components", "/analytics", "/data", "/welcome", "/fleet/register", "/planning", "/inventory", "/scenarios", "/ai", "/alerts", "/research", "/demo", "/fleet"];
 
 for (const width of [1440, 390]) test(`shared navigation remains consistent on all workspace routes at ${width}px`, async ({ page }, info) => {
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
@@ -40,15 +40,7 @@ for (const width of [1440, 390]) test(`shared navigation remains consistent on a
     }
     if (["/dashboard", "/aircraft/AC-033", "/fleet/register"].includes(route)) await header.screenshot({ path: info.outputPath(`navbar-${route.replaceAll("/", "-")}-${width}.png`) });
   }
-  if (width > 760) {
-    await page.locator(".o-navmenu > summary").filter({ hasText: "Research" }).click();
-    await page.getByRole("navigation", { name: "Primary", exact: true }).getByRole("link", { name: "Constraint planner", exact: true }).click();
-    await expect(page).toHaveURL(/\/planning$/);
-    await expect(page.locator(".o-navmenu[open]")).toHaveCount(0);
-  } else {
-    await page.getByRole("button", { name: "Open navigation", exact: true }).click();
-    await page.getByRole("dialog", { name: "Workspace navigation" }).getByRole("link", { name: "Constraint planner", exact: true }).click();
-    await expect(page).toHaveURL(/\/planning$/);
-    await expect(page.getByRole("dialog", { name: "Workspace navigation" })).toHaveCount(0);
-  }
+  await page.goto("/help");
+  await page.getByRole("link", { name: "Constraint planner", exact: true }).click();
+  await expect(page).toHaveURL(/\/maintenance\?.*dataset=research/);
 });

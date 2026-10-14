@@ -5,6 +5,7 @@ from fleet_maintenance.science.scheduling.formulation import (
     Assignment,
     PlanningInput,
     PlanningResult,
+    TaskInput,
 )
 from fleet_maintenance.science.scheduling.grouping import groups
 from fleet_maintenance.science.scheduling.resources import allowed_starts, compatible
@@ -92,7 +93,29 @@ def solve(source: PlanningInput, time_limit_seconds: float = 5.0) -> PlanningRes
         )
     makespan = model.new_int_var(0, source.horizon, "makespan")
     model.add_max_equality(makespan, list(ends.values()))
-    model.minimize(makespan)
+    # Match the simulator's grounding definition exactly: each task grounds its aircraft
+    # from release until completion, with overlapping intervals counted only once.
+    # Minimising makespan alone can leave many short jobs waiting behind one long job.
+    aircraft_tasks: dict[str, list[TaskInput]] = {}
+    for task in source.tasks:
+        aircraft_tasks.setdefault(task.aircraft_id or task.component_id or task.id, []).append(task)
+    grounded = []
+    for aircraft_index, aircraft_group in enumerate(aircraft_tasks.values()):
+        for slot in range(source.horizon):
+            pending = []
+            for task in aircraft_group:
+                if task.earliest > slot:
+                    continue
+                waiting = model.new_bool_var(f"grounded_{task.id}_{slot}")
+                model.add(ends[task.id] > slot).only_enforce_if(waiting)
+                model.add(ends[task.id] <= slot).only_enforce_if(waiting.Not())
+                pending.append(waiting)
+            if pending:
+                occupied = model.new_bool_var(f"aircraft_{aircraft_index}_{slot}")
+                model.add_max_equality(occupied, pending)
+                grounded.append(occupied)
+    # Lexicographic integer objective: a single grounding slot outweighs any makespan change.
+    model.minimize(sum(grounded) * (source.horizon + 1) + makespan)
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = time_limit_seconds
     solver.parameters.num_search_workers = 1

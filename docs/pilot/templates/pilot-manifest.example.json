@@ -1,0 +1,85 @@
+{
+  "schema_version": "aerocare-pilot-handover-v1",
+  "status": "preparation_only_not_authorised",
+  "contains_operational_data": false,
+  "pilot_id": null,
+  "operator_reference": null,
+  "scope": {
+    "aircraft_type_variant": null,
+    "configuration_revision": null,
+    "component_family": null,
+    "maintenance_decision": null,
+    "operating_regimes": [],
+    "cohort_membership_reference": null,
+    "exclusions_and_rationale": null
+  },
+  "owners": {
+    "operator_sponsor": null,
+    "data_owner": null,
+    "maintenance_engineering": null,
+    "evaluation_owner": null,
+    "security_and_deployment": null,
+    "stop_and_resume_authority": null
+  },
+  "authorisations": {
+    "data_use_reference": null,
+    "interface_access_reference": null,
+    "environment_access_reference": null,
+    "shadow_evaluation_reference": null,
+    "prospective_decision_support_reference": null
+  },
+  "data_contract": {
+    "source_schema_and_protocol_reference": null,
+    "signal_mapping_reference": null,
+    "installation_identity_history_reference": null,
+    "unit_conversion_version": null,
+    "clock_quality_and_freshness_policy": null,
+    "quality_missingness_correction_policy": null,
+    "maintenance_outcome_and_censoring_definition": null,
+    "authoritative_availability_source": null,
+    "permitted_sample_manifest_and_hashes": [],
+    "retention_and_export_policy_reference": null
+  },
+  "release": {
+    "immutable_source_revision": null,
+    "environment_manifest_reference": null,
+    "model_transform_calibration_manifest_reference": null,
+    "model_support_and_qualification_decision": null,
+    "geometry_mapping_manifest_reference": null,
+    "geometry_support_and_verification_decision": null,
+    "connector_acceptance_evidence": null,
+    "security_and_access_review": null,
+    "backup_restore_and_monitoring_evidence": null
+  },
+  "evaluation": {
+    "phase": "not_started",
+    "frozen_protocol_reference": null,
+    "baseline_and_attribution_design": null,
+    "primary_metric_and_denominator": null,
+    "observation_horizon_and_followup": null,
+    "sample_size_justification": null,
+    "maximum_prediction_error": null,
+    "maximum_missed_event_rate": null,
+    "maximum_false_episode_rate": null,
+    "minimum_interval_coverage": null,
+    "maximum_interval_width": null,
+    "system_latency_and_load_budgets": null,
+    "data_loss_and_recovery_budgets": null,
+    "stopping_rules_reference": null,
+    "results_and_independent_review_reference": null
+  },
+  "acceptance": {
+    "register_reference": "acceptance-register.example.json",
+    "decision": "pending",
+    "reviewer": null,
+    "decision_reference": null,
+    "accepted_support_and_restrictions": null
+  },
+  "instructions": [
+    "This blank template is not an authorised pilot or a completed qualification.",
+    "Null means unresolved; never treat it as zero, not applicable or passed.",
+    "Use approved document references, not credentials, raw restricted records or personal contact details.",
+    "Do not copy FD001 demonstration thresholds into operational acceptance budgets.",
+    "Freeze and version populated criteria before independent evaluation."
+  ]
+}

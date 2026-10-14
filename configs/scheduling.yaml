@@ -1,10 +1,12 @@
-version: demo-v1
+version: grounding-cpsat-v3
 status: demonstration-only
 time_unit: slot
 horizon_slots: 14
 slot_duration_hours: 8
 solver_time_limit_seconds: 5
-objective: minimize_makespan
+objective: minimize_union_aircraft_grounding_then_makespan
+objective_score: grounding_slots * (horizon_slots + 1) + makespan
+availability_definition: union of task-release-to-completion grounding per represented aircraft
 hard_constraints:
   - task_windows
   - skill_capacity

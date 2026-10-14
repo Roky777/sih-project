@@ -73,6 +73,6 @@ def test_capacity_units_are_independently_allocated():
     )
     result = solve(value)
     assert result.status == "optimal"
-    assert result.objective == 4
+    assert result.objective == 8 * (value.horizon + 1) + 4
     assert {a.crew_unit for a in result.assignments} == {0, 1}
     assert {a.bay_unit for a in result.assignments} == {0, 1}

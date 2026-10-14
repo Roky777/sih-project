@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
-import { api, ApiError } from "../../shared/api/client";
+import { api, apiStream, ApiError } from "../../shared/api/client";
 import type { components } from "../../shared/api/generated/schema";
 import { useAsOf } from "../ops/AsOf";
 
@@ -22,21 +22,23 @@ const STORE = "fleet:assistant:conversation";
 export function pageSelection(pathname: string, search: string): Selection {
   const params = new URLSearchParams(search);
   const component = /^\/health\/([^/]+)/.exec(pathname)?.[1];
-  const aircraft = /^\/aircraft\/(AC-\d{3})/.exec(pathname)?.[1] ?? component?.match(/^(AC-\d{3})-/)?.[1] ?? params.get("aircraft") ?? undefined;
+  const registration = /^\/aircraft\/registered\/(REG-[a-f0-9]{20})/.exec(pathname)?.[1];
+  const aircraft = registration ?? /^\/aircraft\/(AC-\d{3})/.exec(pathname)?.[1] ?? component?.match(/^(AC-\d{3})-/)?.[1] ?? params.get("aircraft") ?? undefined;
   const part = params.get("part") ?? undefined;
   return { aircraft_id: aircraft, component_id: component ? decodeURIComponent(component) : params.get("component") ?? undefined, part_number: pathname.startsWith("/spares") ? part : undefined };
 }
 
 export function suggestionsFor(pathname: string, selection: Selection): string[] {
+  if (pathname.startsWith("/aircraft/registered/")) return ["Summarise this aircraft.", "Why is my prediction unavailable?", "What maintenance is open for this aircraft?"];
   if (selection.advisory_id || pathname.startsWith("/health/")) return ["Explain this finding with evidence.", "Show the recent sensor trends behind this alert.", "Compare starting the replacement now, in 7 or in 14 days.", "Is the spare for this finding available?"];
   if (pathname.startsWith("/aircraft/")) return ["Show the evidence behind this aircraft's alert.", "Which findings on this aircraft need attention first, and why?", "What maintenance is open for this aircraft?"];
   if (pathname.startsWith("/spares")) return selection.part_number
-    ? ["What changes if this spare arrives two days late?", "Which planned work depends on this part?", "Which spare shortages affect the current plan?"]
+    ? ["What is the stock level?", "What changes if this spare arrives two days late?", "Which planned work depends on this part?"]
     : ["Which spare shortages affect the current plan?", "What changes if FUE-220 arrives two days late?"];
   if (pathname.startsWith("/maintenance")) return ["Compare feasible maintenance schedules for the top finding.", "Which spare shortages affect the current plan?", "What if we add one bay at AG-BASE?"];
   if (pathname.startsWith("/simulator")) return ["What changes if FUE-220 arrives two days late?", "What if we add one bay at AG-BASE?", "What if all open P1 findings are replaced early?"];
   if (pathname.startsWith("/advisories")) return ["Which findings need attention first, and why?", "Which spare shortages affect the current plan?"];
-  return ["Explain the drop in fleet availability.", "Which findings need attention first, and why?", "What does the 30-day availability forecast show?", "Which spare shortages affect the current plan?"];
+  return ["What is the current availability?", "How many aircraft are in the fleet?", "Explain the drop in fleet availability.", "Which findings need attention first, and why?"];
 }
 
 type Value = {
@@ -75,7 +77,15 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     for (const key of cleared) delete base[key];
     return { ...Object.fromEntries(KEYS.filter(k => base[k]).map(k => [k, base[k]])), as_of: asOf } as Selection & { as_of?: string | null };
   }, [pinned, pageContext, scenarioId, cleared, asOf]);
-  useEffect(() => { try { window.sessionStorage.setItem(STORE, JSON.stringify(messages.slice(-40))); } catch { /* per-viewer convenience */ } }, [messages]);
+  useEffect(() => {
+    // Persist completed turns only, after streaming settles; synchronous storage must
+    // not serialize the conversation for every generated token.
+    const timer = window.setTimeout(() => {
+      try { window.sessionStorage.setItem(STORE, JSON.stringify(messages.filter(m => !m.pending).slice(-40))); } catch { /* per-viewer convenience */ }
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [messages]);
+  useEffect(() => () => abort.current?.abort(), []);
 
   const send = useCallback((history: ChatMessage[], text: string) => {
     abort.current?.abort();
@@ -84,9 +94,27 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     const user: ChatMessage = { id: `u${Date.now()}`, role: "user", content: text, context: selection };
     const reply: ChatMessage = { id: `a${Date.now()}`, role: "assistant", content: "", pending: true, context: selection };
     setMessages([...history, user, reply]);
-    const turns = [...history.filter(m => !m.error && !m.cancelled && m.content), user].map(m => ({ role: m.role, content: m.content })).slice(-12);
+    const turns = [...history.filter(m => !m.pending && !m.error && !m.cancelled && m.content), user].map(m => ({ role: m.role, content: m.content })).slice(-12);
     const timeout = AbortSignal.timeout(300_000);
-    api<ChatResponse>("/assistant/chat", { method: "POST", body: JSON.stringify({ messages: turns, context: selection }), signal: AbortSignal.any([controller.signal, timeout]) })
+    let completed: ChatResponse | undefined;
+    apiStream("/assistant/chat/stream", { method: "POST", body: JSON.stringify({ messages: turns, context: selection }), signal: AbortSignal.any([controller.signal, timeout]) }, event => {
+      if (!event || typeof event !== "object" || !("type" in event)) throw new Error("Invalid answer event.");
+      if (event.type === "delta") {
+        if (!("text" in event) || typeof event.text !== "string") throw new Error("Invalid answer text.");
+        const text = event.text;
+        setMessages(list => list.map(m => m.id === reply.id ? { ...m, content: m.content + text } : m));
+      } else if (event.type === "reset") {
+        setMessages(list => list.map(m => m.id === reply.id ? { ...m, content: "" } : m));
+      } else if (event.type === "error") {
+        throw new ApiError("message" in event && typeof event.message === "string" ? event.message : "The answer failed.", 503);
+      } else if (event.type === "done") {
+        if (!("response" in event) || !isChatResponse(event.response)) throw new Error("Invalid completed answer.");
+        completed = event.response;
+      }
+    }).then(() => {
+      if (!completed) throw new Error("The answer stream ended before completion.");
+      return completed;
+    })
       .then(response => {
         if (response.context.scenario_id) setScenarioId(response.context.scenario_id);
         setMessages(list => list.map(m => m.id === reply.id ? { ...m, pending: false, content: response.reply, response } : m));
@@ -104,7 +132,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const value: Value = {
     enabled, status: status.data, statusError: status.isError, refreshStatus: () => void status.refetch(),
     open, setOpen, messages, busy: messages.some(m => m.pending), selection, pageContext, pinned, draft, setDraft,
-    ask: text => { const trimmed = text.trim(); if (trimmed) { setDraft(""); send(messages, trimmed); } },
+    ask: text => { const trimmed = text.trim(); if (trimmed && !messages.some(m => m.pending)) { setDraft(""); send(messages, trimmed); } },
     cancel: () => abort.current?.abort(),
     retry: () => {
       const lastUser = [...messages].reverse().find(m => m.role === "user");
@@ -119,6 +147,19 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     resetScenario: id => { if (scenarioId === id) setScenarioId(undefined); setMessages(list => list.map(m => ({ ...m, response: m.response && { ...m.response, artifacts: m.response.artifacts.map(a => a.scenario_id === id ? { ...a, reset: true } : a) } }))); },
   };
   return <AssistantContext.Provider value={value}>{children}</AssistantContext.Provider>;
+}
+
+function isChatResponse(value: unknown): value is ChatResponse {
+  const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
+  const nullableString = (v: unknown) => v == null || typeof v === "string";
+  if (!record(value)) return false;
+  const r = value;
+  return typeof r.reply === "string" && typeof r.model === "string" && typeof r.data_label === "string"
+    && record(r.context) && ["as_of", ...KEYS].every(key => nullableString(r.context && (r.context as Record<string, unknown>)[key]))
+    && Array.isArray(r.tool_calls) && r.tool_calls.every(t => record(t) && typeof t.name === "string" && record(t.arguments) && typeof t.ok === "boolean" && nullableString(t.error))
+    && Array.isArray(r.artifacts) && r.artifacts.every(a => record(a) && typeof a.type === "string")
+    && Array.isArray(r.citations) && r.citations.every(c => record(c) && [c.id, c.kind, c.label, c.href].every(s => typeof s === "string") && typeof c.cited === "boolean" && typeof c.href === "string" && c.href.startsWith("/") && !c.href.startsWith("//"))
+    && Array.isArray(r.warnings) && r.warnings.every(w => typeof w === "string");
 }
 
 export function useAssistant() {

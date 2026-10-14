@@ -1,10 +1,10 @@
+import { useActorRole } from "../ops/roles";
 import { useState, type FormEvent } from "react";
 import type { Scenario } from "../../shared/api/client";
-import { useSession } from "../access/SessionGate";
 import { Icon } from "../../shared/ui/Icon";
 export type ScenarioRevisionInput={name:string;expected_version:number;horizon_hours:number;aircraft_count:number;maintenance_capacity:number;maintenance_events:number[][];part_available_hours:number};
 export function ScenarioEditor({scenario,pending,submitting,onRun,onRevise,revisionPending}:{scenario:Scenario;pending:boolean;submitting?:boolean;onRun:(id:string)=>void;onRevise:(id:string,input:ScenarioRevisionInput)=>void;revisionPending:boolean}){
-  const session=useSession();const allowed=['planner','supervisor'].includes(session?.role??'');
+  const actorRole = useActorRole();const allowed=['planner','supervisor'].includes(actorRole??'');
   const [editing,setEditing]=useState(false),[name,setName]=useState(`${scenario.name} · alternative`),[part,setPart]=useState(String(scenario.assumptions.part_available_hours??0)),[capacity,setCapacity]=useState(String(scenario.assumptions.maintenance_capacity??1)),[error,setError]=useState('');
   const fields=[{label:'Aircraft',value:scenario.assumptions.aircraft_count,unit:'records'},{label:'Maintenance capacity',value:scenario.assumptions.maintenance_capacity,unit:'concurrent events'},{label:'Simulation horizon',value:scenario.assumptions.horizon_hours,unit:'hours'},{label:'Parts available at',value:scenario.assumptions.part_available_hours??0,unit:'hours after start'}];
   function revise(event:FormEvent){event.preventDefault();setError('');const horizon=scenario.assumptions.horizon_hours,count=scenario.assumptions.aircraft_count,events=scenario.assumptions.maintenance_events;const partHours=Number(part),crew=Number(capacity);if(typeof horizon!=='number'||typeof count!=='number'||!Array.isArray(events)||!events.every(item=>Array.isArray(item)&&item.length===2&&item.every(value=>typeof value==='number'&&Number.isFinite(value)))){setError('This scenario has no supported event definition for revision.');return;}if(!Number.isFinite(partHours)||partHours<0||partHours>=horizon||!Number.isInteger(crew)||crew<1){setError('Use a part availability time inside the horizon and a positive whole-number capacity.');return;}onRevise(scenario.id,{name,expected_version:scenario.version,horizon_hours:horizon,aircraft_count:count,maintenance_capacity:crew,maintenance_events:events as number[][],part_available_hours:partHours});}

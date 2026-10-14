@@ -1,3 +1,4 @@
+import { CaseContext } from "./CaseWorkspace";
 import { HeadingReplay } from "./ReplaySlider";
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -6,9 +7,9 @@ import { addDays, dayDiff } from "./AsOf";
 import { useComponentHealth, type ComponentHealth } from "./api";
 import { AdvisoryCommandCard } from "./AdvisoryViews";
 import { useRememberFocus } from "./Focus";
-import { longDate, pct, rulText, shortDate, stateLabel } from "./format";
+import { longDate, pct, rulText, shortDate } from "./format";
 import { MONO, OpsChart, areaFill, baseAxes, tooltip, withAlpha } from "./OpsChart";
-import { Card, EmptyState, Query, Segmented } from "./ui";
+import { Card, EmptyState, Query, Segmented, StateBadge } from "./ui";
 
 export function ComponentHealthPage() {
   const { componentId = "" } = useParams();
@@ -38,18 +39,12 @@ function ComponentHealthView({ data, days, setDays }: { data: ComponentHealth; d
   const tone = hi >= 80 ? "healthy" : hi >= 40 ? "watch" : "critical";
   return <div className="o-screen">
     <div className="o-screen-head"><h1>Component Health</h1><span>{String(c.aircraft)} · {String(c.name)} · {String(c.system_name)}</span><HeadingReplay/></div>
-    <div className="o-status-strip">
-      <Link to={`/aircraft/${c.aircraft}`} className="o-strip-back" aria-label={`${c.aircraft} digital twin`}><Icon name="arrow" size={13} style={{ transform: "rotate(180deg)" }}/></Link>
-      <strong>{String(c.aircraft)} › {String(c.name)}</strong><i>|</i>
-      <span>SYSTEM: <b>{String(c.system_name).toUpperCase()}</b></span><i>|</i>
-      <span>STATE: <b className={`o-tone-${tone}`}>{stateLabel[data.state].toUpperCase()}</b></span><i>|</i>
-      <span>HI: <b className={`o-tone-${tone}`}>{hi.toFixed(0)}</b></span><i>|</i>
-      <span>SERIAL: <b>{String(c.serial)}</b></span><i>|</i>
-      <span>{Number(c.hours_since_install).toFixed(0)} FH SINCE INSTALL</span><i>|</i>
-      <span>P/N <b>{String(c.part_number)}</b> · CRIT {String(c.criticality)}/5</span>
-      {data.replay && <span className="o-tone-watch">REPLAY {shortDate(data.as_of).toUpperCase()}</span>}
-      <span className="o-strip-actions"><Segmented label="Window" value={days} onChange={setDays} options={[["90", "90 d"], ["180", "180 d"], ["365", "1 y"]] as const}/><Link className="o-btn sm ghost" to={`/simulator?kind=schedule_maintenance&component=${c.id}`}><Icon name="sliders" size={13}/>What-if</Link></span>
-    </div>
+    <section className="component-record-header" aria-label="Component record">
+      <div className="component-record-title"><div><Link to={`/aircraft/${c.aircraft}?tab=components`} className="component-record-back"><Icon name="arrow" size={14} style={{ transform: "rotate(180deg)" }}/>{String(c.aircraft)} · Component records</Link><h2>{String(c.name)}</h2><p>{String(c.system_name)} · Snapshot {longDate(data.as_of)}{data.replay ? " · Historical, read only" : ""}</p></div><div className="component-record-condition"><StateBadge state={data.state} compact/><span>Health index <strong className={`o-tone-${tone}`}>{hi.toFixed(0)}<small> / 100</small></strong></span></div></div>
+      <dl className="component-record-metadata"><div><dt>Serial number</dt><dd>{String(c.serial)}</dd></div><div><dt>Part number</dt><dd>{String(c.part_number)}</dd></div><div><dt>Since installation</dt><dd>{Number(c.hours_since_install).toFixed(0)} <span>flight hours</span></dd></div><div><dt>Criticality</dt><dd>{String(c.criticality)} <span>/ 5</span></dd></div></dl>
+      <div className="component-record-toolbar"><div><span>History window</span><Segmented label="Window" value={days} onChange={setDays} options={[["90", "90 d"], ["180", "180 d"], ["365", "1 y"]] as const}/></div><Link className="o-btn sm ghost" to={`/simulator?kind=schedule_maintenance&component=${c.id}`}><Icon name="sliders" size={14}/>Compare a what-if</Link></div>
+    </section>
+    {!data.replay && <CaseContext aircraft={String(c.aircraft)} component={String(c.id)}/>}
     {truth && <div className="o-note truth"><Icon name="flask" size={16}/><div><strong>Hidden simulation truth (synthetic truth table).</strong> Scripted failure on {longDate(truth.scripted_failure_date)}{firstAlert ? <> · first sustained Isolation-Forest anomaly on {longDate(firstAlert)}, <b>{dayDiff(firstAlert, truth.scripted_failure_date)} days</b> before it</> : ""}. {truth.label}</div></div>}
     <div className="o-grid-12 o-health-grid">
       <div className="span-8 o-stack">

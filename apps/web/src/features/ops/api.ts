@@ -123,7 +123,7 @@ export const useInventory = () => useReplayQuery("inventory", "/inventory", isIn
 const isStrategy = validator<CannibalizeStrategy>(shape({ as_of: str, swaps: list(shape({ donor: str, recipient: str, part_number: str, labor_hours: num, text: str })), sequence: list(shape({ step: num, action: oneOf("remove", "transfer", "install"), aircraft: str })), total_labor_hours: num, verification: shape({ greedy_unblocked: num, plan_source: oneOf("greedy", "exact") }) }));
 /** Read-only plan; fetched on demand when the supervisor asks for it. */
 export const useCannibalizeStrategy = (enabled: boolean) => useReplayQuery("cannibalize", "/engine/cannibalize-strategy", isStrategy, enabled);
-export function useWorkOrders() { return useQuery({ queryKey: ["ops", "work-orders"], queryFn: () => api(`${base}/work-orders`, undefined, isWorkOrders) }); }
+export function useWorkOrders(enabled = true) { return useQuery({ enabled, queryKey: ["ops", "work-orders"], queryFn: () => api(`${base}/work-orders`, undefined, isWorkOrders) }); }
 export function useSchedule() { return useQuery({ queryKey: ["ops", "schedule"], queryFn: () => api(`${base}/maintenance/schedule`, undefined, isSchedule) }); }
 export function useDemand(part: string | null, horizon: number) { return useQuery({ queryKey: ["ops", "demand", part, horizon], queryFn: () => api(`${base}/inventory/${encodeURIComponent(part!)}/forecast?horizon=${horizon}`, undefined, isForecast), enabled: Boolean(part) }); }
 export function useAlerts(enabled = true) { return useQuery({ queryKey: ["ops", "alerts"], queryFn: () => api(`${base}/alerts`, undefined, isAlerts), refetchInterval: 60_000, enabled }); }
@@ -203,8 +203,8 @@ export function useUpdatePartRequest() {
 export function useReturnToService() {
   const invalidate = useInvalidateOps();
   return useMutation({
-    mutationFn: ({ id, note }: { id: string; note?: string }) =>
-      api(`${base}/work-orders/recorded/${encodeURIComponent(id)}/return-to-service`, json("POST", { note: note ?? "" }), isWorkOrders),
+    mutationFn: ({ id, note, action = "verify" }: { id: string; note?: string; action?: "execute" | "verify" }) =>
+      api(`${base}/work-orders/recorded/${encodeURIComponent(id)}/return-to-service`, json("POST", { note: note ?? "", action }), isWorkOrders),
     onSuccess: () => void invalidate(),
   });
 }

@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 
 // Read-only layout checks against the selected local synthetic demonstration.
-const routes = ["/dashboard", "/aircraft", "/aircraft/AC-001", "/component-health", "/advisories", "/maintenance", "/spares", "/simulator", "/review", "/plan", "/parts", "/status", "/notifications", "/analytics", "/data", "/welcome", "/fleet/register", "/planning", "/inventory", "/scenarios", "/ai", "/alerts", "/research", "/demo", "/fleet"];
+const routes = ["/dashboard", "/aircraft", "/aircraft/AC-001", "/component-health", "/advisories", "/maintenance", "/spares", "/simulator", "/review", "/plan", "/parts", "/status", "/notifications", "/analytics", "/data", "/welcome", "/fleet/register", "/planning", "/inventory", "/scenarios", "/ai", "/alerts", "/research", "/demo", "/fleet", "/settings", "/account", "/help", "/analysis?view=study", "/analysis?view=models", "/maintenance?view=work", "/maintenance?view=bays", "/maintenance?view=cases", "/spares?view=inventory", "/spares?view=deliveries", "/analysis?view=reports", "/aircraft/AC-001?tab=components", "/aircraft/AC-001?tab=maintenance", "/aircraft/AC-001?tab=history", "/aircraft/AC-001?tab=visual"];
 
-for (const [width, height] of [[1440, 900], [390, 844]] as const) {
-  test(`workspace layout audit at ${width}px`, async ({ page, request }, info) => {
+for (const theme of ["light", "dark"] as const) for (const [width, height] of [[1440, 900], [390, 844]] as const) {
+  test(`workspace layout audit at ${width}px in ${theme}`, async ({ page, request }, info) => {
     test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
-    test.setTimeout(120_000);
+    test.setTimeout(180_000);
+    await page.addInitScript(value => localStorage.setItem("ops:theme", value), theme);
     await page.setViewportSize({ width, height });
     await page.emulateMedia({ reducedMotion: "reduce" });
     const errors: string[] = [];
@@ -17,7 +18,11 @@ for (const [width, height] of [[1440, 900], [390, 844]] as const) {
     const engineFleet = await fleetResponse.json();
     const component = engineFleet.flatMap((aircraft: { component_ids: string[] }) => aircraft.component_ids)[0];
     expect(component).toBeTruthy();
-    for (const route of [...routes, `/components/${encodeURIComponent(component)}`]) {
+    const registrations = await (await request.get("/api/aircraft-registry")).json();
+    const registered = registrations.items[0]?.id;
+    const caseRows = await (await request.get("/api/cases?dataset=operational&limit=1")).json();
+    const extra = [registered && `/aircraft/registered/${registered}`, caseRows.items[0]?.id && `/cases/${caseRows.items[0].id}`].filter((value): value is string => Boolean(value));
+    for (const route of [...routes, ...extra, `/components/${encodeURIComponent(component)}`]) {
       await page.goto(route);
       await expect(page.locator("main h1").first(), route).toBeVisible({ timeout: 30_000 });
       await page.waitForTimeout(500); // Let responsive charts and record layout settle.
@@ -43,7 +48,7 @@ for (const [width, height] of [[1440, 900], [390, 844]] as const) {
       const minimumGap = route.startsWith("/aircraft/") && width > 760 ? 11 : 15;
       expect.soft(layout.gaps.filter(gap => gap.px < minimumGap), `${route}: touching/overlapping sections`).toEqual([]);
       if (["/dashboard", "/spares", "/maintenance", "/analytics", "/simulator", "/aircraft/AC-001"].includes(route)) {
-        await page.screenshot({ path: info.outputPath(`${route.slice(1).replaceAll("/", "-")}-${width}.png`), fullPage: true });
+        await page.screenshot({ path: info.outputPath(`${route.slice(1).replaceAll("/", "-")}-${width}-${theme}.png`), fullPage: true });
       }
     }
     await info.attach("layout-findings", { body: JSON.stringify(findings, null, 2), contentType: "application/json" });
@@ -55,7 +60,7 @@ test("spares sections have consistent spacing at laptop and tablet widths", asyn
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
   for (const width of [1366, 900]) {
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto("/spares");
+    await page.goto("/spares?view=inventory");
     await expect(page.getByRole("heading", { name: "Spares & supply", exact: true })).toBeVisible();
     await expect(page.locator("main .o-kpis").first()).toBeVisible();
     const metrics = await page.evaluate(() => {
@@ -71,7 +76,7 @@ test("spares sections have consistent spacing at laptop and tablet widths", asyn
 
 test("spares part inspection opens from the keyboard and closes with Escape", async ({ page }) => {
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
-  await page.goto("/spares");
+  await page.goto("/spares?view=inventory");
   const part = page.getByRole("button", { name: /^Inspect part / }).first();
   await expect(part).toBeVisible();
   const number = await part.textContent();

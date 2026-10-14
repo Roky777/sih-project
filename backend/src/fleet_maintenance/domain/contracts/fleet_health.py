@@ -147,6 +147,7 @@ class AdvisoryResponse(BaseModel):
 
 
 class AdvisoryUpdateRequest(BaseModel):
+    as_of: date | None = None
     status: AdvisoryStatus
     reason: str | None = Field(default=None, max_length=500)
     expected_status: AdvisoryStatus | None = None
@@ -293,6 +294,7 @@ class SensorSeries(BaseModel):
 
 
 class ComponentHealthResponse(BaseModel):
+    assessment: dict[str, Any] | None = None
     component: dict[str, Any]
     as_of: str
     replay: bool
@@ -315,6 +317,7 @@ class ComponentHealthResponse(BaseModel):
 
 
 class WorkOrderCreateRequest(BaseModel):
+    as_of: date | None = None
     component_id: str = Field(min_length=3, max_length=64)
     advisory_id: str | None = Field(default=None, max_length=96)
     agency_id: str | None = Field(default=None, max_length=16)
@@ -330,6 +333,7 @@ class WorkOrderRescheduleRequest(BaseModel):
 
 class WorkOrderUpdateRequest(BaseModel):
     status: Literal["in_progress", "completed", "cancelled"]
+    as_of: date | None = None
     expected_version: int = Field(ge=1)
 
 
@@ -423,8 +427,9 @@ class FleetAlertResponse(BaseModel):
 
 class FleetScenarioRequest(BaseModel):
     name: str = Field(min_length=1, max_length=120)
-    kind: Literal["schedule_maintenance", "spare_unavailable", "early_replacement",
-                  "extra_capacity"]
+    kind: Literal[
+        "schedule_maintenance", "spare_unavailable", "early_replacement", "extra_capacity"
+    ]
     params: dict[str, Any] = {}
     horizon_days: int = Field(default=30, ge=7, le=60)
     runs: int = Field(default=300, ge=50, le=500)
@@ -471,6 +476,7 @@ class TasksResponse(BaseModel):
 
 
 class PartRequestResponse(BaseModel):
+    received_quantity: int = 0
     id: str
     work_order_id: str
     aircraft: str
@@ -494,6 +500,8 @@ class PartRequestResponse(BaseModel):
 
 
 class PartRequestUpdateRequest(BaseModel):
+    as_of: date | None = None
+    received_quantity: int | None = Field(default=None, ge=0)
     status: Literal["reserved", "ordered", "received", "cancelled"]
     eta: date | None = None
     note: str = Field(default="", max_length=300)
@@ -601,7 +609,7 @@ class AssistantMessage(BaseModel):
 
 class AssistantContext(BaseModel):
     as_of: date | None = None
-    aircraft_id: str | None = Field(default=None, pattern=r"^AC-\d{3}$")
+    aircraft_id: str | None = Field(default=None, pattern=r"^(?:AC-\d{3}|REG-[a-f0-9]{20})$")
     component_id: str | None = Field(default=None, max_length=40)
     advisory_id: str | None = Field(default=None, max_length=80)
     part_number: str | None = Field(default=None, max_length=20)
@@ -629,6 +637,7 @@ class AssistantCitation(BaseModel):
 
 
 class AssistantChatResponse(BaseModel):
+    answer_mode: str = "model"
     reply: str
     tool_calls: list[AssistantToolCall]
     artifacts: list[dict[str, Any]]

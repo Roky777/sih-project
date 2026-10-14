@@ -6,15 +6,9 @@ import { AsOfProvider } from "../features/ops/AsOf";
 import { OpsLayout } from "../features/ops/OpsLayout";
 import { RoleProvider } from "../features/ops/roles";
 import { ToastProvider } from "../features/ops/ui";
-const InspectionPage = lazy(() => import("../features/inspection/InspectionPage").then((module) => ({ default: module.InspectionPage })));
 const CustomerTrialPage = lazy(() => import("../features/demo/CustomerTrialPage").then(module => ({ default: module.CustomerTrialPage })));
-const AIPage = lazy(() => import("../features/health/AIPage").then((module) => ({ default: module.AIPage })));
-const FleetPage = lazy(() => import("../features/fleet/FleetPage").then((module) => ({ default: module.FleetPage })));
 const ComponentPage = lazy(() => import("../features/components/ComponentPage").then((module) => ({ default: module.ComponentPage })));
-const AlertsPage = lazy(() => import("../features/alerts/AlertsPage").then((module) => ({ default: module.AlertsPage })));
-const PlanningPage = lazy(() => import("../features/planning/PlanningPage").then((module) => ({ default: module.PlanningPage })));
-const InventoryPage = lazy(() => import("../features/inventory/InventoryPage").then((module) => ({ default: module.InventoryPage })));
-const ScenariosPage = lazy(() => import("../features/scenarios/ScenariosPage").then((module) => ({ default: module.ScenariosPage })));
+const RegisteredAircraftDetail = lazy(() => import("../features/ops/AircraftRegistration").then(m => ({ default: m.RegisteredAircraftDetail })));
 const workflow = () => import("../features/ops/WorkflowPages");
 const FleetDashboard = lazy(() => import("../features/ops/FleetDashboard").then((module) => ({ default: module.FleetDashboard })));
 const FocusRedirect = lazy(() => import("../features/ops/Focus").then((module) => ({ default: module.FocusRedirect })));
@@ -27,8 +21,15 @@ const AdvisoriesPage = lazy(() => import("../features/ops/AdvisoriesPage").then(
 const MaintenanceWorkspace = lazy(() => import("../features/ops/OperationsWorkspaces").then(module => ({ default: module.MaintenanceWorkspace })));
 const SupplyWorkspace = lazy(() => import("../features/ops/OperationsWorkspaces").then(module => ({ default: module.SupplyWorkspace })));
 const ResearchWorkspace = lazy(() => import("../features/ops/OperationsWorkspaces").then(module => ({ default: module.ResearchWorkspace })));
-const SimulatorPage = lazy(() => import("../features/ops/SimulatorPage").then((module) => ({ default: module.SimulatorPage })));
-const AnalyticsPage = lazy(() => import("../features/ops/AnalyticsPage").then((module) => ({ default: module.AnalyticsPage })));
+const CaseDetailPage = lazy(() => import("../features/ops/CaseWorkspace").then(m => ({ default: m.CaseDetailPage })));
+const WorkOrderDetail = lazy(() => import("../features/ops/OperationalRecord").then(m => ({ default: m.WorkOrderDetail })));
+const PartsRequestDetail = lazy(() => import("../features/ops/OperationalRecord").then(m => ({ default: m.PartsRequestDetail })));
+const connected = () => import("../features/ops/ConnectedPages");
+const AnalysisWorkspace = lazy(() => connected().then(m => ({ default: m.AnalysisWorkspace })));
+const HelpPage = lazy(() => connected().then(m => ({ default: m.HelpPage })));
+const AccountPage = lazy(() => connected().then(m => ({ default: m.AccountPage })));
+const SettingsPage = lazy(() => connected().then(m => ({ default: m.SettingsPage })));
+const TelemetryPage = lazy(() => import("../features/ops/TelemetryPage").then(m => ({ default: m.TelemetryPage })));
 const DataPage = lazy(() => import("../features/ops/DataPage").then((module) => ({ default: module.DataPage })));
 const NotificationsPage = lazy(() => import("../features/ops/DataPage").then((module) => ({ default: module.NotificationsPage })));
 /** Retired duplicate entry points retain bookmarks and record context. */
@@ -61,25 +62,34 @@ export const router = createRouter([{ path:"/", element:<SessionGate><RoleProvid
   { path:"aircraft-detail", element:page(<FocusRedirect kind="aircraft"/>) },
   { path:"component-health", element:page(<FocusRedirect kind="component"/>) },
   { path:"aircraft", element:page(<AircraftListPage/>) },
+  { path:"aircraft/registered/:registrationId", element:page(<RegisteredAircraftDetail/>) },
   { path:"aircraft/:aircraftId", element:page(<AircraftDetailPage/>) },
   { path:"health/:componentId", element:page(<ComponentHealthPage/>) },
   { path:"advisories", element:page(<AdvisoriesPage/>) },
+  { path:"cases/:caseId", element:page(<CaseDetailPage/>) },
+  { path:"maintenance/work/:workId", element:page(<WorkOrderDetail/>) },
+  { path:"spares/requests/:requestId", element:page(<PartsRequestDetail/>) },
   { path:"maintenance", element:page(<MaintenanceWorkspace/>) },
   { path:"spares", element:page(<SupplyWorkspace/>) },
-  { path:"simulator", element:page(<SimulatorPage/>) },
-  { path:"analytics", element:page(<AnalyticsPage/>) },
+  { path:"simulator", element:<RouteAlias to="/analysis" defaults={{ view: "compare" }}/> },
+  { path:"analysis", element:page(<AnalysisWorkspace/>) },
+  { path:"help", element:page(<HelpPage/>) },
+  { path:"account", element:page(<AccountPage/>) },
+  { path:"settings", element:page(<SettingsPage/>) },
+  { path:"analytics", element:<RouteAlias to="/analysis" defaults={{ view: "reports" }}/> },
   { path:"data", element:page(<DataPage/>) },
+  { path:"telemetry", element:page(<TelemetryPage/>) },
   { path:"notifications", element:page(<NotificationsPage/>) },
   { path:"overview", element:<RouteAlias to="/welcome"/> },
   { path:"research", element:page(<ResearchWorkspace/>) },
-  { path:"fleet", element:<Suspense fallback={loading}><InspectionPage/></Suspense> },
+  { path:"fleet", element:<RouteAlias to="/aircraft" defaults={{ dataset: "research", view: "visual" }}/> },
   { path:"demo", element:<Suspense fallback={loading}><CustomerTrialPage/></Suspense> },
-  { path:"ai", element:<Suspense fallback={loading}><AIPage/></Suspense> },
-  { path:"fleet/register", element:<Suspense fallback={loading}><FleetPage/></Suspense> },
+  { path:"ai", element:<RouteAlias to="/analysis" defaults={{ dataset: "research", view: "models" }}/> },
+  { path:"fleet/register", element:<RouteAlias to="/aircraft" defaults={{ dataset: "research" }}/> },
   { path:"components/:componentId", element:<Suspense fallback={loading}><ComponentPage/></Suspense> },
-  { path:"alerts", element:<Suspense fallback={loading}><AlertsPage/></Suspense> },
-  { path:"planning", element:<Suspense fallback={loading}><PlanningPage/></Suspense> },
-  { path:"inventory", element:<Suspense fallback={loading}><InventoryPage/></Suspense> },
-  { path:"scenarios", element:<Suspense fallback={loading}><ScenariosPage/></Suspense> },
+  { path:"alerts", element:<RouteAlias to="/advisories" defaults={{ dataset: "research" }}/> },
+  { path:"planning", element:<RouteAlias to="/maintenance" defaults={{ dataset: "research", view: "bays" }}/> },
+  { path:"inventory", element:<RouteAlias to="/spares" defaults={{ dataset: "research", view: "inventory" }}/> },
+  { path:"scenarios", element:<RouteAlias to="/analysis" defaults={{ dataset: "research", view: "compare" }}/> },
   { path:"*", element:<RouteFailure/> },
 ] }]);

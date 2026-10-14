@@ -26,7 +26,7 @@ services:
       timeout: 5s
       retries: 20
     ports:
-      - "15672:15672"
+      - "127.0.0.1:15672:15672"
 
   api:
     build:
@@ -40,6 +40,11 @@ services:
       FLEET_ASSISTANT_ENABLED: ${FLEET_ASSISTANT_ENABLED:-true}
       FLEET_ASSISTANT_OLLAMA_URL: ${FLEET_ASSISTANT_OLLAMA_URL:-http://host.docker.internal:11434}
       FLEET_ASSISTANT_MODEL: ${FLEET_ASSISTANT_MODEL:-qwen3:8b}
+      FLEET_ASSISTANT_PROVIDER: ${FLEET_ASSISTANT_PROVIDER:-ollama}
+      FLEET_ASSISTANT_LOCAL_ONLY: ${FLEET_ASSISTANT_LOCAL_ONLY:-true}
+      FLEET_ASSISTANT_GROQ_MODEL: ${FLEET_ASSISTANT_GROQ_MODEL:-openai/gpt-oss-20b}
+      FLEET_ASSISTANT_GROQ_API_KEY: ${FLEET_ASSISTANT_GROQ_API_KEY:-}
+      FLEET_ASSISTANT_KEEP_ALIVE: ${FLEET_ASSISTANT_KEEP_ALIVE:-30m}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: ["sh", "-c", "alembic upgrade head && uvicorn fleet_maintenance.main:app --host 0.0.0.0 --port 8000"]
@@ -52,7 +57,7 @@ services:
       timeout: 5s
       retries: 12
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - artifact-data:/var/lib/fleet-maintenance/artifacts
 
@@ -90,7 +95,7 @@ services:
     depends_on:
       api: { condition: service_healthy }
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
 
 volumes:
   postgres-data:

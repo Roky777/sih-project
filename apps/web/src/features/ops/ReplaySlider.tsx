@@ -39,5 +39,5 @@ export function ReplaySlider() {
 }
 
 export function HeadingReplay() {
-  return <div className="o-heading-replay" role="region" aria-label="History replay"><ReplaySlider/></div>;
+  return null;
 }

@@ -1,11 +1,12 @@
+import { CaseContext } from "./CaseWorkspace";
 import { useState } from "react";
 import { ExplainWithAI } from "../assistant/AssistantPanel";
 import { Link } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
 import { addDays, useAsOf } from "./AsOf";
-import { useCreateWorkOrder, useEngine, useUpdateAdvisory, type Advisory, type PlannedWorkOrder } from "./api";
+import { useCreateWorkOrder, useEngine, type Advisory, type PlannedWorkOrder } from "./api";
 import { actionTone, factorLabel, longDate, num, pct, rulText, signed } from "./format";
-import { can, partsLabel, statusLabel, useRole } from "./roles";
+import { partsLabel, statusLabel } from "./roles";
 import { Modal, Pill, PriorityBadge, RangeBar, StateBadge, useToast } from "./ui";
 
 
@@ -67,11 +68,6 @@ export function AdvisoryPanel({ advisory: a, replay, showActions = true }: { adv
 
 /** Screen 3 advisory card (UI spec §3): the decision-critical facts and two large actions. */
 export function AdvisoryCommandCard({ advisory: a, replay }: { advisory: Advisory; replay: boolean }) {
-  const { role } = useRole();
-  const update = useUpdateAdvisory();
-  const toast = useToast();
-  const [dismissOpen, setDismissOpen] = useState(false);
-  const [scheduleOpen, setScheduleOpen] = useState(false);
   const level = a.priority.level;
   const sigma = new Map(a.contributing_parameters.map(p => [p.name, p.deviation_sigma]));
   const drivers = a.attribution.slice(0, 5);
@@ -79,9 +75,6 @@ export function AdvisoryCommandCard({ advisory: a, replay }: { advisory: Advisor
   const riskTone = a.risk_14d >= 0.7 ? "crit" : a.risk_14d >= 0.15 ? "warn" : "ok";
   const forge = a.spare.status === "additive_print";
   const spareOk = forge || (a.spare.available >= 1 && a.spare.status !== "short");
-  const open = !["completed", "dismissed"].includes(a.status);
-  const engineer = can.review(role.id) && !can.schedule(role.id);
-  const supervisor = can.schedule(role.id);
   return <section className={`o-command p-${level.toLowerCase()}`} aria-label={`${level} maintenance advisory`}>
     <header><span>{level} MAINTENANCE ADVISORY</span><Pill tone={a.status}>{statusLabel[a.status]}</Pill></header>
     <p className="o-command-target">{a.aircraft} · {a.system_name} · {a.component_name}</p>
@@ -105,69 +98,16 @@ export function AdvisoryCommandCard({ advisory: a, replay }: { advisory: Advisor
       {a.spare.fleet_shortfall && <p className="o-command-warn"><Icon name="warning" size={14}/>Warning: fleet-level shortfall projected{a.spare.shortfall_in_days !== null && a.spare.shortfall_in_days !== undefined ? ` in ${a.spare.shortfall_in_days} days` : ""} — {a.spare.fleet_demand_30d} components may need this part.</p>}
       {a.spare.lead_time_exceeds_rul && <p className="o-command-warn"><Icon name="warning" size={14}/>A new order cannot arrive before the RUL lower bound.</p>}
     </div>
-    {replay ? <p className="o-note"><Icon name="history" size={16}/>Replaying a past date: decisions are recorded only at the latest date.</p>
-      : open && (engineer || supervisor) ? <div className="o-command-buttons">
-        <button type="button" className="o-big-btn ghost" onClick={() => setDismissOpen(true)}>DISMISS</button>
-        {supervisor && a.status === "accepted"
-          ? <button type="button" className="o-big-btn" onClick={() => setScheduleOpen(true)}>SCHEDULE ({a.downtime.act_now_days.toFixed(1)} Days Downtime)</button>
-          : (engineer || supervisor) && a.status === "proposed"
-            ? <button type="button" className="o-big-btn" disabled={update.isPending} onClick={() => update.mutate({ id: a.id, status: "accepted", expected_status: a.status }, {
-              onSuccess: () => toast({ tone: "success", title: "Finding confirmed", body: "Sent to the maintenance supervisor for scheduling." }),
-              onError: error => toast({ tone: "error", title: "Not recorded", body: error.message }),
-            })}>CONFIRM FINDING</button>
-            : <button type="button" className="o-big-btn" disabled>{statusLabel[a.status].toUpperCase()}</button>}
-      </div>
-        : <p className="o-note"><Icon name="shield" size={16}/>{open ? "Engineers confirm or dismiss findings; supervisors schedule the work." : `This finding is ${statusLabel[a.status].toLowerCase()}.`}</p>}
+    <AdvisoryActions advisory={a} replay={replay}/>
     {a.work_order_id && ["scheduled", "completed"].includes(a.status) && <Link className="o-link" to="/maintenance#scheduled-work">Work order {a.work_order_id}{a.parts_status ? ` · ${partsLabel[a.parts_status].toLowerCase()}` : ""}<Icon name="arrow" size={13}/></Link>}
     <details className="o-adv-details"><summary>Full advisory — explanation, priority breakdown, availability impact, confidence</summary>
       <AdvisoryPanel advisory={a} replay={replay} showActions={false}/>
     </details>
-    <DismissDialog advisory={a} open={dismissOpen} onOpenChange={setDismissOpen}/>
-    <ScheduleDialog open={scheduleOpen} onOpenChange={setScheduleOpen} componentId={a.component_id} advisory={a}/>
   </section>;
 }
 
-export function DismissDialog({ advisory: a, open, onOpenChange }: { advisory: Advisory; open: boolean; onOpenChange: (open: boolean) => void }) {
-  const update = useUpdateAdvisory();
-  const toast = useToast();
-  const [reason, setReason] = useState("");
-  return <Modal open={open} onOpenChange={onOpenChange} title={`Dismiss finding · ${a.aircraft} ${a.component_name}`}>
-    <p className="o-muted o-small">The reason is kept with the finding and used to monitor model quality.</p>
-    <label className="o-field" style={{ marginTop: 12 }}>Reason<select value={reason} onChange={event => setReason(event.target.value)}><option value="">Choose a reason…</option><option>Inspected — no defect found</option><option>Sensor fault suspected</option><option>Already covered by scheduled work</option><option>Operational constraint — will re-evaluate</option></select></label>
-    <div className="o-form-actions"><button type="button" className="o-btn ghost" onClick={() => onOpenChange(false)}>Cancel</button><button type="button" className="o-btn danger" disabled={!reason || update.isPending} onClick={() => update.mutate({ id: a.id, status: "dismissed", reason, expected_status: a.status }, {
-      onSuccess: () => { toast({ tone: "success", title: "Finding dismissed" }); onOpenChange(false); },
-      onError: error => toast({ tone: "error", title: "Not recorded", body: error.message }),
-    })}>Dismiss finding</button></div>
-  </Modal>;
-}
-
-/** Actions follow the decision flow: engineers confirm or dismiss, supervisors schedule. */
-export function AdvisoryActions({ advisory: a, replay }: { advisory: Advisory; replay: boolean }) {
-  const { role } = useRole();
-  const update = useUpdateAdvisory();
-  const toast = useToast();
-  const [dismissOpen, setDismissOpen] = useState(false);
-  const [scheduleOpen, setScheduleOpen] = useState(false);
-  if (replay) return <p className="o-note"><Icon name="history" size={16}/>Replaying a past date: decisions can only be recorded at the latest engine date.</p>;
-  const review = can.review(role.id), schedule = can.schedule(role.id);
-  const next = a.status === "proposed" ? "An engineer reviews the evidence and confirms or dismisses this finding."
-    : a.status === "accepted" ? "Confirmed. The maintenance supervisor schedules the work next."
-      : a.status === "scheduled" ? (a.parts_status === "open" || a.parts_status === "ordered" ? "Scheduled. Logistics is securing the part." : "Scheduled with the part secured.")
-        : a.status === "dismissed" ? "Dismissed. It can be reopened if new evidence appears." : "Work completed.";
-  return <div className="o-adv-actions">
-    <p className="o-next-step"><Icon name="info" size={15}/>{next}</p>
-    {review && a.status === "proposed" && <button type="button" className="o-btn" disabled={update.isPending} onClick={() => update.mutate({ id: a.id, status: "accepted", expected_status: a.status }, {
-      onSuccess: () => toast({ tone: "success", title: "Finding confirmed", body: "Sent to the maintenance supervisor for scheduling." }),
-      onError: error => toast({ tone: "error", title: "Not recorded", body: error.message }),
-    })}><Icon name="check" size={15}/>Confirm finding</button>}
-    {schedule && a.status === "accepted" && <button type="button" className="o-btn" onClick={() => setScheduleOpen(true)}><Icon name="calendar" size={15}/>Schedule work</button>}
-    {review && ["proposed", "accepted", "scheduled"].includes(a.status) && <button type="button" className="o-btn ghost" onClick={() => setDismissOpen(true)}><Icon name="close" size={15}/>Dismiss</button>}
-    {review && a.status === "dismissed" && <button type="button" className="o-btn ghost" onClick={() => update.mutate({ id: a.id, status: "proposed", expected_status: a.status })}><Icon name="refresh" size={15}/>Reopen</button>}
-    {a.work_order_id && <Link className="o-link" to="/maintenance#scheduled-work">Work order {a.work_order_id}{a.parts_status ? ` · ${partsLabel[a.parts_status].toLowerCase()}` : ""}<Icon name="arrow" size={13}/></Link>}
-    {a.status_actor && <span className="o-muted o-small">Last decision by {a.status_actor}{a.status_reason ? `: “${a.status_reason}”` : ""}</span>}
-    <DismissDialog advisory={a} open={dismissOpen} onOpenChange={setDismissOpen}/>
-    <ScheduleDialog open={scheduleOpen} onOpenChange={setScheduleOpen} componentId={a.component_id} advisory={a}/>
-  </div>;
+export function AdvisoryActions({ advisory, replay }: { advisory: Advisory; replay: boolean }) {
+  return replay ? <p className="o-note">Historical evidence is read only.</p> : <CaseContext component={advisory.component_id} record={advisory.id}/>;
 }
 
 export function ScheduleDialog({ open, onOpenChange, componentId, advisory }: { open: boolean; onOpenChange: (open: boolean) => void; componentId: string; advisory?: Advisory }) {

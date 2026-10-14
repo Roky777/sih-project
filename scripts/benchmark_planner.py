@@ -81,10 +81,12 @@ def main() -> None:
         instances[name] = {
             "optimizer": {
                 **result_summary(source, optimized),
+                "objective_definition": "union grounding slots * (horizon + 1) + makespan",
                 "runtime_ms": optimized_ms,
             },
             "earliest_deadline_first": {
                 **result_summary(source, baseline),
+                "objective_definition": "legacy makespan score; raw objectives are not comparable",
                 "runtime_ms": baseline_ms,
             },
         }

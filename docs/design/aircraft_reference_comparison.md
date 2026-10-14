@@ -1,6 +1,6 @@
 # Aircraft reference comparison — 2026-10-09
 
-The user supplied three still images: an AeroTwin inspection workspace, the prior FleetAvail delivery, and a BMW model showroom. These images establish visual direction, not engineering geometry, operating data, animation timing or a validated aircraft configuration.
+The user supplied three still images: an AeroTwin inspection workspace, the prior prototype delivery, and a BMW model showroom. These images establish visual direction, not engineering geometry, operating data, animation timing or a validated aircraft configuration.
 
 | Area | Supplied reference | Previous delivery | Current implementation / remaining difference |
 |---|---|---|---|
@@ -12,7 +12,7 @@ The user supplied three still images: an AeroTwin inspection workspace, the prio
 | Data claims | Reference shows named engines, flights and a 95% label | Synthetic fleet record | Keep actual synthetic component identities/units; do not copy reference numbers, sensor causes or unsupported confidence claims |
 | Controls | Compact view controls, aircraft selection and replay | Large vertical browse rail and bottom controls | Compact browsing/camera controls; existing aircraft retrieval locks, identity checks, replay and reduced-motion behavior preserved |
 | Engineering fidelity | Fighter-like geometry visible; source accuracy not provided | Licensed generic transport, explicitly illustrative | **Not delivered:** no approved airframe CAD/configuration/mappings/tolerances or validation source exists. Lighting/layout changes cannot establish engineering accuracy |
-| Exact parity | Screenshots only; two references have different compositions/colors | Different aircraft and navigation | Reference-inspired layout, not pixel-identical reproduction; retain FleetAvail identity, useful navigation, truthful provenance and responsive behavior |
+| Exact parity | Screenshots only; two references have different compositions/colors | Different aircraft and navigation | Reference-inspired layout, not pixel-identical reproduction; retain the established AeroCare visual identity, useful navigation, truthful provenance and responsive behavior |
 
 ## Engineering model acceptance prerequisites
 

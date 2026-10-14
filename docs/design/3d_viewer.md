@@ -80,3 +80,25 @@ The authored 2D blueprint uses deep blue graph paper with pale cyan/white outlin
 
 **2026-10-11: 1:1 rebuild.** The studio fighter and blueprint cutaway were rebuilt at 1:1 scale to the publicly stated overall dimensions, with thin-section wings, realistic matte materials, a detailed cockpit, a full internal structure and systems layout, and component assemblies placed at real size in plausible installation zones. Healthy assemblies keep their real material finish; the cutaway adds a faint state-coloured glow, and red still marks recorded attention, not a diagnosed defect. The asset register records the provenance and the limits: this is a public-information approximation, not manufacturer CAD.
 
+
+### Current contained aircraft-detail presentation — 13 October 2026
+
+This supersedes the earlier fullscreen showroom/transition presentation described above.
+Summary uses a rounded viewer with a 440–620 CSS-pixel model stage on desktop, with the
+existing green gradient and subdued perspective floor. Its header contains identity for
+this visual section and the component-condition drawer trigger. A compact Front / 3/4 /
+Side / Top / Reset group sits outside the model canvas; browsing occupies a separate footer
+lane. Visual inspection offers a larger airframe view or the blueprint/assembly tools;
+these are mutually selected to avoid mounting competing viewers.
+
+Per-mesh model bounds and resize-dependent perspective fitting are retained. The detail
+viewer resets for the selected record and has no animated incoming-model/statistic preview.
+Current record context switches together after identity-checked prefetch. Geometry is
+unchanged. Model/WebGL failures retain a family-matched poster and operational records.
+The aggregate health statistic is neutral and explicitly not clearance; recorded
+restrictions are explained above the model using actual linked work and cases.
+
+The first contained revision made the stage too shallow and the aircraft too small.
+The user rejected that scale. Summary now allocates a responsive 440–620px stage
+(320px on phones), and Visual inspection uses a 540–740px stage. Bounds-based camera
+fitting scales the aircraft with that space while keeping controls outside the canvas.

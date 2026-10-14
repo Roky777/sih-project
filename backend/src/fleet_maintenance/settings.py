@@ -1,8 +1,10 @@
 from functools import lru_cache
+from ipaddress import ip_address, ip_network
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit
 
-from pydantic import Field, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 
@@ -33,15 +35,49 @@ class Settings(BaseSettings):
     deployment_scope: str = "single_agency"
     # AI Maintenance Copilot (server-side only; never sent to the browser).
     assistant_enabled: bool = True
+    assistant_provider: Literal["ollama", "groq"] = "ollama"
+    assistant_local_only: bool = True
+    assistant_groq_api_key: SecretStr = SecretStr("")
+    assistant_groq_model: str = "openai/gpt-oss-20b"
     assistant_ollama_url: str = "http://localhost:11434"
     assistant_model: str = "qwen3:8b"
     assistant_timeout_seconds: float = Field(default=120, ge=5, le=600)
     assistant_max_tool_iterations: int = Field(default=4, ge=1, le=8)
     # Larger windows raise model memory use; 8k fits Qwen3-8B on a 16 GB machine.
     assistant_context_tokens: int = Field(default=8192, ge=2048, le=32768)
+    assistant_keep_alive: str = "30m"
 
     @model_validator(mode="after")
     def validate_release(self) -> "Settings":
+        if self.assistant_enabled and self.assistant_local_only:
+            if self.assistant_provider != "ollama":
+                raise ValueError("Private copilot mode requires the Ollama provider")
+            if self.assistant_model.endswith(("-cloud", ":cloud")):
+                raise ValueError("Private copilot mode does not allow cloud models")
+            endpoint = urlsplit(self.assistant_ollama_url)
+            local = endpoint.hostname in {"localhost", "host.docker.internal"}
+            if endpoint.hostname:
+                try:
+                    address = ip_address(endpoint.hostname)
+                    local = (
+                        local
+                        or address.is_loopback
+                        or any(
+                            address in ip_network(network)
+                            for network in (
+                                "10.0.0.0/8",
+                                "172.16.0.0/12",
+                                "192.168.0.0/16",
+                                "fc00::/7",
+                            )
+                        )
+                    )
+                except ValueError:
+                    pass
+            if not local or endpoint.scheme not in {"http", "https"} or endpoint.username:
+                raise ValueError(
+                    "Private copilot mode requires a local or private-IP model endpoint"
+                )
         if self.deployment_scope != "single_agency":
             raise ValueError("Only isolated single-agency deployments are supported")
         if self.authentication_mode not in {"demo", "session"}:

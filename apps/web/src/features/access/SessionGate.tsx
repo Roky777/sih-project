@@ -1,13 +1,15 @@
+import { useThemePreference } from "../../shared/ui/theme";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { api, ApiError, setCsrfToken, pagesDeployment, fullAppUrl, isHealth } from "../../shared/api/client";
 import { EventStreamBridge } from "../../shared/api/eventStream";
-import { Icon } from "../../shared/ui/Icon";
+import { BrandLogo } from "../../shared/ui/BrandLogo";
 
 type SessionInfo = { id: string; role: string; authentication: string; csrf_token: string | null };
 const SessionContext = createContext<SessionInfo | null>(null);
 export function useSession() { return useContext(SessionContext); }
 export function SessionGate({ children }: { children: ReactNode }) {
+  useThemePreference();
   const queryClient = useQueryClient();
   const [expired, setExpired] = useState(false);
   useEffect(() => {
@@ -104,10 +106,10 @@ export function SessionGate({ children }: { children: ReactNode }) {
   }
   if (session.data && !expired) return <SessionContext.Provider value={session.data}><EventStreamBridge/>{children}</SessionContext.Provider>;
   if (session.isPending && !expired) return <div className="async-state loading-state" role="status"><span className="spinner"/><strong>Opening your workspace…</strong></div>;
-  if (!signInRequired) return <main className="login-shell"><section className="login-card" role="alert"><span className="brand-mark"><Icon name="aircraft" size={28}/></span><h1>Demo backend offline</h1><p>Aircraft maintenance connects AI engine-health evidence with parts, crew, a checked schedule and human approval.</p><p>The demo server is currently unreachable. Its host needs to keep Docker and the HTTPS tunnel running. No calculations are available while disconnected.</p><button onClick={() => void session.refetch()}>Try again</button>{fullAppUrl && <p><a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open complete demo</a></p>}</section></main>;
+  if (!signInRequired) return <main className="login-shell"><section className="login-card" role="alert"><BrandLogo className="aerocare-logo-login"/><h1>Demo backend offline</h1><p>AeroCare connects AI engine-health evidence with parts, crew, a checked schedule and human approval.</p><p>The demo server is currently unreachable. Its host needs to keep Docker and the HTTPS tunnel running. No calculations are available while disconnected.</p><button onClick={() => void session.refetch()}>Try again</button>{fullAppUrl && <p><a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open complete demo</a></p>}</section></main>;
   return <main className="login-shell"><section className="login-card">
-    <span className="brand-mark"><Icon name="aircraft" size={28}/></span>
-    <h1>{creatingAccount ? "Create your account" : "Sign in to Aircraft maintenance"}</h1>
+    <BrandLogo className="aerocare-logo-login"/>
+    <h1>{creatingAccount ? "Create your AeroCare account" : "Sign in to AeroCare"}</h1>
     <p>{creatingAccount ? "Create an account to explore the maintenance workspace." : "Use your maintenance workspace account."}</p>
     {pagesDeployment && fullAppUrl && <p><a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open complete demo</a><small>Use this when your browser blocks cross-site sign-in.</small></p>}
     {notice && <p role="status" className="form-success">{notice}</p>}

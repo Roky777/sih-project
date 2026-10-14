@@ -17,7 +17,7 @@ const signed = (value: unknown, suffix = "") => typeof value === "number" ? `${v
 export function AskAIButton({ floating = false }: { floating?: boolean }) {
   const assistant = useOptionalAssistant();
   if (!assistant?.enabled) return null;
-  return <button type="button" className={`o-ask-ai${floating ? " floating" : ""}`} onClick={() => assistant.setOpen(true)} aria-label="Ask AI maintenance copilot" aria-haspopup="dialog">
+  return <button type="button" className={`o-ask-ai${floating ? " floating" : ""}`} onClick={() => assistant.setOpen(true)} aria-label="Ask AeroCare maintenance copilot" aria-haspopup="dialog">
     <Icon name="spark" size={16}/><span>Ask AI</span>
   </button>;
 }
@@ -34,9 +34,17 @@ export function AssistantPanel() {
   const location = useLocation();
   const list = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => { list.current?.scrollTo({ top: list.current.scrollHeight }); }, [a.messages, a.open]);
+  const follow = useRef(true);
+  const previousUser = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const user = a.messages.filter(m => m.role === "user").at(-1)?.id;
+    if (user !== previousUser.current) follow.current = true;
+    previousUser.current = user;
+    if (follow.current) list.current?.scrollTo({ top: list.current.scrollHeight });
+  }, [a.messages, a.open]);
   if (!a.enabled) return null;
   const available = a.status?.available ?? false;
+  const canAsk = a.status?.enabled === true;
   const suggestions = suggestionsFor(location.pathname, a.selection);
   const chips = (Object.keys(contextLabels) as (keyof Selection)[]).filter(key => a.selection[key]);
   return <Dialog.Root open={a.open} onOpenChange={a.setOpen} modal={false}>
@@ -45,28 +53,31 @@ export function AssistantPanel() {
         onOpenAutoFocus={event => { event.preventDefault(); input.current?.focus(); }}>
         <header className="o-ai-head">
           <span className="o-ai-mark"><Icon name="spark" size={16}/></span>
-          <div><Dialog.Title>Maintenance copilot</Dialog.Title><p id="o-ai-desc">{a.status?.model ? `${a.status.model} · ` : ""}answers from FleetAvail records and services</p></div>
+          <div><Dialog.Title>AeroCare copilot</Dialog.Title><p id="o-ai-desc">Your fleet records, explained clearly</p></div>
           <button type="button" className="o-round-btn" onClick={a.clearConversation} aria-label="Clear conversation" title="Clear conversation" disabled={!a.messages.length}><Icon name="history" size={15}/></button>
           <Dialog.Close asChild><button type="button" className="o-round-btn" aria-label="Close copilot"><Icon name="close" size={15}/></button></Dialog.Close>
         </header>
         <section className="o-ai-context" aria-label="Copilot context">
           <span className="o-ai-date"><Icon name="clock" size={13}/>{a.selection.as_of ? `Replay ${a.selection.as_of}` : "Latest date"}</span>
           {chips.map(key => <span key={key} className="o-ai-chip">{contextLabels[key]} <b>{a.selection[key]}</b><button type="button" aria-label={`Remove ${contextLabels[key]} from context`} onClick={() => a.removeContext(key)}><Icon name="close" size={11}/></button></span>)}
-          {!chips.length && <span className="o-ai-muted">No record selected</span>}
+          {!chips.length && <span className="o-ai-muted">Fleet context</span>}
           {a.pinned && <button type="button" className="o-link" onClick={a.followPage}>Use this page</button>}
         </section>
-        {!available && <div className="o-ai-unavailable" role="status"><Icon name="warning" size={15}/><div><strong>Assistant unavailable</strong><p>{a.statusError ? "Could not check the assistant service." : a.status?.detail ?? "Checking the model service…"} Every FleetAvail page keeps working without it.</p></div><button type="button" className="o-btn sm ghost" onClick={a.refreshStatus}><Icon name="refresh" size={13}/>Retry</button></div>}
-        <div className="o-ai-messages" ref={list} aria-live="polite">
-          {!a.messages.length && <div className="o-ai-empty"><p>Ask about availability, findings, sensor evidence, spares or what-if scenarios. Answers cite the records they use; numbers come from FleetAvail's own models and simulator.</p></div>}
+        {!available && <div className="o-ai-unavailable" role="status"><Icon name="warning" size={15}/><div><strong>AI explanations unavailable</strong><p>{a.statusError ? "Could not check the assistant service." : a.status?.detail ?? "Checking the model service…"} Record-based questions and charts remain available.</p></div><button type="button" className="o-btn sm ghost" onClick={a.refreshStatus}><Icon name="refresh" size={13}/>Retry</button></div>}
+        <div className="o-ai-messages" ref={list} aria-live="polite" onScroll={() => {
+          const el = list.current;
+          if (el) follow.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+        }}>
+          {!a.messages.length && <div className="o-ai-empty"><span className="o-ai-welcome-mark"><Icon name="spark" size={24}/></span><h3>What would you like to check?</h3><p>Understand fleet availability, inspect a finding or check a spare. Start with a question below.</p><span className="o-ai-grounding">Record links accompany answers. Forecasts and simulations are labelled.</span></div>}
           {a.messages.map(message => <Message key={message.id} message={message}/>)}
         </div>
-        {!a.busy && <div className="o-ai-suggestions" aria-label="Suggested questions">{suggestions.map(text => <button type="button" key={text} disabled={!available} onClick={() => a.ask(text)}>{text}</button>)}</div>}
+        {!a.busy && !a.messages.length && <div className="o-ai-suggestions" aria-label="Suggested questions">{suggestions.map(text => <button type="button" key={text} disabled={!canAsk || (!available && !["Summarise this aircraft.", "How do I add an aircraft?", "Why is my prediction unavailable?", "How do I approve maintenance?", "Explain this finding with evidence.", "What is the current availability?", "How many aircraft are in the fleet?", "What is the stock level?", "Explain the drop in fleet availability.", "What does the 30-day availability forecast show?", "Show the recent sensor trends behind this alert.", "What maintenance is open for this aircraft?"].includes(text))} onClick={() => a.ask(text)}>{text}</button>)}</div>}
         <form className="o-ai-input" onSubmit={event => { event.preventDefault(); a.ask(a.draft); }}>
           <label className="sr-only" htmlFor="o-ai-question">Ask the copilot</label>
-          <textarea id="o-ai-question" ref={input} rows={2} maxLength={2000} value={a.draft} placeholder={available ? "Ask about this fleet…" : "Assistant unavailable"} disabled={!available}
-            onChange={event => a.setDraft(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); a.ask(a.draft); } }}/>
+          <textarea id="o-ai-question" ref={input} rows={2} maxLength={2000} value={a.draft} placeholder="Ask about this fleet…" disabled={!canAsk}
+            onChange={event => a.setDraft(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); a.ask(a.draft); } }}/>
           {a.busy ? <button type="button" className="o-btn sm ghost" onClick={a.cancel}><Icon name="close" size={13}/>Cancel</button>
-            : <button type="submit" className="o-btn sm" disabled={!available || !a.draft.trim()}><Icon name="arrow" size={13}/>Ask</button>}
+            : <button type="submit" className="o-btn sm" disabled={!canAsk || !a.draft.trim()}><Icon name="arrow" size={13}/>Ask</button>}
         </form>
       </Dialog.Content>
     </Dialog.Portal>
@@ -76,18 +87,19 @@ export function AssistantPanel() {
 function Message({ message }: { message: ChatMessage }) {
   const a = useAssistant();
   if (message.role === "user") return <div className="o-ai-msg user"><p>{message.content}</p></div>;
-  if (message.pending) return <div className="o-ai-msg bot" role="status"><span className="o-ai-typing"><i/><i/><i/></span><span className="o-ai-muted">Checking FleetAvail records… local models can take up to a minute.</span></div>;
+  if (message.pending) return <div className="o-ai-msg bot" role="status">{message.content && <p>{message.content}</p>}<span className="o-ai-typing"><i/><i/><i/></span><span className="o-ai-muted">{message.content ? "Draft answer — checking references…" : "Checking AeroCare records…"}</span></div>;
   if (message.cancelled) return <div className="o-ai-msg bot"><p className="o-ai-muted">Cancelled.</p><button type="button" className="o-link" onClick={a.retry}>Ask again</button></div>;
   if (message.error) return <div className="o-ai-msg bot error" role="alert"><p><strong>{message.error.unavailable ? "The assistant is unavailable." : "The request failed."}</strong> {message.error.message}</p><p className="o-ai-muted">No answer was generated; nothing is shown in its place.</p><button type="button" className="o-btn sm ghost" onClick={a.retry}><Icon name="refresh" size={13}/>Retry</button></div>;
   const response = message.response!;
   const byId = new Map(response.citations.map(c => [c.id, c]));
   return <div className="o-ai-msg bot">
+    <p className="o-ai-muted">{response.answer_mode === "records" ? "From application records" : response.answer_mode === "guidance" ? "AeroCare site guidance" : "AI explanation · inspect supporting evidence"}</p>
     <Reply text={message.content} citations={byId}/>
     {response.artifacts.map((artifact, i) => <ArtifactCard key={i} artifact={artifact as Artifact}/>)}
     {response.warnings.map(w => <p key={w} className="o-ai-warn"><Icon name="warning" size={13}/>{w}</p>)}
     {response.citations.length > 0 && <div className="o-ai-sources"><span>Sources</span>{response.citations.map(c => <Cite key={c.id} citation={c}/>)}</div>}
-    <details className="o-ai-trace"><summary>{response.tool_calls.length ? `Used ${response.tool_calls.map(t => t.name).join(", ")}` : "No tools used"} · {message.context.as_of ? `as of ${message.context.as_of}` : "latest date"}</summary>
-      <ul>{response.tool_calls.map((t, i) => <li key={i} className={t.ok ? "ok" : "bad"}><code>{t.name}</code> {JSON.stringify(t.arguments)} {t.ok ? "✓" : `— ${t.error}`}</li>)}</ul></details>
+    <details className="o-ai-trace"><summary>Answer details · {message.context.as_of ? `as of ${message.context.as_of}` : "latest date"}</summary>
+      {response.model && <p>Model: {response.model}</p>}<ul>{response.tool_calls.map((t, i) => <li key={i} className={t.ok ? "ok" : "bad"}><code>{t.name}</code> {JSON.stringify(t.arguments)} {t.ok ? "✓" : `— ${t.error}`}</li>)}</ul></details>
     <p className="o-ai-label">{response.data_label}</p>
   </div>;
 }

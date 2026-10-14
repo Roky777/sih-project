@@ -46,7 +46,20 @@ def execute(job_id: str) -> None:
                 confirm_cancellation(session, job_id, attempt)
                 return
             result: dict[str, object]
-            if kind == "planning":
+            if kind == "availability_study":
+                from fleet_maintenance.verification.availability_study import (
+                    VERSION,
+                    definition_hash,
+                    run_study,
+                )
+
+                if (
+                    payload.get("version") != VERSION
+                    or payload.get("definition_sha256") != definition_hash()
+                ):
+                    raise ValueError("Study definition changed; submit a fresh study")
+                result = {"study": run_study()}
+            elif kind == "planning":
                 if not payload:
                     payload = planning_snapshot(session)
                     session.rollback()
@@ -92,6 +105,10 @@ def execute(job_id: str) -> None:
                         session, payload, computed_comparison, f"sim-for-{job_id}"
                     ).id
                 }
+            elif kind == "fleet_assessment":
+                from fleet_maintenance.services.ingestion import execute_fleet
+
+                result = execute_fleet(session, payload, job_id)
             elif kind == "fleet_engine":
                 from fleet_maintenance.artifacts.storage import artifact_directory
                 from fleet_maintenance.science.fleet.engine import run_engine

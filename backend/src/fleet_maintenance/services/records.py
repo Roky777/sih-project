@@ -145,7 +145,11 @@ def seed_demo(session: Session) -> bool:
 
 
 def fleet_summary(session: Session) -> list[dict[str, object]]:
-    aircraft = session.scalars(select(Aircraft).order_by(Aircraft.tail_number)).all()
+    aircraft = session.scalars(
+        select(Aircraft)
+        .where(Aircraft.provenance != "user_supplied")
+        .order_by(Aircraft.tail_number)
+    ).all()
     components = session.scalars(select(Component)).all()
     tasks = session.scalars(select(MaintenanceTask)).all()
     result = []

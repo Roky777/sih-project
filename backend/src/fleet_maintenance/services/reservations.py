@@ -57,6 +57,23 @@ def update_work(
             raise ApprovalConflict("Only approved work can start.")
         work.status = task.status = "in_progress"
         work.started_at = datetime.now(UTC)
+    elif action == "verify":
+        if work.status != "awaiting_verification":
+            raise ApprovalConflict("Complete execution before recording verification")
+        from fleet_maintenance.persistence.models import WorkVerification
+
+        session.add(
+            WorkVerification(
+                kind="research",
+                work_id=work.id,
+                work_version=work.version,
+                outcome="passed",
+                actor=actor,
+                notes=notes,
+            )
+        )
+        work.status = task.status = "completed"
+        work.completed_at = datetime.now(UTC)
     elif action in {"complete", "cancel"}:
         if work.status not in {"approved", "in_progress"}:
             raise ApprovalConflict("Work has already reached a terminal outcome.")
@@ -91,8 +108,8 @@ def update_work(
                 part.version += 1
             else:
                 work.consumed_quantity = task.required_part_quantity
-        work.status = "completed" if action == "complete" else "cancelled"
-        task.status = "completed" if action == "complete" else "open"
+        work.status = "awaiting_verification" if action == "complete" else "cancelled"
+        task.status = "awaiting_verification" if action == "complete" else "open"
         work.completed_at = datetime.now(UTC)
         from fleet_maintenance.services.resources import release_bookings
 
@@ -137,6 +154,8 @@ def update_work(
         )
     elif "in_progress" in states:
         plan.status = "in_progress"
+    elif "awaiting_verification" in states:
+        plan.status = "awaiting_verification"
     from fleet_maintenance.persistence.models import OutboxEvent
 
     session.add(

@@ -15,7 +15,7 @@ router = APIRouter(prefix="/work", tags=["work"])
 
 
 class WorkOutcome(BaseModel):
-    action: Literal["start", "complete", "cancel"]
+    action: Literal["start", "complete", "cancel", "verify"]
     expected_version: int = Field(ge=1)
     notes: str = Field(min_length=1, max_length=1000)
 

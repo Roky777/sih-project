@@ -127,6 +127,9 @@ def assess(
     from fleet_maintenance.services.alerts import record_assessment_alert
 
     record_assessment_alert(session, record)
+    from fleet_maintenance.services.cases import assessment_case
+
+    assessment_case(session, record)
     if commit:
         session.commit()
     else:

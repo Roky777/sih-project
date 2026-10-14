@@ -292,3 +292,120 @@ Corrected a 90-degree rotation applied to wheel/brake overlays. Their authored t
 ## Open inspection section and side elevation refinement — 2026-10-11
 
 The aircraft inspection workspace now uses an open section instead of the enclosing rounded card: no outer border, shadow or opaque background, with existing navigation insets and tabs retained. Desktop and mobile computed-style checks confirm those properties. System toggles and Explore blueprint retain transparent backgrounds in default, hover and keyboard-focus states. The side elevation no longer compresses the entire airframe vertically; distinct intake, swept wing, cockpit, gear forks and circular tyres improve the conceptual silhouette. Red affected assemblies remain mapped to the selected component records. The refreshed blueprint was visually inspected; captures are retained in `artifacts/side-elevation-2026-10-11/` and `artifacts/open-inspection-section-2026-10-11/`. Final `make web-check` passed lint, TypeScript, production build and 19 unit checks. Existing large-bundle warnings remain.
+## Continuous aircraft floor and faster copilot delivery — 2026-10-12
+
+Extended the aircraft scene/floor beneath the statistics and removed the separate statistics background, border and blur. The desktop capture was visually reviewed in `artifacts/fast-copilot-2026-10-12/continuous-scene.png`. The existing live suite initially exposed an obsolete system-details anchor and a mobile drawer autofocus restoring scroll to the aircraft; the anchor now targets the integrated workspace, and Explore blueprint transfers focus without undoing the scroll.
+
+Exact read-only fleet/stock questions bypass inference. A real latest-availability request completed in 0.79 seconds locally; a browser question also completed with the recorded 33/40 value. A local causal explanation completed in 55.01 seconds with 280 streamed text deltas and a final checked response. One untraced figure was flagged by the existing answer guard; streaming does not make the local model faster or remove answer-quality limitations. Groq transcript/stream handling is tested with mocked HTTP, but hosted inference remains unactivated and unbenchmarked without a private account key. Local Ollama remains the selected provider.
+
+`make web-check` passed lint, TypeScript, build and 26 unit checks. Focused copilot tests passed 18/18 using the actual Python 3.13 runtime dependencies; changed-file Ruff and scoped mypy checks passed (imported dependency typing excluded). The aircraft live browser suite passed 5/5 in 46.3 seconds after correcting the handoff. The full backend test-image build was stopped after slow dependency downloads, so the full backend suite was not run. The new API schema was exported from implemented routes and client types regenerated with the repository tools. Existing bundle-size warnings remain.
+## Copilot completion checks — 2026-10-12
+
+Known availability-drop and forecast questions now retrieve their selected-date evidence before one explanation call. A focused regression confirms fresh cutoff-preserving retrieval and no tool-selection model round. Browser regressions verify final checked text replaces a draft and retains warnings; truncated streams, malformed citation records and cancellation cannot become completed answers. Final checks passed frontend lint/TypeScript/build and 26 unit tests, 19 focused backend copilot tests, changed-file Python lint/scoped typing, and 4 browser response-delivery tests. A local explanation timing check measured first text at 51.56 seconds and completion at 64.16 seconds; reducing model rounds alone did not establish a local speed improvement or meet the hosted response target. Hosted activation still requires a private Groq API key; the inspected local runtime remains Ollama with no hosted key configured. No hosted latency or hosted answer-quality claim is made.
+## Private local copilot profile — 2026-10-12
+
+Enabled persistent Ollama cloud disablement; the host log confirmed `Ollama cloud disabled: true` and the model listener remained on 127.0.0.1:11434. Local web/API/broker-management port bindings use localhost. The default local-only application setting rejects hosted providers, cloud model suffixes and public model endpoints when enabled. Private-IP endpoints remain configurable for a controlled inference host; this is not a replacement for deployment authentication, TLS, network isolation or operational acceptance.
+
+Rejected the 1.7B candidate because it ignored selected sensor context and supplied an invalid maintenance-query limit. Rejected the generic 4B tag because it resolved to a forced-thinking variant with excessive latency and raw reasoning content. The explicit 4B instruction model used the selected records and tools correctly in bounded checks, but initial summaries still mixed forecast units and added unsupported interpretations. Standard availability, forecast, sensor-history and maintenance questions therefore return exact service-backed text/artifacts without inference; broader questions retain the local model and checked source references. The percentage guard no longer accepts aircraft-days as percentage evidence, and final output strips incomplete/prefilled reasoning wrappers.
+
+The final read-only synthetic check measured direct availability at 0.72 seconds and sensor/maintenance queries at 0.01 seconds or less (rounded). Broader sensor and maintenance questions first responded at 4.60 and 2.39 seconds and completed in 14.03 and 5.33 seconds. These are individual local samples, not an SLA or a diagnostic-accuracy result. Candidate decisions and outputs are retained in ignored `artifacts/private-copilot-2026-10-12/`. Focused copilot/privacy tests passed 39/39. Final activation reported provider `ollama`, model `qwen3:4b-instruct`, local-only true and ready; the model used 3.2 GB with 100% GPU execution and an 8192-token context. Frontend lint/TypeScript/build and 26 unit checks passed, as did the 4 response-delivery browser checks. A real browser request verified the private model label, exact availability response and source link; capture: `artifacts/private-copilot-2026-10-12/private-copilot.png`. The original 8B model is retained; rejected test models were removed to conserve disk.
+
+## Aircraft framing and shared presentation — 2026-10-13
+
+The screenshot's helicopter wheel/statistics overlap came from fitting the model to a canvas extended underneath the statistics. The transparent canvas still extends to the showroom bottom, but the camera now uses a vertical view offset and measured heading/statistics insets to reserve text space. Mesh bounds refresh when the current aircraft model changes; the incoming transition model no longer replaces the current model's bounds. Contact shadows use the selected mesh's lowest point rather than one fighter-specific height. Mobile camera rendering ends before browsing controls while the background floor remains continuous. The blueprint action reserves a lane beside the floating copilot.
+
+Component and blueprint inspection portals now follow light/dark workspace colours. Fixed the aircraft record-count selector after adding the Explain with AI action, and inherited user-bubble foreground colour explicitly. All five airframe subtitles now identify illustrative 3D models instead of asserting 1:1 replicas. Fonts and route structure were preserved.
+
+`make web-check` passed lint, TypeScript, production build and 27 unit tests. A geometry regression projects all five normalized airframe families through the four camera directions at desktop/laptop/mobile aspect ratios and verifies they stay above the statistics and below the heading. Existing bundle-size warnings remain. Desktop/mobile route audits and navigation checks cover 25 workspace routes plus a component record; page spacing and viewport/header containment checks passed. The helicopter was visually reviewed at 1440×900 and 390×844; interim captures are in `artifacts/consistency-2026-10-13-helicopter*.png`. These checks cover presentation, not engineering model accuracy or every possible data state.
+
+Final browser verification: 15 existing route/navigation/twin/copilot checks passed in the combined run. The new family/theme regression initially used an incorrect endpoint and assumed a type field on the summary response; it now uses `/api/fleet-health/aircraft` and the existing airframe registry. Its rerun passed for all five families at 1440px and 390px, including an unobstructed mobile blueprint action and dark component drawer. Final family and theme captures are retained in `artifacts/consistency-2026-10-13/`.
+
+## Loading audit — 2026-10-13
+
+Found eager inspection/Three dependencies on the aircraft register, uncompressed local proxy responses, and layout reads inside the recently added camera-framing animation. Aircraft identity/model paths now live in a geometry-free metadata module; full architecture reuses it. Showroom and blueprint chunks are separate. Blueprint loading waits for viewport entry, and a reserved showroom fallback prevents premature intersection. Camera insets are measured outside the frame/orbit loops. GLTF materials are cloned once per unique source material and disposed once; existing geometry bounds are reused. Sideways aircraft browsing now takes 650ms instead of 1450ms, with matching copy animation. No visual model detail was removed.
+
+Enabled gzip for text, JSON and binary model assets on the local proxy. The measured helicopter encoded payload is 977,727 bytes versus 2,068,996 decoded bytes; the main script is 138,963 encoded versus 441,770 decoded bytes. The register route chunk is approximately 17.3KB uncompressed versus approximately 53KB before splitting; the inspection code still exists in deferred chunks. Large chart/3D chunk warnings remain.
+
+Cold-load samples and resource bytes are retained in `artifacts/loading-2026-10-13/measurements.json`. Loopback timing fluctuated, and the first post-change sample ran alongside browser verification: it does not establish an overall latency improvement or a user-device speed guarantee. The supported evidence is reduced transfer size, a lighter register, deferred work and removal of per-frame layout reads.
+
+Final verification: `make web-check` passed lint, TypeScript, build and 27 unit tests. Six existing live aircraft/layout/theme/browser checks passed. Two new loading regressions passed after reserving the showroom loading footprint; they verify no 3D/blueprint scripts on the register, delayed blueprint delivery with a working Explore action, gzip on model/API payloads, and retained security headers. The initial regression correctly caught blueprint loading triggered by the short lazy-showroom fallback; the fallback now reserves the real showroom height. The API already repeats the nosniff header at backend/proxy layers; its assertion checks the retained value rather than assuming one header occurrence. Updated local frontend/proxy served at localhost:8081.
+
+## Connected workspace visual polish and AeroCare — 13 October 2026
+
+The six primary pages retain the existing green canvas, glass navbar, Inter/Roboto Mono families and illustrative models. Actions are compact, tables use ordinary text for labels, and Aircraft Summary uses approximately 28–32 KB previews of the existing model families. Visual inspection still loads the interactive geometry on demand. Full-page and normal-zoom viewport captures are in `artifacts/workspace-refactor/polished/`; desktop and selected mobile captures showed no body overflow or browser page errors. All-route navigation checks passed at 1440 and 390 pixels, plus lazy inspection loading and proxy compression checks (4 live tests).
+
+AeroCare uses the user-provided `AeroCare aviation maintenance logo.png`; the installed logo is byte-identical. Login, report headers and browser metadata use the same identity. The branding regression journey covers rendered artwork, page titles, mobile fit and the existing login controls. See `workspace_refactor_audit.md` for workflow limits; these visual checks are not a substitute for scientific or operational acceptance.
+
+## Overview colour and layout correction — 13 October 2026
+
+Renamed the priority-actions surface to remove a collision with legacy `.overview-actions` flex styling. Restored the previous overview order: compact role actions, five metrics, paired charts, then linked case actions. Metric accents reflect actual status (red restrictions/blockers, amber review, green improving forecast or no blockers); case tints reflect their own state. Fonts and connected routes remain unchanged. Mobile report tabs wrap within the viewport rather than widening the page.
+
+Frontend build and lint passed. Four live browser tests passed for AeroCare branding/login and shared navigation at 1440px and 390px. Desktop overview charts begin at y=453, with actions below; desktop and mobile document widths match their viewports (1440/390). Desktop and scrolled mobile captures were visually inspected in `artifacts/workspace-refactor/aerocare/overview-colour-*.png`. These are presentation checks, not scientific validation.
+
+## Complete workspace UI pass — 13 October 2026
+
+Audited 45 distinct route/view variants at 1440px light and 390px dark: Overview; operational register and five aircraft sections; findings; maintenance work, planning, cases and history; inventory, requests and deliveries; comparison, reports and models; Settings, Account, Help, Data, Notifications and workflow guidance; research register, planning, inventory, scenarios, model explanations and spatial inspection; guided trial; existing mandatory/finding cases, planned/recorded work orders, parts request, operational component evidence, five research-aircraft sections and engine evidence. The 90-view DOM/layout audit found zero page exceptions, page-width overflows, unnamed buttons or empty anchor targets. Captures/route findings are in `artifacts/ui-completion-audit/final-routes.json` and adjacent screenshots. Some model captures still show their initial loading state; the live-model tests separately await rendering and exercise all five families. The subsequent spatial-heading/context fixes are covered by the targeted interaction test.
+
+Changes: balanced system-health/actions row instead of a full-width sparse matrix; compact role-aware shortcuts; live model overview and direct Blueprint navigation; system heat cells open component records; maintenance sections avoid duplicate long case tables before scheduling controls; themed utilities and persistent header/settings appearance controls; retained unsaved edits and cross-tab theme updates; keyboard-close/focus behaviour for menus; copilot moved into the phone header; matching-family model fallback; role-sensitive controls use the active actor; mandatory-case review controls reflect the server contract; planning prerequisites and case-section links are explicit; research selections preserve dataset and aircraft identity. Narrow-phone long action labels wrap within their section. Browser titles and supplied AeroCare identity remain consistent.
+
+Verification: frontend lint, TypeScript/production Docker build and 27 unit tests passed. Across the combined run and targeted reruns, all 24 affected browser checks passed. The last combined run passed 22 of 23, with the role check failing on an exact `getByLabel` selector that included option text; changing to the combobox's accessible name passed. The added 320px label-containment test and the final ten-test usability/navigation rerun passed. Earlier camera spacing/height failures were fixed with a real control stack and a bounded viewport-dependent stage; the final model/statistics test passed desktop, laptop, tablet and phone sizes. No business approval, execution, stock receipt or resource initialization was performed by these UI checks. Capacity test data and missing-model responses were browser fixtures.
+
+Scope: this verifies presentation and the exercised interactions against the local demonstrator. It does not establish every data/permission combination, intended-user acceptance, a production deployment, scientific acceptance or verified aircraft geometry. Existing release gates remain recorded in `docs/team/release_acceptance.md` and the workspace audit.
+
+## Navigation state and recovery follow-up — 13 October 2026
+
+Fixed URL-driven aircraft sorting/filter state, bounded malformed findings pagination, out-of-range case-page recovery and keyboard search selection after an empty result. Shared tab controls now use a roving focus target and support Left/Right, Home and End. The local web container was rebuilt and activated. Frontend lint, TypeScript/production build and 27 unit tests passed. Twelve navigation/usability browser tests passed together; a further search outage/retry regression passed using a browser-only 503 fixture. These five new navigation checks exercise register return/reload, empty-result keyboard search, invalid-page recovery, section keyboard navigation and record-search failure/retry with working page shortcuts. No business mutations were submitted.
+
+## Aircraft statistics refinement — 13 October 2026
+
+Replaced the rounded translucent metric card and solid green Explore button with an open strip integrated into the showroom canvas and a labelled underline/arrow action. Refined spacing and number weight, kept semantic health/attention colours, and removed decorative zero padding from the findings count. Phone layout retains a two-column metric grid and full-width action. Lint and the production Docker build passed; the selected-record statistics/responsive test passed across desktop/laptop/tablet/phone. Desktop and phone strip captures were visually checked in `artifacts/ui-completion-audit/aircraft-stats-refined*.png`. Record values and Blueprint navigation are unchanged.
+
+## Aircraft-detail composition and scale correction — 13 October 2026
+
+Implemented compact identity and Summary / Components / Maintenance / History / Visual
+inspection tabs, recorded operational context, contained model controls, neutral aggregate
+statistics and aircraft-scoped findings/work. Current work uses the authoritative work
+endpoint, including closures; historical summaries exclude current proposals and deadlines.
+No owners, diagnoses, cases or return dates are manufactured. AC-014 has turbine work
+WO-01097 awaiting AG-DEPOT, zero open predictive findings and no confirmed return date.
+These are distinct records, not a cosmetic mismatch to correct by inventing findings.
+
+The initial contained stage was too shallow and the user rejected its small model scale.
+The final responsive model stage is 440–620 CSS pixels on desktop, 320 on phones, with a
+larger 540–740px Visual inspection stage. Existing mesh bounds, camera fitting, assets,
+orbit, component drawer and blueprint tools are preserved. Record navigation changes all
+context together and clears stale record selection. The selected inspection mode mounts
+one viewer; model failures retain operational records and a matching preview.
+
+Verification: lint, TypeScript/production build and 27 unit tests passed. The first targeted
+browser run passed 18/20; the two failures were stale breadcrumb and blueprint-URL test
+expectations. After updating them to the requested labels, 21/21 passed. The additional
+historical replay test passed separately, making 22 distinct targeted checks across runs.
+After enlarging the stage, the five-family/four-width/four-camera capture test passed again.
+Before/after normal-zoom screenshots at 1440/1280/768/390px are retained in
+`artifacts/ui-completion-audit/aircraft-detail-{before,after}-*.png`, with the final family
+camera captures in `aircraft-family-framing/`. Selected family renders were visually reviewed.
+No business approval, stock or execution mutations were made in these checks; missing-work
+and failed-model scenarios used browser fixtures. Broader release acceptance is unchanged.
+
+## Aircraft Maintenance tab consolidation — 13 October 2026
+
+Removed the duplicate aircraft case table, separate mixed work/requirement list and repeated
+long advisory card from the aircraft-local Maintenance tab. The current view has compact
+active work, a single entry combining each predictive case with its matching evidence and
+next action, and a separate mandatory-requirement section. Empty active work is a compact
+strip. The aircraft identifier stays in the section heading. Assessment narrative is
+expandable; case/work/evidence routes and server permissions are retained.
+
+Lint, TypeScript and the production build passed after correcting initial record-union type
+errors. Three targeted live browser checks passed for recorded AC-014 work, historical
+context and the AC-018 deduplicated review/requirement layout. The final compact empty-state
+revision passed the desktop/mobile maintenance check again. No business mutations were
+submitted. Desktop/mobile captures are in
+`artifacts/ui-completion-audit/aircraft-maintenance-refined*.png`.
+
+## Aircraft showroom refinement — 2026-10-14
+
+The model surface is borderless with a quiet continuous background and compact controls, and no local animated grid. Removed dormant sideways taxi/yaw code; model changes fade rather than move spatially. Preserved camera fitting, geometry, model previews and record links. Typecheck/lint and production build passed; build retains existing optional large-chunk and ineffective dynamic-import warnings. Chrome fixture-backed verification covers delayed successful switching, denied next-record retention and all five real GLB families at 1440/390 widths with reduced motion, camera Top/Reset and non-overlapping controls. The first run caught inherited stage order:-1, which was corrected before rerun. Docker/backend were stopped, so no new live-backend claim is made.
+
+Final rerun: all 3 showroom checks passed (28.8 s), covering 10 family/viewport combinations with real models and mocked records. Captures: `artifacts/aircraft-showroom-2026-10-14/desktop.png` and `mobile.png`; both visually inspected.

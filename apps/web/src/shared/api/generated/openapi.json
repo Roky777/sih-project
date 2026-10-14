@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Fleet Maintenance Decision API",
+    "title": "AeroCare Maintenance Decision API",
     "version": "0.1.0"
   },
   "paths": {
@@ -283,6 +283,801 @@
                     "$ref": "#/components/schemas/FleetItemResponse"
                   },
                   "title": "Response List Fleet Api Fleet Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aircraft-registry": {
+      "get": {
+        "tags": [
+          "aircraft-registry"
+        ],
+        "summary": "Listing",
+        "operationId": "listing_api_aircraft_registry_get",
+        "parameters": [
+          {
+            "name": "as_of",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Listing Api Aircraft Registry Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "aircraft-registry"
+        ],
+        "summary": "Create",
+        "operationId": "create_api_aircraft_registry_post",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AircraftCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Api Aircraft Registry Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aircraft-registry/{identifier}": {
+      "get": {
+        "tags": [
+          "aircraft-registry"
+        ],
+        "summary": "Detail",
+        "operationId": "detail_api_aircraft_registry__identifier__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "as_of",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Detail Api Aircraft Registry  Identifier  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aircraft-registry/{identifier}/components": {
+      "post": {
+        "tags": [
+          "aircraft-registry"
+        ],
+        "summary": "Install",
+        "operationId": "install_api_aircraft_registry__identifier__components_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComponentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Install Api Aircraft Registry  Identifier  Components Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aircraft-registry/{identifier}/records": {
+      "post": {
+        "tags": [
+          "aircraft-registry"
+        ],
+        "summary": "Records",
+        "operationId": "records_api_aircraft_registry__identifier__records_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordsImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Records Api Aircraft Registry  Identifier  Records Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telemetry": {
+      "get": {
+        "tags": [
+          "telemetry"
+        ],
+        "summary": "Listing",
+        "operationId": "listing_api_telemetry_get",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "title": "Response Listing Api Telemetry Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "telemetry"
+        ],
+        "summary": "Create",
+        "operationId": "create_api_telemetry_post",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Api Telemetry Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telemetry/{identifier}": {
+      "get": {
+        "tags": [
+          "telemetry"
+        ],
+        "summary": "Detail",
+        "operationId": "detail_api_telemetry__identifier__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Detail Api Telemetry  Identifier  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telemetry/{identifier}/frames": {
+      "post": {
+        "tags": [
+          "telemetry"
+        ],
+        "summary": "Receive",
+        "operationId": "receive_api_telemetry__identifier__frames_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TelemetryBatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Receive Api Telemetry  Identifier  Frames Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telemetry/{identifier}/replay": {
+      "post": {
+        "tags": [
+          "telemetry"
+        ],
+        "summary": "Replay",
+        "operationId": "replay_api_telemetry__identifier__replay_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplayTick"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Replay Api Telemetry  Identifier  Replay Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telemetry/{identifier}/control": {
+      "post": {
+        "tags": [
+          "telemetry"
+        ],
+        "summary": "Control",
+        "operationId": "control_api_telemetry__identifier__control_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StreamControl"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Control Api Telemetry  Identifier  Control Post"
                 }
               }
             }
@@ -830,6 +1625,598 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ComponentMaintenanceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases": {
+      "get": {
+        "tags": [
+          "maintenance-cases"
+        ],
+        "summary": "List Cases",
+        "operationId": "list_cases_api_cases_get",
+        "parameters": [
+          {
+            "name": "dataset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "operational",
+              "title": "Dataset"
+            }
+          },
+          {
+            "name": "aircraft",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Aircraft"
+            }
+          },
+          {
+            "name": "component",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Component"
+            }
+          },
+          {
+            "name": "record",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Record"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CasePage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}": {
+      "get": {
+        "tags": [
+          "maintenance-cases"
+        ],
+        "summary": "Detail",
+        "operationId": "detail_api_cases__case_id__get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/review": {
+      "post": {
+        "tags": [
+          "maintenance-cases"
+        ],
+        "summary": "Review",
+        "operationId": "review_api_cases__case_id__review_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/proposal": {
+      "post": {
+        "tags": [
+          "maintenance-cases"
+        ],
+        "summary": "Prepare",
+        "operationId": "prepare_api_cases__case_id__proposal_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "as_of",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/proposals/{proposal_id}/approval": {
+      "post": {
+        "tags": [
+          "maintenance-cases"
+        ],
+        "summary": "Approve",
+        "operationId": "approve_api_cases_proposals__proposal_id__approval_post",
+        "parameters": [
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proposal Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalApproval"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/work/{work_id}/verification": {
+      "post": {
+        "tags": [
+          "maintenance-cases"
+        ],
+        "summary": "Verify",
+        "operationId": "verify_api_cases_work__work_id__verification_post",
+        "parameters": [
+          {
+            "name": "work_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Work Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Verify Api Cases Work  Work Id  Verification Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/work/{work_id}/outcome": {
+      "post": {
+        "tags": [
+          "maintenance-cases"
+        ],
+        "summary": "Work Outcome",
+        "operationId": "work_outcome_api_cases__case_id__work__work_id__outcome_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "work_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Work Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseWorkOutcome"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Work Outcome Api Cases  Case Id  Work  Work Id  Outcome Post"
                 }
               }
             }
@@ -2006,6 +3393,129 @@
         }
       }
     },
+    "/api/ingestion/processes": {
+      "get": {
+        "tags": [
+          "ingestion"
+        ],
+        "summary": "Processes",
+        "operationId": "processes_api_ingestion_processes_get",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "title": "Response Processes Api Ingestion Processes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ingestion/engine-history": {
+      "post": {
+        "tags": [
+          "ingestion"
+        ],
+        "summary": "Engine History",
+        "operationId": "engine_history_api_ingestion_engine_history_post",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EngineIngestionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Engine History Api Ingestion Engine History Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/scenarios": {
       "get": {
         "tags": [
@@ -2975,6 +4485,316 @@
         }
       }
     },
+    "/api/workspace/search": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Search",
+        "operationId": "search_api_workspace_search_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchHit"
+                  },
+                  "title": "Response Search Api Workspace Search Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workspace/summary": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Summary",
+        "operationId": "summary_api_workspace_summary_get",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workspace/capacity": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Capacity",
+        "operationId": "capacity_api_workspace_capacity_get",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FleetCapacityResponse"
+                  },
+                  "title": "Response Capacity Api Workspace Capacity Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workspace/capacity/initialize": {
+      "post": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Initialize Capacity",
+        "operationId": "initialize_capacity_api_workspace_capacity_initialize_post",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FleetCapacityResponse"
+                  },
+                  "title": "Response Initialize Capacity Api Workspace Capacity Initialize Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workspace/capacity/{agency_id}": {
+      "patch": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Change Capacity",
+        "operationId": "change_capacity_api_workspace_capacity__agency_id__patch",
+        "parameters": [
+          {
+            "name": "agency_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agency Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FleetCapacityUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FleetCapacityResponse"
+                  },
+                  "title": "Response Change Capacity Api Workspace Capacity  Agency Id  Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/components/{component_id}/imports/csv": {
       "post": {
         "tags": [
@@ -3236,6 +5056,61 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response Submit Assessment Api Jobs Assessment Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evidence/availability-study": {
+      "post": {
+        "tags": [
+          "evidence"
+        ],
+        "summary": "Availability Study",
+        "operationId": "availability_study_api_evidence_availability_study_post",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Availability Study Api Evidence Availability Study Post"
                 }
               }
             }
@@ -5493,6 +7368,62 @@
           }
         }
       }
+    },
+    "/api/assistant/chat/stream": {
+      "post": {
+        "tags": [
+          "assistant"
+        ],
+        "summary": "Chat Stream",
+        "operationId": "chat_stream_api_assistant_chat_stream_post",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantChatRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -5767,6 +7698,18 @@
       },
       "AdvisoryUpdateRequest": {
         "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -5814,6 +7757,50 @@
           "status"
         ],
         "title": "AdvisoryUpdateRequest"
+      },
+      "AircraftCreate": {
+        "properties": {
+          "tail_number": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 2,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9-]+$",
+            "title": "Tail Number"
+          },
+          "serial_number": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Serial Number"
+          },
+          "aircraft_type": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Aircraft Type"
+          },
+          "base": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Base"
+          },
+          "fleet_entry_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Fleet Entry Date"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "tail_number",
+          "serial_number",
+          "aircraft_type",
+          "base",
+          "fleet_entry_date"
+        ],
+        "title": "AircraftCreate"
       },
       "AircraftDetailResponse": {
         "properties": {
@@ -6535,6 +8522,11 @@
       },
       "AssistantChatResponse": {
         "properties": {
+          "answer_mode": {
+            "type": "string",
+            "title": "Answer Mode",
+            "default": "model"
+          },
           "reply": {
             "type": "string",
             "title": "Reply"
@@ -6644,7 +8636,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^AC-\\d{3}$"
+                "pattern": "^(?:AC-\\d{3}|REG-[a-f0-9]{20})$"
               },
               {
                 "type": "null"
@@ -7449,6 +9441,283 @@
         ],
         "title": "CannibalizeVerification"
       },
+      "CasePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CaseResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "CasePage"
+      },
+      "CaseResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "dataset": {
+            "type": "string",
+            "title": "Dataset"
+          },
+          "aircraft_id": {
+            "type": "string",
+            "title": "Aircraft Id"
+          },
+          "component_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Component Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "owner_team": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Team"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "blocker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocker"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "next_action": {
+            "$ref": "#/components/schemas/NextAction"
+          },
+          "evidence_versions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence Versions"
+          },
+          "links": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Links"
+          },
+          "review": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review"
+          },
+          "work": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Work"
+          },
+          "proposals": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Proposals"
+          },
+          "audit": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Audit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "dataset",
+          "aircraft_id",
+          "component_id",
+          "title",
+          "state",
+          "owner",
+          "owner_team",
+          "deadline",
+          "blocker",
+          "version",
+          "created_at",
+          "next_action",
+          "evidence_versions",
+          "links",
+          "review",
+          "work",
+          "proposals",
+          "audit"
+        ],
+        "title": "CaseResponse"
+      },
+      "CaseWorkOutcome": {
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Version"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Notes"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "start",
+              "complete",
+              "cancel"
+            ],
+            "title": "Action"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_version",
+          "notes",
+          "action"
+        ],
+        "title": "CaseWorkOutcome"
+      },
+      "ComponentCreate": {
+        "properties": {
+          "serial_number": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Serial Number"
+          },
+          "kind": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Kind"
+          },
+          "position": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Position"
+          },
+          "installed_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Installed On"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "serial_number",
+          "kind",
+          "position",
+          "installed_on"
+        ],
+        "title": "ComponentCreate"
+      },
       "ComponentDetailResponse": {
         "properties": {
           "id": {
@@ -7546,6 +9815,18 @@
       },
       "ComponentHealthResponse": {
         "properties": {
+          "assessment": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment"
+          },
           "component": {
             "additionalProperties": true,
             "type": "object",
@@ -7976,6 +10257,39 @@
         ],
         "title": "Downtime"
       },
+      "EngineIngestionRequest": {
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Component Id"
+          },
+          "model_id": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Model Id"
+          },
+          "cutoff_cycle": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Cutoff Cycle"
+          },
+          "history": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "History"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "component_id",
+          "model_id",
+          "cutoff_cycle",
+          "history"
+        ],
+        "title": "EngineIngestionRequest"
+      },
       "EngineRunRequest": {
         "properties": {
           "seed": {
@@ -8263,6 +10577,93 @@
           "acknowledged_at"
         ],
         "title": "FleetAlertResponse"
+      },
+      "FleetCapacityResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "crew_capacity": {
+            "type": "integer",
+            "title": "Crew Capacity"
+          },
+          "bay_capacity": {
+            "type": "integer",
+            "title": "Bay Capacity"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Capabilities"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "provenance": {
+            "type": "string",
+            "title": "Provenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "crew_capacity",
+          "bay_capacity",
+          "capabilities",
+          "version",
+          "provenance"
+        ],
+        "title": "FleetCapacityResponse"
+      },
+      "FleetCapacityUpdate": {
+        "properties": {
+          "crew_capacity": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "Crew Capacity"
+          },
+          "bay_capacity": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "Bay Capacity"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Capabilities"
+          },
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Version"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "crew_capacity",
+          "bay_capacity",
+          "capabilities",
+          "expected_version",
+          "reason"
+        ],
+        "title": "FleetCapacityUpdate"
       },
       "FleetItemResponse": {
         "properties": {
@@ -9156,6 +11557,29 @@
         ],
         "title": "JobResponse"
       },
+      "NextAction": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "to": {
+            "type": "string",
+            "title": "To"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "to",
+          "role"
+        ],
+        "title": "NextAction"
+      },
       "ObservationResponse": {
         "properties": {
           "cycle": {
@@ -9230,6 +11654,11 @@
       },
       "PartRequestResponse": {
         "properties": {
+          "received_quantity": {
+            "type": "integer",
+            "title": "Received Quantity",
+            "default": 0
+          },
           "id": {
             "type": "string",
             "title": "Id"
@@ -9359,6 +11788,30 @@
       },
       "PartRequestUpdateRequest": {
         "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "received_quantity": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received Quantity"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -9783,6 +12236,34 @@
         ],
         "title": "PriorityFactor"
       },
+      "ProposalApproval": {
+        "properties": {
+          "input_version": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Input Version"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "input_version"
+        ],
+        "title": "ProposalApproval"
+      },
       "QualityFindingResponse": {
         "properties": {
           "code": {
@@ -9828,6 +12309,37 @@
           "p90"
         ],
         "title": "Quantiles"
+      },
+      "RecordsImport": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Source"
+          },
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/SourceRecord"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Records"
+          },
+          "preview": {
+            "type": "boolean",
+            "title": "Preview",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source",
+          "records"
+        ],
+        "title": "RecordsImport"
       },
       "Registration": {
         "properties": {
@@ -9918,6 +12430,25 @@
           "password"
         ],
         "title": "RegistrationRequest"
+      },
+      "ReplayTick": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "default": 5
+          },
+          "demonstrate_rejection": {
+            "type": "boolean",
+            "title": "Demonstrate Rejection",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ReplayTick"
       },
       "ReservationHistoryResponse": {
         "properties": {
@@ -10040,12 +12571,80 @@
           "note": {
             "type": "string",
             "maxLength": 300,
-            "title": "Note",
-            "default": ""
+            "minLength": 1,
+            "title": "Note"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "execute",
+              "verify"
+            ],
+            "title": "Action",
+            "default": "verify"
           }
         },
         "type": "object",
+        "required": [
+          "note"
+        ],
         "title": "ReturnToServiceRequest"
+      },
+      "ReviewRequest": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "maintenance_required",
+              "monitor",
+              "dismiss",
+              "investigate"
+            ],
+            "title": "Decision"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Reason",
+            "default": ""
+          },
+          "follow_up": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up"
+          },
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Version"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decision",
+          "expected_version"
+        ],
+        "title": "ReviewRequest"
       },
       "ScenarioResponse": {
         "properties": {
@@ -10199,6 +12798,39 @@
         ],
         "title": "ScheduleResponse"
       },
+      "SearchHit": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "dataset": {
+            "type": "string",
+            "title": "Dataset"
+          },
+          "to": {
+            "type": "string",
+            "title": "To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "type",
+          "dataset",
+          "to"
+        ],
+        "title": "SearchHit"
+      },
       "SensorSeries": {
         "properties": {
           "name": {
@@ -10334,6 +12966,98 @@
           "metrics"
         ],
         "title": "SimulationRunResponse"
+      },
+      "SourceRecord": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "usage",
+              "maintenance_requirement",
+              "technical_history"
+            ],
+            "title": "Kind"
+          },
+          "effective_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective Date"
+          },
+          "component_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Component Id"
+          },
+          "flight_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flight Hours"
+          },
+          "cycles": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cycles"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "effective_date"
+        ],
+        "title": "SourceRecord"
       },
       "SpareCheck": {
         "properties": {
@@ -10490,6 +13214,24 @@
         ],
         "title": "StockAdjustment"
       },
+      "StreamControl": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "paused"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "StreamControl"
+      },
       "SystemRef": {
         "properties": {
           "code": {
@@ -10639,6 +13381,26 @@
           "tasks"
         ],
         "title": "TasksResponse"
+      },
+      "TelemetryBatch": {
+        "properties": {
+          "frames": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Frames"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "frames"
+        ],
+        "title": "TelemetryBatch"
       },
       "TrialCatalogResponse": {
         "properties": {
@@ -11065,6 +13827,40 @@
         ],
         "title": "ValidationError"
       },
+      "VerificationRequest": {
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Version"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Notes"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_version",
+          "notes"
+        ],
+        "title": "VerificationRequest"
+      },
       "WorkHistoryResponse": {
         "properties": {
           "id": {
@@ -11131,6 +13927,18 @@
       },
       "WorkOrderCreateRequest": {
         "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
           "component_id": {
             "type": "string",
             "maxLength": 64,
@@ -11217,6 +14025,18 @@
             ],
             "title": "Status"
           },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
           "expected_version": {
             "type": "integer",
             "minimum": 1.0,
@@ -11273,7 +14093,8 @@
             "enum": [
               "start",
               "complete",
-              "cancel"
+              "cancel",
+              "verify"
             ],
             "title": "Action"
           },
@@ -11356,6 +14177,66 @@
           "scheduling_unit"
         ],
         "title": "WorkspaceFixture"
+      },
+      "WorkspaceSummary": {
+        "properties": {
+          "awaiting_review": {
+            "type": "integer",
+            "title": "Awaiting Review"
+          },
+          "work_needing_action": {
+            "type": "integer",
+            "title": "Work Needing Action"
+          },
+          "urgent_review": {
+            "type": "integer",
+            "title": "Urgent Review"
+          },
+          "blocked_work": {
+            "type": "integer",
+            "title": "Blocked Work"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/CaseResponse"
+            },
+            "type": "array",
+            "title": "Actions"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "dataset": {
+            "type": "string",
+            "title": "Dataset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "awaiting_review",
+          "work_needing_action",
+          "urgent_review",
+          "blocked_work",
+          "actions",
+          "as_of",
+          "updated_at",
+          "dataset"
+        ],
+        "title": "WorkspaceSummary"
       }
     }
   }

@@ -27,10 +27,13 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
             # Queue the synthetic fleet-health engine on a fresh installation.
             ensure_engine_run(session)
             backfill_part_requests(session)
+            from fleet_maintenance.services.cases import backfill
+
+            backfill(session)
     yield
 
 
-app = FastAPI(title="Fleet Maintenance Decision API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="AeroCare Maintenance Decision API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(RequestContextMiddleware)
 install_error_handlers(app)
 app.add_middleware(

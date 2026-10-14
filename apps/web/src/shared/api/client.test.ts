@@ -1,6 +1,27 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { api, ApiError, arrayOf, isComponentDetail, isFleetItem, isHealth, isInventoryPart, isJob, isSimulationRun } from "./client";
+import { api, apiStream, ApiError, arrayOf, isComponentDetail, isFleetItem, isHealth, isInventoryPart, isJob, isSimulationRun, setCsrfToken } from "./client";
+
+describe("authenticated answer streams", () => {
+  afterEach(() => { setCsrfToken(null); vi.unstubAllGlobals(); });
+  it("decodes split UTF-8 events and preserves CSRF/session headers", async () => {
+    const bytes = new TextEncoder().encode('{"type":"delta","text":"café"}\n{"type":"done"}\n');
+    const stream = new ReadableStream({ start(controller) {
+      for (const byte of bytes) controller.enqueue(new Uint8Array([byte]));
+      controller.close();
+    } });
+    const fetch = vi.fn().mockResolvedValue(new Response(stream));
+    vi.stubGlobal("fetch", fetch); setCsrfToken("csrf-fixture");
+    const events: unknown[] = [];
+    await apiStream("/assistant/chat/stream", { method: "POST", body: "{}" }, e => events.push(e));
+    expect(events).toEqual([{ type: "delta", text: "café" }, { type: "done" }]);
+    expect(fetch.mock.calls[0][1]).toMatchObject({ credentials: "include", headers: { "X-CSRF-Token": "csrf-fixture" } });
+  });
+  it("fails on malformed events instead of accepting a partial answer", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response('{broken}\n')));
+    await expect(apiStream("/assistant/chat/stream", {}, () => {})).rejects.toThrow();
+  });
+});
 
 describe("rate-limited API requests", () => {
   afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
@@ -73,5 +94,13 @@ describe("API runtime validators", () => {
 
   it("rejects nonnumeric assessment values before the evidence card formats them", () => {
     expect(isComponentDetail({ id:"cmp", aircraft_id:"ac", serial_number:"eng", kind:"engine", status:"monitoring", current_cycle:30, observations:[], assessment:{ id:"asm", state:"eligible", estimate_cycles:"NaN", lower_cycles:1, upper_cycles:20, model_version:"v1", input_version:"i1", quality_findings:[] } })).toBe(false);
+  });
+});
+
+describe("import validation messages", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it("identifies invalid rows without echoing submitted values", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ detail: [{ loc: ["body", "records", 0, "cycles"], msg: "Input should be greater than or equal to 0", input: "private-input" }] }), { status: 422 })));
+    await expect(api("/aircraft-registry/example/records", { method: "POST" })).rejects.toThrow("records.1.cycles");
   });
 });

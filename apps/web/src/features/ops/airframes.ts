@@ -1,10 +1,12 @@
+import { AIRFRAME_INFO, airframeInfo, type AirframeId } from "./airframeInfo";
+export { FLEET_CYCLE, airframeForIndex } from "./airframeInfo";
+export type { AirframeId } from "./airframeInfo";
 import { CANOPY, ELEVON_CHORD, ENGINE_AXIS_Y, FIN, FIGHTER_DIMENSIONS, FUSELAGE, GROUND_Y, INTAKE, MAIN_GEAR, NOSE_GEAR, NOZZLE_EXIT_Z, WING_PLANFORM, type Airfoil, type Section } from "./fighterGeometry";
 import { TRAINER } from "./trainerGeometry";
 import { TRANSPORT } from "./transportGeometry";
 import { HEAVY_FIGHTER } from "./heavyFighterGeometry";
 import { HELICOPTER } from "./helicopterGeometry";
 
-export type AirframeId = "lca" | "ajt" | "mta" | "mki" | "alh";
 export type StructureKind = "compressor" | "turbine" | "pump" | "generator" | "actuator" | "filter" | "electronics" | "battery" | "brake" | "strut" | "tyre" | "sensor" | "cooling" | "valve" | "reservoir";
 /** Placement in the airframe model (metres, nose +Z). `size` is the assembly's largest
  *  real-world dimension; `axis` is the airframe axis its own long axis (X) is aligned to. */
@@ -155,34 +157,33 @@ const ALH_LAYOUTS: Record<string, Layout> = {
   "ECS-PRC": { position: [.32, .95, 1.85], kind: "valve", size: .25, axis: "z" },
 };
 
-const BASIS = "Built at 1:1 scale to the publicly stated overall dimensions of its class; sections, planform, systems and internal arrangement are approximations from public three-view and cutaway drawings. Not manufacturer CAD or this aircraft's verified configuration; not for installation, clearance or loads. Synthetic records are not airworthiness evidence.";
 export const AIRFRAMES: Record<AirframeId, AirframeSpec> = {
   lca: {
-    id: "lca", fleetType: "Light combat aircraft (synthetic)", title: "Light combat aircraft", subtitle: "Tejas-class light fighter · 1:1 visual model", drawingNumber: "FA-LCA-001",
-    model: "models/tejas-visual.glb", poster: "models/fighter-poster.svg", dimensions: FIGHTER_DIMENSIONS, basis: `Tejas Mk1-class proportions. ${BASIS}`,
+    ...AIRFRAME_INFO.lca,
+    dimensions: FIGHTER_DIMENSIONS,
     groundY: GROUND_Y, fuselage: FUSELAGE, canopy: CANOPY, intake: INTAKE, wing: WING_PLANFORM, controlChord: ELEVON_CHORD, fins: [FIN],
     engines: { kind: "jet", axisY: ENGINE_AXIS_Y, faceZ: -2.6, exitZ: NOZZLE_EXIT_Z, radius: .44, afterburner: true },
     mainGear: { x: MAIN_GEAR.x, z: [MAIN_GEAR.z], tyreRadius: MAIN_GEAR.tyreRadius, tyreWidth: MAIN_GEAR.tyreWidth }, noseGear: { ...NOSE_GEAR, twin: false },
     frames: [5.2, 4.15, 3.85, 3.2, 2.5, 1.75, 1.0, .25, -.5, -1.25, -2.0, -2.6, -3.3, -4.0, -4.7, -5.4], layouts: LCA_LAYOUTS,
   },
   ajt: {
-    id: "ajt", fleetType: "Advanced jet trainer (synthetic)", title: "Advanced jet trainer", subtitle: "Two-seat advanced jet trainer · 1:1 visual model", drawingNumber: "FA-AJT-001",
-    model: "models/trainer-visual.glb", poster: "models/fighter-poster.svg", dimensions: T.dimensions, basis: `Hawk-class proportions. ${BASIS}`,
+    ...AIRFRAME_INFO.ajt,
+    dimensions: T.dimensions,
     groundY: TG, fuselage: T.fuselage, canopy: T.canopy, intake: T.intake, wing: T.wing, controlChord: T.controlChord, fins: [T.fin], tailplane: T.tailplane,
     engines: { kind: "jet", ...T.engine, afterburner: false },
     mainGear: { x: T.mainGear.x, z: [T.mainGear.z], tyreRadius: T.mainGear.tyreRadius, tyreWidth: T.mainGear.tyreWidth }, noseGear: { ...T.noseGear, twin: false },
     frames: T.frames, layouts: AJT_LAYOUTS,
   },
   mta: {
-    id: "mta", fleetType: "Medium transport aircraft (synthetic)", title: "Medium transport aircraft", subtitle: "Twin-turboprop medium transport · 1:1 visual model", drawingNumber: "FA-MTA-001",
-    model: "models/transport-visual.glb", poster: "models/fighter-poster.svg", dimensions: M.dimensions, basis: `C-295-class proportions. ${BASIS}`,
+    ...AIRFRAME_INFO.mta,
+    dimensions: M.dimensions,
     groundY: MG, fuselage: M.fuselage, sponson: M.sponson, wing: M.wing, controlChord: M.controlChord, fins: [M.fin], tailplane: M.tailplane,
     engines: { kind: "turboprop", nacelles: M.nacelles, prop: M.prop },
     mainGear: M.mainGear, noseGear: { ...M.noseGear, twin: true }, frames: M.frames, layouts: MTA_LAYOUTS,
   },
   mki: {
-    id: "mki", fleetType: "Heavy multirole fighter (synthetic)", title: "Heavy multirole fighter", subtitle: "Twin-engine heavy multirole fighter · 1:1 visual model", drawingNumber: "FA-HMF-001",
-    model: "models/heavy-fighter-visual.glb", poster: "models/fighter-poster.svg", dimensions: H.dimensions, basis: `Su-30-class proportions. ${BASIS}`,
+    ...AIRFRAME_INFO.mki,
+    dimensions: H.dimensions,
     groundY: HG, fuselage: H.fuselage, canopy: H.canopy, intake: side => H.nacelle(side).slice(0, 3), sponson: side => H.nacelle(side),
     wing: H.wing, controlChord: H.controlChord, fins: [H.fin(-1), H.fin(1)], tailplane: H.tailplane, canard: H.canard,
     engines: { kind: "jet", axisY: H.engine.axisY, faceZ: H.engine.faceZ, exitZ: H.engine.exitZ, radius: H.engine.radius, afterburner: true, xs: H.engine.xs },
@@ -190,8 +191,8 @@ export const AIRFRAMES: Record<AirframeId, AirframeSpec> = {
     frames: H.frames, layouts: MKI_LAYOUTS,
   },
   alh: {
-    id: "alh", fleetType: "Utility helicopter (synthetic)", title: "Utility helicopter", subtitle: "Twin-engine utility helicopter · 1:1 visual model", drawingNumber: "FA-UH-001",
-    model: "models/helicopter-visual.glb", poster: "models/fighter-poster.svg", dimensions: R.dimensions, basis: `ALH-class proportions (length with rotors turning, main-rotor diameter as span). ${BASIS}`,
+    ...AIRFRAME_INFO.alh,
+    dimensions: R.dimensions,
     groundY: RG, fuselage: R.fuselage, wing: [], controlChord: 0, fins: [R.fin], tailplane: R.tailplane,
     rotor: { y: R.rotor.y, z: R.rotor.z, radius: R.rotor.radius, blades: R.rotor.blades, tail: R.rotor.tail },
     engines: { kind: "turboshaft", units: R.engines },
@@ -200,16 +201,7 @@ export const AIRFRAMES: Record<AirframeId, AirframeSpec> = {
   },
 };
 
-/** Fleet mix used by the synthetic fleet records (mirrors backend `engine.py` FLEET_TYPES): a
- *  repeating cycle of ten tails — 4 light combat aircraft, 2 trainers, 2 transports, 1 heavy
- *  fighter and 1 helicopter. */
-export const FLEET_CYCLE: AirframeId[] = ["lca", "lca", "lca", "ajt", "mta", "mki", "lca", "alh", "ajt", "mta"];
-export function airframeForIndex(index: number): AirframeId { return FLEET_CYCLE[((index % FLEET_CYCLE.length) + FLEET_CYCLE.length) % FLEET_CYCLE.length]; }
-/** Airframe for an aircraft record: its recorded fleet type, else the deterministic fleet mix. */
+/** Resolve the full architecture only in an inspection view. */
 export function airframeOf(aircraft: { id?: unknown; type?: unknown } | undefined): AirframeSpec {
-  const type = typeof aircraft?.type === "string" ? aircraft.type : "";
-  const byType = Object.values(AIRFRAMES).find(item => item.fleetType === type);
-  if (byType) return byType;
-  const match = typeof aircraft?.id === "string" ? /(\d+)$/.exec(aircraft.id) : null;
-  return AIRFRAMES[match ? airframeForIndex(Number(match[1]) - 1) : "lca"];
+  return AIRFRAMES[airframeInfo(aircraft).id];
 }

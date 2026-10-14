@@ -54,3 +54,14 @@ Redirects preserve query context and incoming anchors. The duplicate card queue,
 Unavailable input/model/API states must not become healthy or zero-count substitutes. Unknown or infeasible proposals are not approvable; stale approvals require fresh calculation and review. Supply and record mutations retain actual quantities and versions. Read-only users can inspect evidence without gaining mutation permissions. An empty work board proves only that no work is recorded. Forecasts and scenario outputs are projections, not measured improvements or clearance.
 
 Browser verification checks routes, context, keyboard controls and state transitions. Participant comprehension and qualified operational/scientific acceptance remain unproven. General task editing and richer multi-component research-register selection remain separate improvements.
+
+## Aircraft onboarding and reproducible evidence — 2026-10-14
+
+The operational Aircraft register offers Add aircraft, an onboarding filter and a separate
+`/aircraft/registered/:registrationId` record page. Registered aircraft retain unknown availability
+until supported evidence/workflows are qualified. They are not inserted into synthetic forecasts
+or the engine research register. Source record import is preview → validate → save.
+
+Analysis → Availability study (`/analysis?view=study`) opens frozen synthetic planner/FIFO comparisons
+and supply sensitivity. `study_job` retains the saved result selection. This is optional evidence,
+not an approval or a mutation of fleet stock/work.

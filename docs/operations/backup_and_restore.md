@@ -41,3 +41,17 @@ FLEET_E2E_BASE_URL=http://localhost:18080 \
 `compose.verify.yaml` isolates DB/artifacts/broker and binds only loopback ports. Build local images with `docker compose build`; start `docker compose -f compose.verify.yaml up -d`. Its fresh migration and full browser journey were executed. Install the independently retained selected model and labelled sample using `scripts/install_customer_demo.py` in the API environment as described in local setup; the acquisition/training files are intentionally not committed.
 
 Run `python3 scripts/verify_local_runtime.py --output artifacts/runtime-check.json` **only against this verification stack**, after model installation/journey checks. It uses the actual broker, dispatcher, worker and PostgreSQL, with a test-only calculation delay for worker loss/cancellation; it never targets live fleet-maintenance containers. It exercises outages, confirmed-publish/mark interruption, duplicate delivery, killed worker/expired attempt, obsolete result, cancellation and SSE resume. Leave the user's ordinary stack running; `docker compose -f compose.verify.yaml stop` preserves verification volumes.
+
+## Current-workspace rehearsal — 14 October 2026
+
+The coordinated backup at `artifacts/backups/pre-video-2026-10-14-final` was restored into the new
+isolated `fleet-release-restored-20261014` project. All **48** table fingerprints matched before
+writers started, including onboarding, cases, work verification, saved plans/results and jobs.
+Registered model artifacts passed hash verification. Migration: `a668260bb390`. Observed restore
+runtime: **18.13 seconds**; backup age at observation: **62.95 seconds**. These are local observations,
+not agreed RTO/RPO. See `artifacts/pre-video-2026-10-14/restore.json` and the current
+[delivery report](../team/pre_video_delivery.md). Secrets and local host inference configuration
+remain separate; restored general-model connectivity is not claimed.
+
+All five current guided-trial browser cases passed on this restored installation. The rehearsal
+containers were then stopped with volumes preserved; the ordinary local stack remains running.

@@ -25,9 +25,13 @@ from fleet_maintenance.science.scheduling.solver import solve
 from fleet_maintenance.services.resources import resource_inputs, resource_records
 
 SOLVER_CONFIGURATION = {
-    "version": "resource-cpsat-v2",
+    "version": "grounding-cpsat-v3",
     "time_limit_seconds": 5.0,
-    "objective": "minimize last completion in 8-hour slots; all constraints remain hard",
+    "objective": (
+        "minimize union aircraft grounding slots, then makespan; "
+        "score = grounding slots * (horizon + 1) + makespan; "
+        "all constraints remain hard"
+    ),
     "num_search_workers": 1,
     "random_seed": 26249,
 }

@@ -215,7 +215,7 @@ Verify studio rendering and side/top/three-quarter controls; forward, reverse, s
 
 ## Interactive blueprint acceptance
 
-Verify the blueprint follows the aircraft stage before the detail tabs, contains only the selected snapshot's component identities, and matches state/advisory findings without turning missing mappings or maintenance into invented red failures. Check current vs completed advisory handling and all twenty catalogue model mappings. Clicking a drawn assembly or keyboard register entry must open the same component's illustrative structure and API-backed evidence; assembled/exploded/wireframe, camera reset, Escape/focus restoration and evidence routing must work. Verify aircraft/replay changes clear selection, unknown types remain inspectable without a fabricated model, no-WebGL retains records, and desktop/mobile layouts and modal scroll remain contained. Retain actual captures and executed checks; geometry integrity is not engineering accuracy or fault diagnosis.
+Verify the blueprint opens from the selected aircraft's Blueprint tab, contains only the selected snapshot's component identities, and matches state/advisory findings without turning missing mappings or maintenance into invented red failures. Check current vs completed advisory handling and all twenty catalogue model mappings. Clicking a drawn assembly or keyboard register entry must open the same component's illustrative structure and API-backed evidence; assembled/exploded/wireframe, camera reset, Escape/focus restoration and evidence routing must work. Verify aircraft/replay changes clear selection, unknown types remain inspectable without a fabricated model, no-WebGL retains records, and desktop/mobile layouts and modal scroll remain contained. Retain actual captures and executed checks; geometry integrity is not engineering accuracy or fault diagnosis.
 
 ## Release-v2 evidence status — 2026-10-05
 
@@ -223,8 +223,73 @@ Resource-aware planning, episode behavior, actual-plan replay, PostgreSQL exclus
 
 Verify the aircraft showroom integrates below the floating navbar without a replay row or duplicate System map. Inspect top/front/side 2D projections and all 3D camera presets, cockpit visibility, whole-assembly red material coverage and direct selection without locator circles. Component records/evidence must remain reachable.
 
-Verify all four aircraft inspection tabs share the same framed workspace and snapshot identity, preserve the mounted showroom, contain their mobile width, and retain evidence links. Component system rows must expand from the keyboard. Explore blueprint must restore its tab from History or Advisories and reveal the workspace navigation. Empty histories/tasks/work orders should have explicit recorded-empty states.
+Verify Overview, Blueprint, Components, Maintenance and History share one workspace and snapshot identity, contain their mobile width and retain evidence links. The showroom mounts in Overview; Blueprint opens directly without a duplicate showroom. Component system rows must expand from the keyboard. Explore blueprint must restore its tab from History or Advisories and reveal the workspace navigation. Empty histories/tasks/work orders should have explicit recorded-empty states.
 
 ## Connected workspace consolidation — 11 October 2026
 
 Fleet operations use one findings queue, one maintenance workspace (work board, bays/timeline, archive), and one supply workspace (inventory/demand, requests). Aircraft/component handoffs retain context and scoped record views; aggregate views identify fleet-wide scope. Proposed findings require confirmation before the scheduling action is offered. Work lifecycle controls live on the readiness-aware board. Old duplicate URLs preserve context through redirects. Desktop/mobile/search use one navigation inventory. Engine research keeps its separate dataset, exact planner approvals and trials, explicitly independent of fleet replay. See [user flow](user_flow.md) and [site audit](../design/site_flow_audit.md).
+## Copilot delivery acceptance — 2026-10-12
+
+- Direct fleet/stock, recorded-availability, forecast, sensor-history and open-maintenance answers preserve the selected cutoff, units and reservation distinctions without requiring model availability. Ambiguous, unsupported causal and future-date questions are not classified as exact direct questions.
+- Streaming uses the same authenticated session, CSRF and role context as JSON requests. Interrupted or malformed streams cannot become a completed answer; final checked citations/warnings replace provisional text.
+- Hosted transcripts pair tool responses with their call IDs, and credentials remain server-side. Missing credentials and free-quota failures stay explicit. Hosted performance requires a live configured account measurement; a mocked adapter check is not that measurement.
+- The aircraft floor continues beneath the stats without a separate strip background or border; desktop/mobile controls and record values remain usable.
+
+## Aircraft presentation consistency — 2026-10-13
+
+- Fit each selected airframe's actual mesh bounds into the area between its heading and statistics, including after a change of model family or camera view. Keep the full transparent shadow canvas and continuous floor beneath the unboxed statistics.
+- Position the contact-shadow ground below the selected model's lowest geometry. Reserve mobile space between the blueprint action and floating copilot.
+- Use the active workspace theme in aircraft component and blueprint inspection portals. User-message text inherits the bubble's foreground colour.
+- Identify the five authored visual models as illustrative; do not imply engineering-validated replicas. Preserve the existing typeface, navigation inventory and record semantics.
+
+## Page-loading behaviour — 2026-10-13
+
+- The aircraft register must not download the showroom, blueprint, WebGL renderer or orbit controls. Aircraft identities come from lightweight shared metadata.
+- Below-the-fold blueprint code loads when inspection enters the viewport, including after Explore blueprint. Reserve the showroom footprint during its loading fallback so it does not trigger inspection prematurely.
+- Measure heading/statistics insets when fitting changes, rather than reading DOM layout inside each camera animation frame. Preserve model framing, component links and mobile controls.
+- Compress eligible static and API responses at the local proxy while retaining security headers. Keep unhashed assets revalidated and do not cache private API records publicly.
+
+## Model-first aircraft overview revision — 2026-10-13
+
+- Register navigation remains free of 3D/blueprint code until an aircraft is selected. Selected Overview shows its illustrative live model and matching snapshot statistics.
+- Explore aircraft navigates to `tab=blueprint` for the same aircraft, preserving query context; Blueprint loads on demand and no duplicate showroom remains above it.
+- Identity and section navigation stay below the sticky navbar at desktop/mobile widths. Camera controls, semantic status labels, component evidence and maintenance cases remain accessible.
+- Legacy visual/twin links resolve to the new sections. Models remain illustrative, not verified installation or diagnostic maps.
+
+## Workspace presentation and control regression — 2026-10-13
+
+- Inspect all primary routes, local tabs, utility/settings pages and representative case, work, request and engine/component details at desktop and phone widths in light/dark themes. Record actual route coverage, missing data, page exceptions and overflow.
+- Verify theme/header/settings synchronization, persistence after reload, cross-tab updates, retained unsaved edits and readable action contrast. Utility settings remain reachable independently of capacity-edit permissions.
+- Verify menu Escape/focus restoration, phone copilot access without covering forms, and protected/disabled controls with meaningful prerequisites.
+- Verify a mandatory task cannot offer predictive review controls; case actions reveal their next section; research selection retains its dataset/aircraft context; a failed model preserves matching preview and blueprint navigation.
+- UI/browser checks do not substitute for server authorization, stock/resource competition, scientific/model acceptance, intended-user acceptance or deployment/backup verification.
+
+## Restrained aircraft showroom — 2026-10-14
+
+Verify the model and shadow have a continuous background; camera and browsing controls remain outside the fitted model. Successful navigation waits for validated next-record data before a short opacity transition. Failed requests keep the current aircraft visible and usable. Reduced motion skips model fades and camera interpolation. Check all five families at desktop/mobile widths, camera reset, component evidence and the Explore aircraft handoff. Fixture-backed UI checks do not establish live backend integration.
+
+## Onboarding, study and copilot refinement — 2026-10-14
+
+Verify unique/permission-checked registration, component installation, historical membership,
+read-only import preview, atomic invalid-batch rejection, idempotent imports and retained records
+through reload. New/unsupported records must remain unassessed; mandatory requirements remain
+visible. Register/dashboard/research counts must identify their distinct cohorts.
+
+Verify the grounding objective against independent simulation, overlap union, qualifications,
+parts and deadlines. The frozen study must retain exact inputs, ties/infeasibility, source hash,
+metrics, assumptions and saved worker result. Do not label supply improvements as model accuracy.
+
+Common site/record answers must bypass inference, ask for missing selection and preserve cutoff,
+role and sources. General explanations with unmatched numerical/citation evidence are withheld;
+this heuristic does not prove all remaining prose correct. Verify adversarial questions, private
+configuration, malformed streams and the running-machine response measurements.
+
+## Live replay / connected visual evidence
+
+Verify concurrent duplicate delivery stores a cycle once; gaps, timezone-naive/future/nonfinite
+frames never reach assessment inputs. Paused/historical/denied-role writes must fail. At a 30-cycle
+boundary verify exact accepted-prefix import, correction ancestry, model job and input-bound result;
+no future source values or prior snapshot score is substituted. Check stale observation/receipt,
+reopen and completed-state behavior. Model and 2D map retain a review concern during stale transport,
+keep unsupported parts unassessed and link to the identical component evidence. Verify real worker
+results, phone overflow and missing-model/source states. Physical/operational validation is external.

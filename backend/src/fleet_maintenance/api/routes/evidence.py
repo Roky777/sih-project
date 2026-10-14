@@ -125,3 +125,22 @@ def submit_assessment(
     from fleet_maintenance.api.routes.jobs import serialize
 
     return serialize(job)
+
+
+@router.post("/evidence/availability-study")
+def availability_study(
+    session: Session = Depends(get_session), actor: Actor = Depends(current_actor)
+) -> dict[str, object]:
+    from fleet_maintenance.api.dependencies import require_planner
+    from fleet_maintenance.api.routes.jobs import serialize
+    from fleet_maintenance.verification.availability_study import VERSION, definition_hash
+
+    require_planner(actor)
+    return serialize(
+        submit_job(
+            session,
+            "availability_study",
+            {"version": VERSION, "definition_sha256": definition_hash()},
+            owner=actor.id,
+        )
+    )

@@ -372,3 +372,81 @@ Operations, aircraft and research routes use one consistent frosted navbar and m
 ## Connected workspace consolidation — 11 October 2026
 
 Fleet operations use one findings queue, one maintenance workspace (work board, bays/timeline, archive), and one supply workspace (inventory/demand, requests). Aircraft/component handoffs retain context and scoped record views; aggregate views identify fleet-wide scope. Proposed findings require confirmation before the scheduling action is offered. Work lifecycle controls live on the readiness-aware board. Old duplicate URLs preserve context through redirects. Desktop/mobile/search use one navigation inventory. Engine research keeps its separate dataset, exact planner approvals and trials, explicitly independent of fleet replay. See [user flow](user_flow.md) and [site audit](../design/site_flow_audit.md).
+
+## Copilot response delivery refinement — 2026-10-12
+
+Exact whole-question matches for fleet count/current availability, recorded availability changes, the 30-day forecast, selected sensor history, open aircraft maintenance and explicit part stock bypass language inference while retaining selected-date service data, reserved/available stock distinctions and evidence artifacts. Ambiguous, unsupported causal, future-date and what-if questions use the existing validated tool loop. Longer answers stream provisional text, then replace it with the final checked reply, citations and warnings. Private Ollama inference is the default; enabled local-only mode rejects hosted providers, cloud model names and public endpoints. Hosted inference requires deliberately disabling local-only mode and configuring a private key. There is no guaranteed hosted latency or unlimited free usage.
+
+### AeroCare product identity and connected workspace presentation
+
+AeroCare is the visible product name. The supplied logo appears in navigation, login and report headers; browser metadata, help and the maintenance copilot use the same identity. Existing record IDs, API paths, database names and configuration keys remain stable. History downloads use an AeroCare filename prefix while preserving their import schema and provenance. The aircraft register remains lightweight. Selecting an operational aircraft opens its Overview with the existing interactive illustrative airframe, camera controls and snapshot-backed statistics. Explore aircraft switches directly to the Blueprint URL tab; the blueprint does not download on Overview. Overview, Blueprint, Components, Maintenance and History share one aircraft identity and context. Old visual URLs resolve to Blueprint; old twin URLs resolve to Overview. Model failure preserves textual records and navigation. Status badges and health/attention metrics use labelled semantic colours, without inferring a physical fault from the illustrative geometry. The overview workflow toolbar keeps role context secondary to review, work and supply shortcuts.
+
+### Complete workspace UI and control audit — 2026-10-13
+
+Overview places system health alongside priority cases in a balanced lower row. The health matrix fills its panel, retains every aircraft through bounded scrolling, exposes keyboard cell descriptions and links to the selected aircraft/system. Colour labels distinguish restrictions, review, available resources, analysis and maintenance.
+
+Maintenance separates the work queue, planning/schedule, case register and history into URL-addressable views rather than placing a complete case table ahead of every work control. Case actions reveal the applicable review/planning/execution section. Mandatory tasks do not offer predictive dismiss/monitor forms. Proposal controls require the current planning step; the server remains authoritative on evidence, permissions and commitments.
+
+Header and Settings share a persistent light/dark preference, including cross-tab storage updates and a session fallback when storage is unavailable. Theme changes update chart palettes without remounting or discarding unsaved forms. Appearance is available to all signed-in roles; capacity editing retains its existing authorization. Account separates identity and role responsibilities; Help provides labelled guidance and sandbox links. Escape closes account/notification menus and restores focus. Sign-out failures remain visible instead of becoming an unhandled promise. The mobile copilot entry is in the header rather than covering page controls.
+
+Research surfaces retain one primary heading and their own dataset context. Research inventory does not show misleading operational tabs, and research views do not display operational fleet workflow counts. Spatial aircraft/component selection preserves the research dataset and updates the selected aircraft route. Illustrative model failure retains a matching-family preview, records and a working blueprint action. This presentation work does not establish aircraft diagnostic qualification, scientific acceptance or public-deployment readiness.
+
+### Navigation-state follow-up — 2026-10-13
+
+Aircraft register filters, search, view and sorting use URL state so reloads, shared links and returning from a detail page retain the selection. Invalid findings page numbers resolve to an available page; an out-of-range case queue offers a direct first-page recovery. Workspace search retains page shortcuts when record search fails, supports retry and scrolls keyboard selection into view. Empty results cannot move the selection below zero. Shared section tabs use one keyboard focus target with Left/Right, Home and End navigation.
+
+## Aircraft-detail composition — 13 October 2026
+
+Operational aircraft detail uses Summary, Components, Maintenance, History and Visual
+inspection URL-backed tabs. Summary orders compact identity, local tabs, recorded
+operational status, a contained airframe viewer, four statistics and aircraft-scoped
+findings/maintenance summaries. Blueprint and assembly tools belong to Visual inspection;
+its Aircraft model / Blueprint & assemblies selector mounts only the chosen viewer.
+Legacy `tab=blueprint` remains readable as Visual inspection.
+
+Current agency work is read from the authoritative work-order service, including recorded
+closures, rather than inferred from predictive findings. An aggregate health score or zero
+open findings does not clear a restriction. Missing ownership, blockers and return dates
+remain explicit. An agency promise is labelled separately from a confirmed return.
+Historical replay uses snapshot work records, excludes current cases/proposals/task deadlines,
+and does not retrieve them as historical evidence. Navigation prefetches the matching detail
+key and changes the record together; stale aircraft-specific query and pinned AI context
+are cleared. Previous/next controls stop at register boundaries. Existing model assets,
+geometry, evidence drawers and permissions are preserved.
+
+### Aircraft-local Maintenance tab — 13 October 2026
+
+The selected aircraft's tab now uses a single scoped worklist instead of stacking the
+fleet case table, an overlapping work card and repeated long advisory cards. Active work,
+findings/engineering decisions and mandatory requirements have separate responsibilities.
+A predictive case and its matching finding share one entry and action; cases explicitly
+linked to visible work are not repeated in the review section. Mandatory cases do not
+suppress an independent predictive finding for the same component. Long assessment text
+is expandable. Upcoming task deadlines are not presented as work already in progress.
+Case and work actions retain their existing routes and server permissions.
+
+## Aircraft showroom refinement — 2026-10-14
+
+The aircraft model uses a continuous, borderless surface, a large fitted airframe, compact camera presets and an external browsing/action footer. The local animated grid is removed from this viewer. Model-only opacity changes use a 100 ms departure and 220 ms arrival after successful next-record retrieval; no taxi/rotation transition remains. Identity, records and statistics change together. Reduced-motion browsing skips these fades. Camera presets interpolate over 360 ms, or switch immediately under reduced motion. Component evidence, blueprint handoff, family-specific fallback and browsing boundaries remain available.
+
+## Aircraft onboarding and availability evidence — 2026-10-14
+
+Aircraft registration and installed-component/source-record onboarding follow the [registration
+contract](../engineering/aircraft_registration.md). The dashboard reports unassessed user-entered
+aircraft separately, without invented availability/health or mixed research data. JSON batch preview,
+atomic commit, duplicate protection, cumulative-usage checks and retained mandatory requirements are
+implemented; universal sensor/model coverage is not implied.
+
+Analysis adds a saved, worker-backed Availability study with fair within-case FIFO comparisons,
+supply sensitivity, equal outcomes and impossible deadlines. The planner objective now minimises
+union aircraft grounding slots before makespan; versions and limits are in the [study protocol](../research/availability_study.md).
+
+## Live replay and connected visual engine — 14 October 2026
+
+`/telemetry` provides a configured-demo-only FD001 replay transport with persisted source identity,
+ordered frame validation, duplicate/rejection audit, pause/resume and receipt/observation freshness.
+Bounded accepted prefixes feed the shared immutable-import and assessment job pipeline at 30-cycle
+boundaries. A conceptual 3D engine envelope and top-down schematic show the same component's
+snapshot-bound review concern; unmapped parts remain unassessed. Evidence links lead to the existing
+component/review journey. See [transport contract](../engineering/live_telemetry_demo.md). This adds
+a live-ingestion demonstration without changing the real-aircraft/physical-twin scope gates.

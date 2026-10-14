@@ -19,7 +19,7 @@ type Result = { dates: string[]; baseline: Summary; scenario: Summary; delta: { 
 type Summary = { curve: { p10: number[]; p50: number[]; p90: number[]; mean: number[] }; availability_mean: number; availability_p10: number; availability_p90: number; aircraft_days_lost: number; by_cause: Record<string, number>; expected_failures: number };
 const result = (run: ScenarioRun) => run.results as unknown as Result;
 
-export function SimulatorPage() {
+export function SimulatorPage({ embedded = false }: { embedded?: boolean }) {
   const scenarios = useScenarios();
   const [query] = useSearchParams();
   // ?scenario=<id> (e.g. "Open in Simulator" from the copilot) selects that saved run.
@@ -27,7 +27,7 @@ export function SimulatorPage() {
   useEffect(() => { if (scenarios.data && compare.length === 0 && scenarios.data.length) setCompare([scenarios.data[0].id]); }, [scenarios.data, compare.length]);
   const chosen = (scenarios.data ?? []).filter(run => compare.includes(run.id));
   return <div className="o-screen">
-    <div className="o-screen-head"><h1>Scenario Simulator</h1><span>Monte Carlo discrete-event simulation · shared random numbers · synthetic data</span><HeadingReplay/></div>
+    {!embedded && <div className="o-screen-head"><h1>Scenario Simulator</h1><span>Monte Carlo discrete-event simulation · shared random numbers · synthetic data</span><HeadingReplay/></div>}
     <div className="o-grid-12 o-sim-grid">
       <div className="span-3"><Builder onRan={run => setCompare(list => [run.id, ...list.filter(id => id !== run.id)].slice(0, 3))}/></div>
       <div className="span-9 o-stack">

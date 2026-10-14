@@ -6,14 +6,14 @@ import { Deliveries } from "./Deliveries";
 import { AsyncState } from "../../shared/ui/AsyncState";
 import { Icon } from "../../shared/ui/Icon";
 import { Notice, PageHeader, RefreshButton, StatCard } from "../../shared/ui/WorkspaceUI";
-export function InventoryPage() {
+export function InventoryPage({ embedded = false }: { embedded?: boolean } = {}) {
   const [search, setSearch] = useState("");
   const query = useQuery({ queryKey:["inventory"], queryFn: () => api<InventoryPart[]>("/inventory", undefined, arrayOf(isInventoryPart)) });
   const parts = query.data;
   const visible = parts?.filter((part) => `${part.id} ${part.name}`.toLowerCase().includes(search.trim().toLowerCase()));
   const available = (part: InventoryPart) => part.on_hand - part.reserved;
   const emptyStock = parts?.filter((part) => available(part) <= 0).length;
-  return <section><PageHeader eyebrow="PARTS & LOGISTICS" title="Parts inventory" description="Inspect stock and committed reservations before generating or approving maintenance work." actions={<><RefreshButton fetching={query.isFetching} onClick={() => void query.refetch()}/><Link className="button" to="/planning"><Icon name="calendar" size={17}/>Open planning</Link></>}/>
+  return <section><PageHeader level={embedded ? "section" : "page"} eyebrow="PARTS & LOGISTICS" title="Parts inventory" description="Inspect stock and committed reservations before generating or approving maintenance work." actions={<><RefreshButton fetching={query.isFetching} onClick={() => void query.refetch()}/><Link className="button" to="/planning"><Icon name="calendar" size={17}/>Open planning</Link></>}/>
     <div className="metric-grid"><StatCard label="Part types" value={parts?.length ?? "—"} detail="Registered inventory items" icon="box"/><StatCard label="Available units" value={parts?.reduce((sum,part) => sum + available(part),0) ?? "—"} detail="On hand minus active reservations" icon="check" tone="success"/><StatCard label="Reserved units" value={parts?.reduce((sum,part) => sum + part.reserved,0) ?? "—"} detail="Committed to approved plans" icon="calendar" tone="blue"/><StatCard label="Items with no free stock" value={emptyStock ?? "—"} detail="Check task requirements and arrivals" icon="warning" tone={emptyStock ? "warning" : "neutral"}/></div>
     {emptyStock !== undefined && emptyStock > 0 && <Notice title="Some inventory is fully committed" tone="warning">{emptyStock} item{emptyStock === 1 ? " has" : "s have"} no available stock. A configured lead time is an assumption; it does not confirm an incoming delivery.</Notice>}
     <Deliveries parts={parts ?? []}/>

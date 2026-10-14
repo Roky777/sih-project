@@ -6,7 +6,7 @@ import { PageHeader } from "../../shared/ui/WorkspaceUI";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
 import { ModelEvidence } from "./ModelEvidence";
 
-export function AIPage() {
+export function AIPage({ embedded = false }: { embedded?: boolean } = {}) {
   const [params, setParams] = useSearchParams();
   const fleet = useQuery({ queryKey: ["fleet"], queryFn: () => api("/fleet", undefined, arrayOf(isFleetItem)) });
   const components = fleet.data?.flatMap(aircraft => aircraft.component_ids.map(id => ({ id, aircraft }))) ?? [];
@@ -19,7 +19,7 @@ export function AIPage() {
   const aligned = detail.data?.id === selected?.id && detail.data?.aircraft_id === selected?.aircraft.id;
 
   return <section className="ai-page">
-    <PageHeader eyebrow="AI IN THIS WORKSPACE" title="Turn engine data into maintenance decisions" description="A deteriorating engine needs attention, but a health concern alone does not tell a team when to act or whether parts and crew are available."/>
+    <PageHeader level={embedded ? "section" : "page"} eyebrow="AI IN THIS WORKSPACE" title="Turn engine data into maintenance decisions" description="A deteriorating engine needs attention, but a health concern alone does not tell a team when to act or whether parts and crew are available."/>
     <div className="ai-capabilities">
       <article><span className="eyebrow">01 · MACHINE LEARNING</span><h2>Estimate remaining engine life</h2><p>The trained predictor uses supported sensor history to estimate remaining useful life in operating cycles, with a calibrated prediction range. This helps reviewers judge how much time may remain and how uncertain the estimate is.</p><p>Current support: public simulated NASA C-MAPSS FD001 engine histories. A supported, registered model and eligible history are required; insufficient evidence can withhold the estimate.</p></article>
       <article><span className="eyebrow">02 · EVIDENCE & ALERT RULES</span><h2>Explain what needs review</h2><p>Sensor history, model-input influences and data-quality findings make the estimate inspectable. Versioned alert rules use assessment history to flag concerns and reduce repeated changes near a threshold.</p><Link className="text-link" to="/alerts">Review recorded alerts</Link></article>

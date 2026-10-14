@@ -1,0 +1,22 @@
+{
+  "schema_version": "aerocare-pilot-acceptance-v1",
+  "status": "proposed_not_operator_approved",
+  "gates": [
+    {"id":"P01","requirement":"Bounded use case, owners and authorised data/environment access","owner_reference":null,"criterion_reference":null,"evidence_reference":null,"status":"pending"},
+    {"id":"P02","requirement":"Reconciled identities, units, acquisition/receipt time and installation effectivity","owner_reference":null,"criterion_reference":null,"evidence_reference":null,"status":"pending"},
+    {"id":"P03","requirement":"Connector duplicate/conflict/quality/outage/recovery cases under agreed load","owner_reference":null,"criterion_reference":null,"evidence_reference":null,"status":"pending"},
+    {"id":"P04","requirement":"Independent prediction/uncertainty/alert evaluation within declared model support","owner_reference":null,"criterion_reference":null,"evidence_reference":null,"status":"pending"},
+    {"id":"P05","requirement":"Verified geometry/configuration and effective component mapping, or accepted illustrative restriction","owner_reference":null,"criterion_reference":null,"evidence_reference":null,"status":"pending"},
+    {"id":"P06","requirement":"Operator task policy, qualifications, calendars, parts, deadlines and approval authority","owner_reference":null,"criterion_reference":null,"evidence_reference":null,"status":"pending"},
+    {"id":"P07","requirement":"Target-environment security, identity scope, secrets, monitoring and restore acceptance","owner_reference":null,"criterion_reference":null,"evidence_reference":null,"status":"pending"},
+    {"id":"P08","requirement":"Representative users correctly complete workflows and interpret uncertainty/failure states","owner_reference":null,"criterion_reference":null,"evidence_reference":null,"status":"pending"},
+    {"id":"P09","requirement":"Frozen shadow/prospective evaluation, denominator, baseline, sample support and stopping rules","owner_reference":null,"criterion_reference":null,"evidence_reference":null,"status":"pending"},
+    {"id":"P10","requirement":"Observed outcomes, adverse cases, confounders and independent accept/restrict/reject decision","owner_reference":null,"criterion_reference":null,"evidence_reference":null,"status":"pending"}
+  ],
+  "instructions": [
+    "Local demonstration checks are references, not automatic passes for these operator gates.",
+    "Record failed and inconclusive results as well as successful results.",
+    "Mark a gate accepted only with its agreed criterion, evidence, authorised owner and decision reference.",
+    "A physical-model claim additionally requires the separate evaluated physical-twin gate in qualification.md."
+  ]
+}

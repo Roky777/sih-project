@@ -65,7 +65,8 @@ class FleetWorkOrder(Base):
     __tablename__ = "fleet_work_orders"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('planned', 'in_progress', 'completed', 'cancelled')",
+            "status IN ('planned', 'approved', 'in_progress', "
+            "'awaiting_verification', 'completed', 'cancelled')",
             name="ck_fleet_work_order_status",
         ),
         CheckConstraint("duration_days > 0", name="ck_fleet_work_order_duration"),
@@ -80,7 +81,7 @@ class FleetWorkOrder(Base):
     title: Mapped[str] = mapped_column(String(160))
     planned_start: Mapped[date] = mapped_column(Date)
     duration_days: Mapped[float] = mapped_column(Float)
-    status: Mapped[str] = mapped_column(String(16), default="planned")
+    status: Mapped[str] = mapped_column(String(32), default="planned")
     priority: Mapped[str | None] = mapped_column(String(4))
     impact: Mapped[dict[str, object]] = mapped_column(JSON, default=dict)
     notes: Mapped[str] = mapped_column(Text, default="")
@@ -152,12 +153,18 @@ class FleetPartRequest(Base):
         ),
         CheckConstraint("status <> 'ordered' OR eta IS NOT NULL", name="ck_fleet_part_eta"),
         CheckConstraint("quantity > 0", name="ck_fleet_part_quantity"),
+        CheckConstraint(
+            "received_quantity >= 0 AND received_quantity <= quantity",
+            name="ck_fleet_received_quantity",
+        ),
     )
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    work_order_id: Mapped[str] = mapped_column(String(64), ForeignKey("fleet_work_orders.id"),
-                                               index=True)
+    work_order_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("fleet_work_orders.id"), index=True
+    )
     part: Mapped[str] = mapped_column(String(16), index=True)
     quantity: Mapped[int] = mapped_column(default=1)
+    received_quantity: Mapped[int] = mapped_column(default=0, server_default="0")
     needed_by: Mapped[date] = mapped_column(Date)
     status: Mapped[str] = mapped_column(String(16), default="open")
     eta: Mapped[date | None] = mapped_column(Date)

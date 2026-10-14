@@ -1,8 +1,8 @@
 import { Suspense, lazy } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
-import { HeadingReplay } from "./ReplaySlider";
 import { FlowStrip } from "./FlowStrip";
+import { CaseQueue } from "./CaseWorkspace";
 import { Segmented } from "./ui";
 import { useAsOf } from "./AsOf";
 
@@ -10,6 +10,9 @@ const WorkBoard = lazy(() => import("./WorkflowPages").then(module => ({ default
 const Requests = lazy(() => import("./WorkflowPages").then(module => ({ default: module.PartsPage })));
 const Bays = lazy(() => import("./MaintenancePage").then(module => ({ default: module.MaintenancePage })));
 const WorkRegister = lazy(() => import("./MaintenancePage").then(module => ({ default: module.WorkRegister })));
+const ResearchPlanning = lazy(() => import("../planning/PlanningPage").then(m => ({ default: m.PlanningPage })));
+const ResearchInventory = lazy(() => import("../inventory/InventoryPage").then(m => ({ default: m.InventoryPage })));
+const Deliveries = lazy(() => import("./DeliveryWorkspace").then(m => ({ default: m.DeliveryWorkspace })));
 const Inventory = lazy(() => import("./SparesPage").then(module => ({ default: module.SparesPage })));
 
 export function WorkspaceScope({ fleetWide = false }: { fleetWide?: boolean }) {
@@ -21,34 +24,37 @@ export function WorkspaceScope({ fleetWide = false }: { fleetWide?: boolean }) {
 
 export function MaintenanceWorkspace() {
   const [params, setParams] = useSearchParams();
-  const view = params.get("view") === "bays" ? "bays" : params.get("view") === "register" ? "register" : "work";
+  const research = params.get("dataset") === "research";
+  const view = params.get("view") === "bays" ? "bays" : params.get("view") === "register" ? "register" : params.get("view") === "cases" || params.has("caseState") ? "cases" : "work";
   return <div className="o-screen operations-workspace">
-    <div className="o-screen-head"><h1>Maintenance</h1><span>Confirmed findings → schedule → secure parts → record work</span><HeadingReplay/></div>
-    <FlowStrip compact/>
-    <Segmented label="Maintenance views" value={view} onChange={value => setParams(previous => { const next = new URLSearchParams(previous); next.set("view", value); return next; })} options={[["work", "Work board"], ["bays", "Bays & timeline"], ["register", "Work register"]] as const}/>
+    <div className="o-screen-head"><h1>Maintenance</h1><span>Confirmed findings → schedule → secure parts → record work</span></div>
+    {!research && <FlowStrip compact/>}
+    <Segmented label="Maintenance views" value={view} onChange={value => setParams(previous => { const next = new URLSearchParams(previous); next.set("view", value); next.delete("caseState"); next.delete("casePage"); return next; })} options={research ? [["work", "Case queue"], ["bays", "Planning & schedule"]] as const : [["work", "Work queue"], ["bays", "Planning & schedule"], ["cases", "Case register"], ["register", "History"]] as const}/>
     <WorkspaceScope fleetWide={view !== "work"}/>
     <Suspense fallback={<p role="status">Opening maintenance records…</p>}>
-      {view === "work" ? <WorkBoard/> : view === "bays" ? <Bays/> : <WorkRegister/>}
+      {research ? <><p className="dataset-context">Engine research · separate tasks, stock and qualified resources</p>{view === "work" ? <CaseQueue dataset="engine-research"/> : <ResearchPlanning embedded/>}</> : <>{view === "work" ? <WorkBoard/> : view === "bays" ? <Bays/> : view === "cases" ? <CaseQueue/> : <WorkRegister/>}</>}
     </Suspense>
   </div>;
 }
 
 export function SupplyWorkspace() {
   const [params, setParams] = useSearchParams();
-  const requests = params.get("view") === "requests";
+  const research = params.get("dataset") === "research";
+  const view = (params.get("view") === "inventory" || (!params.has("view") && params.has("part"))) ? "inventory" : params.get("view") === "deliveries" ? "deliveries" : "requests";
+  const requests = view === "requests";
   return <div className="o-screen operations-workspace">
-    <div className="o-screen-head"><h1>Spares & supply</h1><span>Forecast shortages · secure parts for scheduled work</span><HeadingReplay/></div>
-    <FlowStrip compact/>
-    <Segmented label="Supply views" value={requests ? "requests" : "inventory"} onChange={value => setParams(previous => { const next = new URLSearchParams(previous); next.set("view", value); next.delete("part"); return next; })} options={[["inventory", "Inventory & demand"], ["requests", "Parts requests"]] as const}/>
+    <div className="o-screen-head"><h1>Spares & supply</h1><span>Forecast shortages · secure parts for scheduled work</span></div>
+    {!research && <FlowStrip compact/>}
+    {!research && <Segmented label="Supply views" value={view} onChange={value => setParams(previous => { const next = new URLSearchParams(previous); next.set("view", value); next.delete("part"); return next; })} options={[["requests", "Requests"], ["inventory", "Inventory"], ["deliveries", "Deliveries"]] as const}/>}
     <WorkspaceScope fleetWide={!requests}/>
-    <Suspense fallback={<p role="status">Opening supply records…</p>}>{requests ? <Requests/> : <Inventory/>}</Suspense>
+    <Suspense fallback={<p role="status">Opening supply records…</p>}>{research ? <><p className="dataset-context">Engine research stock · independent of operational inventory</p><ResearchInventory embedded/></> : view === "deliveries" ? <Deliveries/> : requests ? <Requests/> : <Inventory/>}</Suspense>
   </div>;
 }
 
 export function ResearchWorkspace() {
   const { asOf } = useAsOf();
   return <div className="o-screen research-home">
-    <div className="o-screen-head"><h1>Engine research workspace</h1><span>C-MAPSS engine evidence · separate synthetic logistics records</span></div>
+    <div className="o-screen-head"><h1>Technical sandbox</h1><span>C-MAPSS engine evidence · separate synthetic logistics records</span></div>
     <p className="workspace-description">Review an engine’s recorded history and model uncertainty, calculate a resource-constrained proposal, then review its approval and work records. These tools use their own engine dataset; they do not update the 40-aircraft fleet’s findings or bay schedule.</p>
     {asOf && <p className="o-note">Fleet replay is selected. Engine research uses its own saved input cutoffs.</p>}
     <div className="workspace-research-steps">

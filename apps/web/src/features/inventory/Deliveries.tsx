@@ -1,14 +1,14 @@
+import { useActorRole } from "../ops/roles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type FormEvent } from "react";
 import { api, arrayOf, isPartArrival, type InventoryPart, type PartArrival } from "../../shared/api/client";
 import { AsyncState } from "../../shared/ui/AsyncState";
 import { Notice } from "../../shared/ui/WorkspaceUI";
-import { useSession } from "../access/SessionGate";
 
 export function Deliveries({ parts }: { parts: InventoryPart[] }) {
   const cache = useQueryClient();
-  const session = useSession();
-  const canEdit = session?.role === "logistics" || session?.role === "supervisor";
+  const actorRole = useActorRole();
+  const canEdit = actorRole === "logistics" || actorRole === "supervisor";
   const command = useRef<{ key: string; id: string } | null>(null);
   const [partId, setPartId] = useState("");
   const [quantity, setQuantity] = useState(1);
