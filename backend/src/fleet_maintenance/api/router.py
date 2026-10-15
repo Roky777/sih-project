@@ -19,6 +19,7 @@ from fleet_maintenance.api.routes import (
     jobs,
     plans,
     registration,
+    research,
     resources,
     scenarios,
     telemetry,
@@ -48,6 +49,7 @@ for route in (
     work.router,
     workspace.router,
     evidence.router,
+    research.router,
     fleet_health.router,
     assistant.router,
 ):

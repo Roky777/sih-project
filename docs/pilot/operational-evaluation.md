@@ -3,6 +3,11 @@
 Status: prospective evaluation design to agree with an operator. No real-fleet effect, pilot
 permission, minimum sample size or guaranteed improvement is established by this document.
 
+The [offline recorded-state evaluator](availability-export.md) implements eligible/known/unknown
+exposure, interval unions, cutoff censoring and missing-state bounds for a canonical export.
+Synthetic reference checks are engineering evidence only. No operational export or causal study
+has been evaluated; the prospective design remains pending operator agreement.
+
 ## Phase A — shadow evaluation
 
 Use a bounded approved population. Ingest representative records without controlling aircraft or

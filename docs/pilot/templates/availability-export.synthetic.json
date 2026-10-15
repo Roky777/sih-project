@@ -1,0 +1,19 @@
+{
+  "schema_version": "observed-availability-v1",
+  "evidence_kind": "synthetic_fixture",
+  "source_reference": "authored reference case; no operational records",
+  "frozen_protocol_reference": "docs/pilot/availability-export.md synthetic reference v1",
+  "window_start": "2026-01-01T00:00:00Z",
+  "window_end": "2026-01-01T12:00:00Z",
+  "memberships": [
+    {"aircraft_id": "SYNTHETIC-A", "start": "2026-01-01T00:00:00Z", "end": null},
+    {"aircraft_id": "SYNTHETIC-B", "start": "2026-01-01T00:00:00Z", "end": "2026-01-01T06:00:00Z"}
+  ],
+  "states": [
+    {"source_event_id": "A-available", "aircraft_id": "SYNTHETIC-A", "state": "available", "start": "2026-01-01T00:00:00Z", "end": "2026-01-01T04:00:00Z"},
+    {"source_event_id": "A-work-1", "aircraft_id": "SYNTHETIC-A", "state": "unavailable", "start": "2026-01-01T04:00:00Z", "end": "2026-01-01T08:00:00Z"},
+    {"source_event_id": "A-work-2", "aircraft_id": "SYNTHETIC-A", "state": "unavailable", "start": "2026-01-01T05:00:00Z", "end": "2026-01-01T07:00:00Z"},
+    {"source_event_id": "B-work", "aircraft_id": "SYNTHETIC-B", "state": "unavailable", "start": "2026-01-01T00:00:00Z", "end": "2026-01-01T02:00:00Z"},
+    {"source_event_id": "B-available", "aircraft_id": "SYNTHETIC-B", "state": "available", "start": "2026-01-01T02:00:00Z", "end": null}
+  ]
+}

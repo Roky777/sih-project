@@ -5128,6 +5128,184 @@
         }
       }
     },
+    "/api/evidence/research": {
+      "get": {
+        "tags": [
+          "research evidence"
+        ],
+        "summary": "Index",
+        "operationId": "index_api_evidence_research_get",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchIndex"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evidence/research/{subset}": {
+      "get": {
+        "tags": [
+          "research evidence"
+        ],
+        "summary": "Report",
+        "operationId": "report_api_evidence_research__subset__get",
+        "parameters": [
+          {
+            "name": "subset",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "FD001",
+                "FD002",
+                "FD003",
+                "FD004"
+              ],
+              "type": "string",
+              "title": "Subset"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evidence/drawings": {
+      "get": {
+        "tags": [
+          "research evidence"
+        ],
+        "summary": "Drawings",
+        "operationId": "drawings_api_evidence_drawings_get",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "demo-planner",
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-demo-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "planner",
+              "title": "X-Demo-Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DrawingEvidence"
+                  },
+                  "title": "Response Drawings Api Evidence Drawings Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/fleet-health/engine": {
       "get": {
         "tags": [
@@ -10257,6 +10435,75 @@
         ],
         "title": "Downtime"
       },
+      "DrawingEvidence": {
+        "properties": {
+          "model_family": {
+            "type": "string",
+            "title": "Model Family"
+          },
+          "component_reference": {
+            "type": "string",
+            "title": "Component Reference"
+          },
+          "mapping_reference": {
+            "type": "string",
+            "title": "Mapping Reference"
+          },
+          "drawing_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drawing Reference"
+          },
+          "drawing_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drawing Revision"
+          },
+          "verification_status": {
+            "type": "string",
+            "const": "pending",
+            "title": "Verification Status",
+            "default": "pending"
+          },
+          "reviewer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer"
+          },
+          "provenance": {
+            "type": "string",
+            "const": "authored_demonstration_mapping",
+            "title": "Provenance",
+            "default": "authored_demonstration_mapping"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model_family",
+          "component_reference",
+          "mapping_reference"
+        ],
+        "title": "DrawingEvidence"
+      },
       "EngineIngestionRequest": {
         "properties": {
           "component_id": {
@@ -10456,6 +10703,39 @@
           "data"
         ],
         "title": "EngineStatusResponse"
+      },
+      "ErrorMetrics": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Count"
+          },
+          "mae_cycles": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Mae Cycles"
+          },
+          "rmse_cycles": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Rmse Cycles"
+          },
+          "asymmetric_score": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Asymmetric Score"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "count",
+          "mae_cycles",
+          "rmse_cycles",
+          "asymmetric_score"
+        ],
+        "title": "ErrorMetrics"
       },
       "ExplanationStateResponse": {
         "properties": {
@@ -11263,6 +11543,25 @@
           "readings"
         ],
         "title": "IngestRequest"
+      },
+      "InputInfluence": {
+        "properties": {
+          "feature": {
+            "type": "string",
+            "title": "Feature"
+          },
+          "change_when_replaced_cycles": {
+            "type": "number",
+            "title": "Change When Replaced Cycles"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "feature",
+          "change_when_replaced_cycles"
+        ],
+        "title": "InputInfluence"
       },
       "InspectionTaskResponse": {
         "properties": {
@@ -12450,6 +12749,455 @@
         "type": "object",
         "title": "ReplayTick"
       },
+      "ResearchEngine": {
+        "properties": {
+          "engine_id": {
+            "type": "string",
+            "title": "Engine Id"
+          },
+          "engine_number": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Engine Number"
+          },
+          "cutoff_cycle": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Cutoff Cycle"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "evaluated",
+              "withheld"
+            ],
+            "title": "Status"
+          },
+          "predicted_rul_cycles": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predicted Rul Cycles"
+          },
+          "lower_cycles": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lower Cycles"
+          },
+          "upper_cycles": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upper Cycles"
+          },
+          "reference_rul_cycles": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Reference Rul Cycles"
+          },
+          "review_urgency": {
+            "type": "string",
+            "enum": [
+              "critical_review",
+              "review",
+              "routine",
+              "unavailable"
+            ],
+            "title": "Review Urgency"
+          },
+          "recommendation": {
+            "type": "string",
+            "title": "Recommendation"
+          },
+          "sensor_trend": {
+            "items": {
+              "$ref": "#/components/schemas/SensorPoint"
+            },
+            "type": "array",
+            "title": "Sensor Trend"
+          },
+          "influences": {
+            "items": {
+              "$ref": "#/components/schemas/InputInfluence"
+            },
+            "type": "array",
+            "title": "Influences",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "engine_id",
+          "engine_number",
+          "cutoff_cycle",
+          "status",
+          "predicted_rul_cycles",
+          "lower_cycles",
+          "upper_cycles",
+          "reference_rul_cycles",
+          "review_urgency",
+          "recommendation",
+          "sensor_trend"
+        ],
+        "title": "ResearchEngine"
+      },
+      "ResearchIndex": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "summaries": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSummary"
+            },
+            "type": "array",
+            "title": "Summaries"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version",
+          "summaries"
+        ],
+        "title": "ResearchIndex"
+      },
+      "ResearchReport": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "research-benchmark-v1",
+            "title": "Schema Version",
+            "default": "research-benchmark-v1"
+          },
+          "subset": {
+            "type": "string",
+            "enum": [
+              "FD001",
+              "FD002",
+              "FD003",
+              "FD004"
+            ],
+            "title": "Subset"
+          },
+          "simulated": {
+            "type": "boolean",
+            "const": true,
+            "title": "Simulated",
+            "default": true
+          },
+          "evidence_status": {
+            "type": "string",
+            "enum": [
+              "historical_inspected",
+              "research_only"
+            ],
+            "title": "Evidence Status"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "operating_conditions": {
+            "type": "integer",
+            "title": "Operating Conditions"
+          },
+          "fault_modes": {
+            "type": "integer",
+            "title": "Fault Modes"
+          },
+          "target_cap_cycles": {
+            "type": "integer",
+            "title": "Target Cap Cycles"
+          },
+          "minimum_history_cycles": {
+            "type": "integer",
+            "title": "Minimum History Cycles"
+          },
+          "train_engine_count": {
+            "type": "integer",
+            "title": "Train Engine Count"
+          },
+          "test_engine_count": {
+            "type": "integer",
+            "title": "Test Engine Count"
+          },
+          "withheld_count": {
+            "type": "integer",
+            "title": "Withheld Count"
+          },
+          "split_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Split Counts"
+          },
+          "capped_primary": {
+            "$ref": "#/components/schemas/ErrorMetrics"
+          },
+          "uncapped_secondary": {
+            "$ref": "#/components/schemas/ErrorMetrics"
+          },
+          "validation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorMetrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "constant_baseline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorMetrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "interval_coverage": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Interval Coverage"
+          },
+          "mean_interval_width_cycles": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Mean Interval Width Cycles"
+          },
+          "nominal_interval_coverage": {
+            "type": "number",
+            "exclusiveMaximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Nominal Interval Coverage"
+          },
+          "protocol": {
+            "type": "string",
+            "title": "Protocol"
+          },
+          "limitations": {
+            "type": "string",
+            "title": "Limitations"
+          },
+          "provenance": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Provenance"
+          },
+          "engines": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchEngine"
+            },
+            "type": "array",
+            "title": "Engines"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "subset",
+          "evidence_status",
+          "model_version",
+          "operating_conditions",
+          "fault_modes",
+          "target_cap_cycles",
+          "minimum_history_cycles",
+          "train_engine_count",
+          "test_engine_count",
+          "withheld_count",
+          "split_counts",
+          "capped_primary",
+          "uncapped_secondary",
+          "validation",
+          "constant_baseline",
+          "interval_coverage",
+          "mean_interval_width_cycles",
+          "nominal_interval_coverage",
+          "protocol",
+          "limitations",
+          "provenance",
+          "engines"
+        ],
+        "title": "ResearchReport"
+      },
+      "ResearchSummary": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "research-benchmark-v1",
+            "title": "Schema Version",
+            "default": "research-benchmark-v1"
+          },
+          "subset": {
+            "type": "string",
+            "enum": [
+              "FD001",
+              "FD002",
+              "FD003",
+              "FD004"
+            ],
+            "title": "Subset"
+          },
+          "simulated": {
+            "type": "boolean",
+            "const": true,
+            "title": "Simulated",
+            "default": true
+          },
+          "evidence_status": {
+            "type": "string",
+            "enum": [
+              "historical_inspected",
+              "research_only"
+            ],
+            "title": "Evidence Status"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "operating_conditions": {
+            "type": "integer",
+            "title": "Operating Conditions"
+          },
+          "fault_modes": {
+            "type": "integer",
+            "title": "Fault Modes"
+          },
+          "target_cap_cycles": {
+            "type": "integer",
+            "title": "Target Cap Cycles"
+          },
+          "minimum_history_cycles": {
+            "type": "integer",
+            "title": "Minimum History Cycles"
+          },
+          "train_engine_count": {
+            "type": "integer",
+            "title": "Train Engine Count"
+          },
+          "test_engine_count": {
+            "type": "integer",
+            "title": "Test Engine Count"
+          },
+          "withheld_count": {
+            "type": "integer",
+            "title": "Withheld Count"
+          },
+          "split_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Split Counts"
+          },
+          "capped_primary": {
+            "$ref": "#/components/schemas/ErrorMetrics"
+          },
+          "uncapped_secondary": {
+            "$ref": "#/components/schemas/ErrorMetrics"
+          },
+          "validation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorMetrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "constant_baseline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorMetrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "interval_coverage": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Interval Coverage"
+          },
+          "mean_interval_width_cycles": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Mean Interval Width Cycles"
+          },
+          "nominal_interval_coverage": {
+            "type": "number",
+            "exclusiveMaximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Nominal Interval Coverage"
+          },
+          "protocol": {
+            "type": "string",
+            "title": "Protocol"
+          },
+          "limitations": {
+            "type": "string",
+            "title": "Limitations"
+          },
+          "provenance": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Provenance"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "subset",
+          "evidence_status",
+          "model_version",
+          "operating_conditions",
+          "fault_modes",
+          "target_cap_cycles",
+          "minimum_history_cycles",
+          "train_engine_count",
+          "test_engine_count",
+          "withheld_count",
+          "split_counts",
+          "capped_primary",
+          "uncapped_secondary",
+          "validation",
+          "constant_baseline",
+          "interval_coverage",
+          "mean_interval_width_cycles",
+          "nominal_interval_coverage",
+          "protocol",
+          "limitations",
+          "provenance"
+        ],
+        "title": "ResearchSummary"
+      },
       "ReservationHistoryResponse": {
         "properties": {
           "id": {
@@ -12830,6 +13578,36 @@
           "to"
         ],
         "title": "SearchHit"
+      },
+      "SensorPoint": {
+        "properties": {
+          "cycle": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Cycle"
+          },
+          "sensor_2": {
+            "type": "number",
+            "title": "Sensor 2"
+          },
+          "sensor_3": {
+            "type": "number",
+            "title": "Sensor 3"
+          },
+          "sensor_4": {
+            "type": "number",
+            "title": "Sensor 4"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "cycle",
+          "sensor_2",
+          "sensor_3",
+          "sensor_4"
+        ],
+        "title": "SensorPoint"
       },
       "SensorSeries": {
         "properties": {

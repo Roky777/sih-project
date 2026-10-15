@@ -4,13 +4,12 @@ import argparse
 import json
 from pathlib import Path
 
-from sqlalchemy import select
-
 from fleet_maintenance.persistence.database import SessionLocal
 from fleet_maintenance.persistence.models import Plan, SimulationRun
 from fleet_maintenance.science.simulation.replications import run_scenario
 from fleet_maintenance.services.plan_simulation import calculate, plan_payload
 from fleet_maintenance.services.scenarios import scenario_source
+from sqlalchemy import select
 
 
 def main() -> None:

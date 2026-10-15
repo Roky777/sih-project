@@ -1,0 +1,14 @@
+.research-evidence { display: grid; gap: 24px; min-width: 0; }
+.research-evidence-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; margin-block: 20px; }
+.research-evidence-controls .o-field { min-width: 180px; flex: 1; }
+.research-engine-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 32px; margin-block: 24px; }
+.research-rul { font: 600 30px var(--o-mono); color: var(--o-text); }
+.research-evidence details { margin-block: 16px; }
+.research-evidence summary { cursor: pointer; color: var(--o-text); }
+.research-evidence pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
+.research-engine-evidence { min-width: 0; }
+.research-engine-evidence > p:first-child { overflow-wrap: anywhere; }
+@media(max-width:760px) { .research-engine-grid { grid-template-columns: minmax(0,1fr); gap: 20px; }.research-rul { font-size: 25px; } }
+.research-home > .o-segmented { max-width: 100%; flex-wrap: wrap; }
+.research-evidence .o-card { min-width: 0; }
+.research-evidence .o-table-wrap { max-width: 100%; overflow-x: auto; }

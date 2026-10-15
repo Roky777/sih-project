@@ -130,3 +130,114 @@ and blank versioned manifests/mapping/acceptance templates. It documents current
 interfaces separately from proposed real-system adapter work. No agency was contacted, no real
 telemetry acquired, and no model/geometry/pilot acceptance was granted. This is documentation and
 handover preparation; the existing application and approval behaviour are unchanged.
+
+## Executable operational-evidence preparation — 14 October 2026
+
+Implemented the shared offline observed-availability evaluator and a pilot handover field audit.
+The evaluator accepts a canonical state export, unions overlapping downtime, clips eligible cohort
+membership/window exposure, handles open events and duplicate delivery, rejects conflicting states
+and reports unknown time and availability bounds. It never derives aircraft state from predictions.
+The CLI retains source/input/implementation hashes and does not modify application records.
+
+Executed in the existing Python 3.13 Docker test environment: scoped Ruff passed, strict mypy passed
+for both new source modules, and all 17 unit tests passed. The labelled synthetic reference produced
+18 eligible / 8 available / 6 unavailable / 4 unknown aircraft-hours, matching the hand calculation.
+The blank pilot audit intentionally exited 2 with 56 missing fields and two unresolved states.
+Field completeness is not verification of reference authenticity or operational qualification.
+
+Actual aircraft connection still needs an approved interface/sample and installation/unit/clock
+contract. Model qualification needs independent operator-specific labels, criteria and review;
+geometry verification needs permitted configuration drawings/assets and engineer-approved mappings.
+Operational benefit needs authoritative state exports and an agreed prospective study. None of those
+outcomes has been achieved by these synthetic checks. See [commands and contract](../pilot/availability-export.md).
+
+## Model and geometry evidence binding — 14 October 2026
+
+Added strict model/visual-geometry evidence manifests, a shared read-only audit and CLI. Checks
+cover scope/reference presence, required roles, SHA-256 binding, out-of-root paths/symlinks,
+declared evaluation timing, reviewer/decision references and disjoint model asset partitions.
+No artifact is executed, model promoted, geometry replaced or application approval changed.
+Binding completeness explicitly establishes no operational qualification or reference authenticity.
+
+Executed: scoped Ruff and strict mypy passed for the new audit module; the combined 29 availability,
+handover and qualification tests passed. Both blank qualification-template commands intentionally
+exited 2 with missing-evidence reports under `artifacts/pilot/`. Actual operator evidence has not
+arrived; connector implementation against a real interface, independent model/geometry review
+and operational impact evaluation remain pending. See [qualification commands](../pilot/qualification.md).
+
+## Requested prototype UI restoration — 14 October 2026
+
+Restored the `da96d4a` aircraft presentation to match the supplied screenshot: full-viewport green
+grid, large model, right camera controls, lower statistics, FleetAvail wordmark and More/Research
+navigation. Current onboarding, summary, maintenance, history, blueprint, assistant and backend
+records remain available; the inspection workspace sits below the aircraft. The initial camera
+uses the three-quarter direction and bounds update when aircraft families change. Research links
+retain dataset-aware destinations; models remain illustrative.
+
+Frontend typecheck, lint and Docker production build passed. Three targeted browser checks passed:
+next-record/blueprint handoff, failed-next-record retention, and all five families at desktop/mobile
+widths with camera selection and reduced motion. The first browsing check needed its canvas selector
+updated because the restored grid adds a second canvas; the corrected check passed. Actual AC-026
+dark rendering had no page exceptions or horizontal overflow; capture:
+`artifacts/ui-restored/aircraft-desktop.png`. This restoration does not change pilot qualification.
+
+## SIH evidence/demo freeze — 15 October 2026
+
+Verdict: **READY WITH LIMITATIONS for the local demonstration**. The public Pages entry point
+responds HTTP 200 but its configured `fb9f056bfa8bfe.lhr.life` backend tunnel was unreachable in
+Chrome at 08:25 UTC; it correctly displayed “Demo backend offline”. Public login, cookie/CSRF,
+CORS and SSE operation were consequently not reverified. The new local code has not been published.
+No operational qualification is established.
+
+Completed within the requested scope:
+
+- Acquired official FD002–FD004 with pinned outer/nested/file SHA-256 verification, preserving FD001.
+- Frozen separate 70/15/15 engine fits with fit-only condition normalisation, retained calibration,
+  withheld short histories and capped/uncapped metrics. Reproduction yielded identical predictions,
+  metrics and new model hashes. See [protocol and results](../research/multidataset-demo-protocol.md).
+- Added authenticated JSON-only research reports and dataset/engine selection, raw sensor trends,
+  RUL intervals, noncausal model sensitivities, demo review recommendations, export and provenance
+  inside the existing Research area. The restored aircraft presentation is preserved.
+- Added five illustrative component/mapping register entries with missing approved drawings,
+  revisions and reviewers explicitly pending. Narratives are not treated as failure labels.
+- Extended the existing preventive simulator with saved denominator/downtime/stock/capacity inputs
+  and visible formulas; older runs without snapshots remain identified. A retained 40-aircraft,
+  14-day, 100-run, seed-7 early-P1-replacement scenario produced **−3.84 percentage points**
+  and **+21.50 aircraft-days lost**, exposing supply/bay contention, not an asserted benefit.
+- Installed verified research JSON locally without changing the FD001 serving-model registry.
+
+Executed verification:
+
+- `make web-check`: lint, TypeScript, production build; 29 tests in 7 files passed (latest code).
+- Docker Ruff over backend source/tests/scripts and strict mypy (184 source files): passed;
+  unit/verification suite: 222 passed, three dependency deprecation warnings.
+- `make backend-integration`: 78 passed in the isolated integration database.
+- Existing customer-trial browser suite: 5 passed, including actual input → model assessment →
+  schedule → supply comparison → approval → completed work, short history and infeasible window.
+- Research + restored-aircraft browser suites: 6 passed, including all four subsets, withholding,
+  network errors, mobile containment, five model families and failed-next-record retention.
+- Actual research, simulator-formula and AC-026 screens captured; no browser page exceptions in
+  this capture. Local API readiness healthy; frontend/API/worker/outbox/PostgreSQL/RabbitMQ running.
+
+Initial research browser checks exposed tab overflow and an overly narrow test interception;
+corrected and rerun successfully. Earlier static failures are retained in audit logs; no check
+is called passed from its unexecuted baseline. Reports/logs/screenshots are ignored artifacts,
+not fake committed datasets. Reproduction/startup commands are in the protocol document.
+
+Open locally: `http://localhost:8080/research?view=benchmarks`, `/research?view=drawings`, `/demo`,
+`/simulator` and `/aircraft/AC-026`. Retained evidence: `artifacts/research/`,
+`artifacts/research-*-final.log`, `artifacts/customer-trial-final.log`,
+`artifacts/research-integration.log`, `artifacts/demo-verification/`.
+
+Checklist: seven criteria have local/evidence delivery and the deployed frontend was smoke-tested,
+but public backend functionality failed that smoke test. Do not present this as 8/8 deployment
+acceptance. Restore/rotate the HTTPS tunnel and deploy the current code for a public demonstration,
+then rerun the existing HTTPS authentication/CORS/CSRF/SSE verification. N-CMAPSS was independently
+assessed, not evaluated or mixed into FD00x. Actual operator data, qualified models, approved geometry
+and an operator-led availability study remain external, pending evidence.
+
+Additional scientific checks: `python -m pytest backend/tests/science` in the mounted Docker test
+image passed 10 tests; the sequence-model module was explicitly skipped because PyTorch is not
+installed in that image. No fresh LSTM evaluation is claimed. The newly evaluated models are the
+fixed classical research models described above. The final API/worker images were rebuilt with
+the JSON report installer; data volumes and serving-model artifacts were retained.

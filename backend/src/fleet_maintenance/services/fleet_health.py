@@ -826,6 +826,7 @@ def run_scenario(
     items = decisions.build_advisories(bundle, bundle.replay_offset(None), current)
     plans = tuple(_plan_interventions(bundle, current))
     interventions = _interventions(bundle, kind, params, items)
+    frozen_inputs = snapshot(bundle, current)
     session.rollback()  # no transaction is held during the calculation
     baseline, scenario = _pair(bundle, current, horizon, runs, seed, plans, interventions)
     by_aircraft: list[dict[str, Any]] = [
@@ -869,6 +870,29 @@ def run_scenario(
             key=lambda row: -abs(row["delta_aircraft_days"]),
         )[:10],
         "stockouts": sorted(stockouts, key=lambda row: -max(row["scenario"], row["baseline"]))[:8],
+        "assumptions": {
+            "evidence_kind": "synthetic_scenario",
+            "as_of": bundle.as_of.isoformat(),
+            "engine_bundle": run_id_of(bundle),
+            "aircraft_count": len(frozen_inputs.aircraft_ids),
+            "exposure_aircraft_days": len(frozen_inputs.aircraft_ids) * horizon,
+            "availability_formula": "1 - mean unavailable aircraft-days / exposure aircraft-days",
+            "comparison_formula": "100 * (scenario availability - baseline availability)",
+            "horizon_days": horizon, "runs": runs, "seed": seed,
+            "failure_model": "Day-step failures from synthetic RUL quantiles; without a "
+            "degradation signal use synthetic 30-day risk/background hazard.",
+            "repair_model": "ceil(type repair days * multiplier * lognormal(0, 0.3)); "
+            "minimum one day. Planned multiplier 0.7; unscheduled 1.0. Assumed, not measured.",
+            "repair_days_by_slot": frozen_inputs.repair_days.tolist(),
+            "part_stock": frozen_inputs.stock.tolist(),
+            "part_lead_time_days": frozen_inputs.lead_time.tolist(),
+            "bays_by_agency": frozen_inputs.bays.tolist(),
+            "inspection_days": frozen_inputs.inspection_days,
+            "intervention": {"kind": kind, "params": params},
+            "planned_interventions": [
+                {"kind": p.kind, "slots": list(p.slots), "day": p.day} for p in plans
+            ],
+        },
         "baseline_includes_planned_work": len(plans),
         "framing": "Decision-support simulation on synthetic maintenance data, not operational "
         "planning.",

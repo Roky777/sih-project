@@ -5,7 +5,6 @@ from collections.abc import Callable
 from pathlib import Path
 
 import yaml
-
 from fleet_maintenance.science.scheduling.baselines import earliest_deadline_first
 from fleet_maintenance.science.scheduling.diagnostics import result_summary
 from fleet_maintenance.science.scheduling.formulation import (

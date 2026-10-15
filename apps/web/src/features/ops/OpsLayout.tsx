@@ -1,5 +1,4 @@
 import { useThemePreference } from "../../shared/ui/theme";
-import { BrandLogo } from "../../shared/ui/BrandLogo";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AskAIButton, AssistantPanel } from "../assistant/AssistantPanel";
 import { useQuery } from "@tanstack/react-query";
@@ -64,25 +63,23 @@ export function OpsLayout() {
 
   useEffect(() => { document.title = `${title} · AeroCare`; }, [title]);
   const visualAircraft = location.pathname.startsWith("/aircraft/") && new URLSearchParams(location.search).get("dataset") !== "research";
-  const aircraftParams = new URLSearchParams(location.search);
-  const modelOverview = visualAircraft && ["summary", "twin"].includes(aircraftParams.get("tab") ?? (aircraftParams.has("system") ? "components" : "summary"));
   return <div ref={shell} className={`o-shell${visualAircraft ? " o-twin-atmosphere" : ""}${scrolled ? " is-scrolled" : ""}`}>
     <div className="o-header-backdrop" aria-hidden="true"/>
-    {!modelOverview && <WorkspaceGrid host={shell} paused={mobileOpen || paletteOpen}/>}
+    {!visualAircraft && <WorkspaceGrid host={shell} paused={mobileOpen || paletteOpen}/>}
     <a className="skip-link" href="#main-content">Skip to content</a>
     <header className="o-header">
       <button type="button" ref={menuButton} className="o-round-btn o-mobile-only" aria-label="Open navigation" onClick={() => setMobileOpen(true)}><Icon name="menu" size={18}/></button>
-      <Link to="/dashboard" className="o-header-brand" aria-label="AeroCare — home"><BrandLogo/></Link>
+      <Link to="/dashboard" className="o-header-brand" aria-label="FleetAvail — home"><span className="o-wordmark"><strong>FleetAvail</strong><small>Integrated Fleet Availability</small></span></Link>
       <TopNav/>
       <div className="o-header-tools">
+        <AskAIButton/>
         <button type="button" className="o-round-btn" onClick={() => setPaletteOpen(true)} aria-label="Search (⌘K)" title="Search  ⌘K"><Icon name="search" size={17}/></button>
         <button type="button" className="o-round-btn o-theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"} title={theme === "dark" ? "Light theme" : "Dark theme"}><Icon name={theme === "dark" ? "sun" : "moon"} size={17}/></button>
-        <AskAIButton/>
         <AlertsMenu/>
         <ProfileMenu/>
       </div>
     </header>
-    <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}><Dialog.Portal><Dialog.Overlay className="o-overlay"/><Dialog.Content className="o-mobile-nav" aria-describedby={undefined} onCloseAutoFocus={event => { event.preventDefault(); menuButton.current?.focus(); }}><Dialog.Title className="sr-only">Workspace navigation</Dialog.Title><div className="o-mobile-nav-head"><BrandLogo className="aerocare-logo-compact"/><Dialog.Close asChild><button type="button" className="o-round-btn" aria-label="Close navigation"><Icon name="close" size={16}/></button></Dialog.Close></div><CompactMenu/></Dialog.Content></Dialog.Portal></Dialog.Root>
+    <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}><Dialog.Portal><Dialog.Overlay className="o-overlay"/><Dialog.Content className="o-mobile-nav" aria-describedby={undefined} onCloseAutoFocus={event => { event.preventDefault(); menuButton.current?.focus(); }}><Dialog.Title className="sr-only">Workspace navigation</Dialog.Title><div className="o-mobile-nav-head"><strong>FleetAvail</strong><Dialog.Close asChild><button type="button" className="o-round-btn" aria-label="Close navigation"><Icon name="close" size={16}/></button></Dialog.Close></div><CompactMenu/></Dialog.Content></Dialog.Portal></Dialog.Root>
     <AssistantPanel/>
     {!lab && asOf && <div className="o-replay-banner" role="status"><strong>History/replay · {asOf} · Read only</strong><button className="o-btn ghost" onClick={() => setAsOf(null)}>Exit replay</button></div>}
     <div className="o-main">
@@ -116,16 +113,43 @@ function isActive(pathname: string, item: NavItem) {
  *  supporting views in pill menus. */
 function TopNav() {
   const badge = useNavBadges(true);
+  const { role } = useRole();
   const location = useLocation();
   const pill = (item: NavItem) => {
     const count = badge(item.badge);
-    return <NavLink key={item.to} to={item.to} className={isActive(location.pathname, item) ? "active" : ""} title={item.badge === "review" ? `${count ?? 0} findings awaiting review` : item.badge === "schedule" ? `${count ?? 0} work records needing action; completed work excluded` : item.label}>
+    return <NavLink key={item.to} to={item.to} className={isActive(location.pathname, item) ? "active" : ""} title={item.label}>
       {item.short ?? item.label}{count ? <span className="o-pill-count">{count}</span> : null}
     </NavLink>;
   };
   return <nav className="o-topnav" aria-label="Primary">
     {navigationGroups[0].items.map(pill)}
+    {navigationGroups.slice(1).map(group => <NavMenu key={group.title} title={group.title} items={group.items} badge={badge} role={role.id}/>)}
   </nav>;
+}
+
+function NavMenu({ title, items, badge, role }: { title: string; items: NavItem[]; badge: (key?: NavItem["badge"]) => number | undefined; role: RoleId }) {
+  const ref = useRef<HTMLDetailsElement>(null);
+  const location = useLocation();
+  useEffect(() => {
+    if (ref.current) ref.current.open = false;
+    const close = (event: MouseEvent) => { if (ref.current?.open && !ref.current.contains(event.target as Node)) ref.current.open = false; };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [location.pathname, location.search, location.hash]);
+  const active = items.some(item => isActive(location.pathname, item) && (!item.to.includes("dataset=research") || new URLSearchParams(location.search).get("dataset") === "research"));
+  const total = items.reduce((sum, item) => sum + (item.owner === role ? badge(item.badge) ?? 0 : 0), 0);
+  return <details className={`o-navmenu${active ? " active" : ""}`} ref={ref}>
+    <summary>{title}{total ? <span className="o-pill-count">{total}</span> : null}<Icon name="chevron" size={12}/></summary>
+    <div className="o-glass-pop">{items.map(item => {
+      const count = badge(item.badge);
+      const mine = item.owner === role;
+      return <NavLink key={item.to} to={item.to} className={`${isActive(location.pathname, item) ? "active" : ""}${mine ? " mine" : ""}`}>
+        {item.step ? <span className="o-nav-step">{item.step}</span> : <Icon name={item.icon} size={16}/>}
+        <span>{item.label}{item.owner && <small>{mine ? "Your step" : roleById[item.owner].short}</small>}</span>
+        {count ? <span className="o-pill-count">{count}</span> : null}
+      </NavLink>;
+    })}</div>
+  </details>;
 }
 
 /** Vertical navigation shown in the mobile menu sheet. */

@@ -4,7 +4,6 @@ from dataclasses import asdict
 from pathlib import Path
 
 import yaml
-
 from fleet_maintenance.science.simulation.environment import ScenarioInput
 from fleet_maintenance.science.simulation.metrics import summarize
 from fleet_maintenance.science.simulation.policies import compare

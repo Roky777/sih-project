@@ -111,6 +111,7 @@ function FleetAircraftDetail() {
   return <Query query={detail} rows={10}>{data => data.aircraft.id !== aircraftId ? <section className="aircraft-overview-loading" role="status">Loading {aircraftId} records…</section> : <div className="o-screen aircraft-detail-screen">
     {detail.isPlaceholderData && <p role="status">Loading {aircraftId}… Previous aircraft records remain visible until its response arrives.</p>}
     {detail.isError && <p role="alert">Could not update this aircraft. <button type="button" onClick={() => void detail.refetch()}>Retry</button></p>}
+    <Suspense fallback={<section className="aircraft-overview-loading" role="status">Preparing interactive aircraft model…</section>}><TwinShowcase data={data} onExploreBlueprint={() => chooseTab("visual")}/></Suspense>
     <section className="aircraft-detail-workspace" id="aircraft-workspace" tabIndex={-1} aria-label="Aircraft inspection workspace">
       <header className="aircraft-workspace-head">
         <div className="aircraft-record-identity"><Link className="aircraft-back-link" to={params.get("return")?.startsWith("/aircraft?") ? params.get("return")! : "/aircraft"}><Icon name="arrow" size={15} style={{ transform: "rotate(180deg)" }}/> Back to aircraft register</Link><h1>{String(data.aircraft.id)}<span>{airframeOf({ id: data.aircraft.id, type: data.aircraft.type }).title}</span></h1><p>{String(data.aircraft.base)} · {longDate(data.as_of)}{data.replay ? " · Historical snapshot" : " · Latest recorded snapshot"}</p></div>
@@ -120,12 +121,10 @@ function FleetAircraftDetail() {
         <Tabs value={currentTab} onChange={value => chooseTab(value)} tabs={[["summary", "Summary", "aircraft"], ["components", "Components", "list"], ["maintenance", "Maintenance", "wrench"], ["history", "History", "history"], ["visual", "Visual inspection", "aircraft"]] as const}/>
       </nav>
       <div className={`aircraft-workspace-body pane-${currentTab}`} role="tabpanel" aria-label={currentTab === "visual" ? "Visual inspection" : currentTab === "components" ? "Component records" : currentTab === "history" ? "Aircraft history" : currentTab === "maintenance" ? "Aircraft maintenance" : "Aircraft summary"}>
-        {currentTab === "summary" && <AircraftSummary key={`${aircraftId}-${data.as_of}`} data={data} onView={chooseTab}>
-          <Suspense fallback={<section className="aircraft-overview-loading" role="status">Preparing interactive aircraft model…</section>}><TwinShowcase key={`${aircraftId}-${data.as_of}`} data={data} onExploreBlueprint={() => chooseTab("visual")}/></Suspense>
-        </AircraftSummary>}
+        {currentTab === "summary" && <AircraftSummary key={`${aircraftId}-${data.as_of}`} data={data} onView={chooseTab} children={null}/>}
         {currentTab === "visual" && <>
           <Segmented label="Visual inspection tools" value={params.get("inspection") === "airframe" ? "airframe" : "blueprint"} onChange={value => setParams(previous => { const next = new URLSearchParams(previous); next.set("tab", "visual"); next.set("inspection", value); return next; })} options={[["airframe", "Aircraft model"], ["blueprint", "Blueprint & assemblies"]] as const}/>
-          {params.get("inspection") === "airframe" ? <Suspense fallback={<p role="status">Preparing aircraft model…</p>}><TwinShowcase key={aircraftId} large data={data} onExploreBlueprint={() => setParams(previous => { const next = new URLSearchParams(previous); next.set("inspection", "blueprint"); return next; })}/></Suspense> : <div id="aircraft-blueprint-placeholder"><DeferredBlueprint key={`${aircraftId}-${data.as_of}`} data={data}/></div>}
+          {params.get("inspection") === "airframe" ? <button type="button" className="o-btn" onClick={() => window.scrollTo({ top: 0, behavior: "instant" })}>Return to aircraft model</button> : <div id="aircraft-blueprint-placeholder"><DeferredBlueprint key={`${aircraftId}-${data.as_of}`} data={data}/></div>}
         </>}
         {currentTab === "components" && <TwinTab data={data}/>}
         {currentTab === "history" && <><Card title="History / replay" subtitle="Enter a historical date explicitly; mutations are unavailable during replay"><ReplaySlider/></Card><HistoryTab data={data}/></>}
@@ -201,4 +200,3 @@ function HistoryTab({ data }: { data: AircraftDetail }) {
     </div>
   </div>;
 }
-

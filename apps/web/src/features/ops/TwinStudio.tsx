@@ -1,15 +1,16 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, OrbitControls, useGLTF } from "@react-three/drei";
-import { Box3, Mesh, MeshStandardMaterial, PerspectiveCamera, PMREMGenerator, Vector3 } from "three";
+import { Box3, Group, Mesh, MeshStandardMaterial, PerspectiveCamera, PMREMGenerator, Vector3 } from "three";
 import { fittedCameraPosition, modelFitPoints } from "./cameraFit";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { StudioPoster } from "./TwinShowcase";
+import { StudioPoster, type TwinMotion } from "./TwinShowcase";
+import { airframeOf } from "./airframes";
 import type { FlowSignal } from "./elasticGridMath";
 import type { RefObject } from "react";
 
 const ease = (t: number) => t * t * (3 - 2 * t);
-type Props = { model: string; view: "front" | "perspective" | "profile" | "top"; viewRevision: number; onOrbit: () => void; reduced: boolean; flowPose: RefObject<FlowSignal> };
+type Props = { model: string; motion: TwinMotion | null; view: "front" | "perspective" | "profile" | "top"; viewRevision: number; onOrbit: () => void; reduced: boolean; flowPose: RefObject<FlowSignal> };
 
 function Model({ url, onReady }: { url: string; onReady: (bounds: Vector3[]) => void }) {
   const gltf = useGLTF(`${import.meta.env.BASE_URL}${url}`, false, false);
@@ -18,15 +19,11 @@ function Model({ url, onReady }: { url: string; onReady: (bounds: Vector3[]) => 
     const box = new Box3().setFromObject(copy);
     const scale = 10 / Math.max(...box.getSize(new Vector3()).toArray());
     copy.scale.setScalar(scale); copy.position.copy(box.getCenter(new Vector3()).multiplyScalar(-scale));
-    const materials = new Map<MeshStandardMaterial, MeshStandardMaterial>();
     copy.traverse(object => {
       if (!(object instanceof Mesh)) return;
       object.castShadow = true; object.receiveShadow = true;
       const polish = (material: MeshStandardMaterial) => {
-        const cached = materials.get(material);
-        if (cached) return cached;
         const own = material.clone();
-        materials.set(material, own);
         own.envMapIntensity = .75;
         return own;
       };
@@ -37,9 +34,7 @@ function Model({ url, onReady }: { url: string; onReady: (bounds: Vector3[]) => 
   }, [gltf.scene]);
   useEffect(() => { onReady(model.userData.viewerBounds as Vector3[]); }, [onReady, model]);
   useEffect(() => () => {
-    const materials = new Set<{ dispose: () => void }>();
-    model.traverse(object => { if (object instanceof Mesh) (Array.isArray(object.material) ? object.material : [object.material]).forEach(material => materials.add(material)); });
-    materials.forEach(material => material.dispose());
+    model.traverse(object => { if (object instanceof Mesh) (Array.isArray(object.material) ? object.material : [object.material]).forEach(material => material.dispose()); });
   }, [model]);
   return <primitive object={model} dispose={null}/>;
 }
@@ -55,43 +50,37 @@ function StudioEnvironment() {
   }, [gl, scene, invalidate]);
   return null;
 }
-function Motion({ model, view, viewRevision, onOrbit, reduced, flowPose, onReady }: Props & { onReady: (points: Vector3[]) => void }) {
+function Motion({ model, motion, view, viewRevision, onOrbit, reduced, flowPose, onReady }: Props & { onReady: () => void }) {
+  const outgoing = useRef<Group>(null), incoming = useRef<Group>(null);
   const orbit = useRef<ComponentRef<typeof OrbitControls>>(null);
   const { camera, size, invalidate, gl } = useThree();
   const cameraFrom = useRef(new Vector3()), cameraTo = useRef(new Vector3());
   const cameraStart = useRef(0);
+  const activeMotion = useRef<TwinMotion | null>(null);
   const [bounds, setBounds] = useState<Box3 | Vector3[]>(() => new Box3(new Vector3(-5, -2, -5), new Vector3(5, 2, 5)));
-  const modelReady = useCallback((points: Vector3[]) => { setBounds(points); onReady(points); }, [onReady]);
-  // Keep the full transparent canvas for the floor shadow, but frame the airframe
-  // inside the space between its heading and statistics.
-  const verticalMargin = useRef(.88);
-  const measureFrame = useCallback(() => {
-    const surface = gl.domElement.closest(".twin-scene");
-    const stage = surface?.closest(".twin-showcase");
-    const rect = surface?.getBoundingClientRect();
-    const heading = stage?.querySelector(".twin-heading")?.getBoundingClientRect();
-    const stats = stage?.querySelector(".twin-stats")?.getBoundingClientRect();
-    const top = rect && heading ? Math.max(0, heading.bottom + 20 - rect.top) : 0;
-    const bottom = rect && stats ? Math.max(0, rect.bottom - stats.top + 24) : 0;
-    const safeHeight = Math.max(size.height * .3, size.height - top - bottom);
-    if (camera instanceof PerspectiveCamera) camera.setViewOffset(size.width, size.height, 0, (bottom - top) / 2, size.width, size.height);
-    verticalMargin.current = .88 * safeHeight / size.height;
-  }, [camera, gl, size.width, size.height]);
+  const modelReady = useCallback((points: Vector3[]) => { setBounds(points); onReady(); }, [onReady]);
   const fitOrbit = () => {
-    if (cameraStart.current || !(camera instanceof PerspectiveCamera)) return;
-    camera.position.copy(fittedCameraPosition(camera.position, bounds, camera.fov, size.width / size.height, .88, verticalMargin.current));
+    if (cameraStart.current || activeMotion.current || !(camera instanceof PerspectiveCamera)) return;
+    camera.position.copy(fittedCameraPosition(camera.position, bounds, camera.fov, size.width / size.height));
     camera.lookAt(0, 0, 0);
   };
   useEffect(() => {
-    if (!(camera instanceof PerspectiveCamera)) return;
-    measureFrame();
+    if (motion || !(camera instanceof PerspectiveCamera)) return;
     const direction = view === "top" ? new Vector3(0, 1, .001) : view === "profile" ? new Vector3(11, 2.2, 0) : view === "front" ? new Vector3(0, 1.4, 10.5) : new Vector3(5.8, 3, 6.5);
-    const target = fittedCameraPosition(direction, bounds, camera.fov, size.width / size.height, .88, verticalMargin.current);
+    const target = fittedCameraPosition(direction, bounds, camera.fov, size.width / size.height);
     cameraFrom.current.copy(camera.position); cameraTo.current.copy(target);
     cameraStart.current = performance.now();
     if (reduced) { camera.position.copy(target); camera.lookAt(0, 0, 0); cameraStart.current = 0; }
     invalidate();
-  }, [view, viewRevision, reduced, camera, size.width, size.height, invalidate, bounds, measureFrame]);
+  }, [view, viewRevision, motion, reduced, camera, size.width, size.height, invalidate, bounds]);
+  useEffect(() => {
+    activeMotion.current = motion;
+    if (motion) {
+      const fit = Math.max(1, 1.9 / (size.width / size.height));
+      camera.position.set(10 * fit, 3.8 * fit, 10 * fit); camera.lookAt(0, 0, 0);
+      cameraStart.current = 0; invalidate();
+    } else if (outgoing.current) { outgoing.current.position.set(0, 0, 0); outgoing.current.rotation.set(0, 0, 0); invalidate(); }
+  }, [motion, camera, invalidate, size]);
   useEffect(() => {
     const visibility = () => { if (!document.hidden) invalidate(); };
     const lost = (event: Event) => event.preventDefault();
@@ -105,16 +94,31 @@ function Motion({ model, view, viewRevision, onOrbit, reduced, flowPose, onReady
     flowPose.current.y = .56 + Math.min(.07, camera.position.y / camera.position.length() * .07);
     flowPose.current.wake?.();
     if (cameraStart.current) {
-      const t = Math.min(1, (performance.now() - cameraStart.current) / 360);
+      const t = Math.min(1, (performance.now() - cameraStart.current) / 850);
       camera.position.lerpVectors(cameraFrom.current, cameraTo.current, ease(t));
-      if (camera instanceof PerspectiveCamera) camera.position.copy(fittedCameraPosition(camera.position, bounds, camera.fov, size.width / size.height, .88, verticalMargin.current));
+      if (camera instanceof PerspectiveCamera) camera.position.copy(fittedCameraPosition(camera.position, bounds, camera.fov, size.width / size.height));
       camera.lookAt(0, 0, 0);
       if (t < 1) invalidate(); else cameraStart.current = 0;
     }
+    const current = activeMotion.current;
+    if (!current || !outgoing.current || !incoming.current) return;
+    const t = Math.min(1, (performance.now() - current.started) / current.duration);
+    const out = ease(Math.min(1, t / .82)), enter = ease(Math.max(0, (t - .05) / .95));
+    const direction = current.direction;
+    // Sideways slide: the current aircraft taxis off to one side while the next rolls in
+    // from the other, with a slight yaw into the turn.
+    outgoing.current.position.x = -direction * out * 16;
+    outgoing.current.rotation.y = direction * out * .5;
+    incoming.current.position.x = direction * (1 - enter) * 16;
+    incoming.current.rotation.y = -direction * (1 - enter) * .5;
+    flowPose.current.x += direction * Math.sin(t * Math.PI * 2) * .12;
+    flowPose.current.wake?.();
+    if (t < 1) invalidate();
   });
   return <>
-    <Model url={model} onReady={modelReady}/>
-    <OrbitControls ref={orbit} makeDefault enablePan={false} enableZoom={false} enableDamping={false} minPolarAngle={.02} maxPolarAngle={Math.PI / 2.1} target={[0, 0, 0]} onStart={() => { cameraStart.current = 0; onOrbit(); fitOrbit(); }} onChange={fitOrbit}/>
+    <group ref={outgoing}><Model url={model} onReady={modelReady}/></group>
+    {motion && <group ref={incoming} position={[motion.direction * 16, 0, 0]}><Model url={airframeOf(motion.next.aircraft as { id?: unknown; type?: unknown }).model} onReady={modelReady}/></group>}
+    <OrbitControls ref={orbit} makeDefault enabled={!motion} enablePan={false} enableZoom={false} enableDamping={false} minPolarAngle={.02} maxPolarAngle={Math.PI / 2.1} target={[0, 0, 0]} onStart={() => { cameraStart.current = 0; onOrbit(); fitOrbit(); }} onChange={fitOrbit}/>
   </>;
 }
 function RendererStatus({ onLost }: { onLost: () => void }) {
@@ -128,18 +132,17 @@ function RendererStatus({ onLost }: { onLost: () => void }) {
 }
 export function TwinStudio(props: Props) {
   const [ready, setReady] = useState(false), [failed, setFailed] = useState(false);
-  const [ground, setGround] = useState(-1.72);
-  const onReady = useCallback((points: Vector3[]) => { setGround(Math.min(...points.map(point => point.y)) - .015); setReady(true); }, []), onLost = useCallback(() => setFailed(true), []);
+  const onReady = useCallback(() => setReady(true), []), onLost = useCallback(() => setFailed(true), []);
   useEffect(() => {
     if (ready) return;
     const timeout = setTimeout(onLost, 20_000);
     return () => clearTimeout(timeout);
   }, [ready, onLost]);
-  if (failed) return <StudioPoster failed model={props.model}/>;
-  return <><Canvas frameloop="demand" dpr={[1, 2]} shadows camera={{ position: [0, 2, 14], fov: 32 }} gl={{ alpha: true, antialias: true }}>
+  if (failed) return <StudioPoster failed/>;
+  return <><Canvas frameloop="demand" dpr={[1, 2]} shadows camera={{ position: [5.8, 3, 6.5], fov: 32 }} gl={{ alpha: true, antialias: true }}>
     <ambientLight intensity={.18}/><hemisphereLight args={["#ffffff", "#a4b0be", .45]}/>
     <directionalLight position={[-8, 12, 6]} intensity={1.15}/><directionalLight position={[8, 5, -10]} intensity={.55}/>
     <StudioEnvironment/><RendererStatus onLost={onLost}/>
-    <Suspense fallback={null}><Motion {...props} onReady={onReady}/><ContactShadows position={[0, ground, 0]} opacity={.35} scale={18} blur={2.3} far={7} resolution={512} frames={1}/></Suspense>
+    <Suspense fallback={null}><Motion {...props} onReady={onReady}/><ContactShadows position={[0, -1.72, 0]} opacity={.35} scale={18} blur={2.3} far={7} resolution={512} frames={props.motion ? Infinity : 1}/></Suspense>
   </Canvas>{!ready && <span className="twin-model-loading" role="status">Loading aircraft model…</span>}</>;
 }

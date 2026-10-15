@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import numpy as np
-
 from fleet_maintenance.science.data.loaders import load_cmapss_table, load_rul_labels
 from fleet_maintenance.science.data.splitting import assert_disjoint, split_engines
 

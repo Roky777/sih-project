@@ -27,32 +27,28 @@ async function fixture(page: Page) {
   });
 }
 test.beforeEach(async ({ page }) => { await fixture(page); });
-test("quiet transition waits for the next record and retains aligned identity", async ({ page }) => {
+test("restored sideways browsing waits for the next record and retains aligned identity", async ({ page }) => {
   await page.goto("/aircraft/AC-001");
-  const viewer = page.locator(".aircraft-viewer");
-  await expect(viewer.locator("canvas")).toBeVisible();
+  const viewer = page.locator(".twin-showcase");
+  await expect(viewer.locator(".twin-scene canvas")).toBeVisible();
   await page.route("**/api/fleet-health/aircraft/AC-002", async route => {
     await new Promise(resolve => setTimeout(resolve, 600));
     await route.fulfill({ json: record("AC-002", families[1]) });
   });
   await viewer.getByRole("button", { name: "Next aircraft" }).click();
   await expect(viewer.getByRole("button", { name: "Next aircraft" })).toBeDisabled();
-  await expect(page.locator(".aircraft-record-identity h1")).toContainText("AC-001");
-  expect(await viewer.locator(".twin-scene").evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(.9);
+  await expect(page.locator(".twin-heading h1")).toContainText("AC-001");
   await expect(page).toHaveURL(/AC-002/);
-  await expect(page.locator(".aircraft-record-identity h1")).toContainText("AC-002");
-  await expect(viewer.getByRole("heading", { name: families[1].title })).toBeVisible();
-  await expect(viewer.locator(".twin-scene")).toHaveCSS("opacity", "1");
-  await viewer.getByRole("button", { name: "Explore aircraft", exact: true }).click();
+  await expect(page.locator(".twin-heading h1")).toContainText("AC-002");
+  await viewer.getByRole("button", { name: "Explore blueprint", exact: true }).click();
   await expect(page).toHaveURL(/tab=visual/);
 });
 test("failed next-record request retains the current aircraft", async ({ page }) => {
   await page.goto("/aircraft/AC-001");
   await page.route("**/api/fleet-health/aircraft/AC-002", route => route.fulfill({ status: 403, json: { detail: "Fixture access denied" } }));
   await page.getByRole("button", { name: "Next aircraft" }).click();
-  await expect(page.locator(".aircraft-viewer").getByRole("alert")).toContainText("Fixture access denied", { timeout: 20000 });
+  await expect(page.locator(".twin-showcase").getByRole("alert")).toContainText("Fixture access denied", { timeout: 20000 });
   await expect(page).toHaveURL(/AC-001/);
-  await expect(page.locator(".twin-scene")).toHaveCSS("opacity", "1");
   await expect(page.getByRole("button", { name: "Next aircraft" })).toBeEnabled();
 });
 test("five model families keep clear controls on desktop and mobile with reduced motion", async ({ page }, info) => {
@@ -62,24 +58,27 @@ test("five model families keep clear controls on desktop and mobile with reduced
     await page.setViewportSize({ width, height: 900 });
     for (let i = 0; i < families.length; i++) {
       await page.goto(`/aircraft/AC-00${i + 1}`);
-      const viewer = page.locator(".aircraft-viewer");
+      const viewer = page.locator(".twin-showcase");
       await expect(viewer.locator(".twin-scene canvas")).toBeVisible();
       await expect(page.getByText("Loading aircraft model…")).toHaveCount(0, { timeout: 25000 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       const frame = (await viewer.boundingBox())!;
       const header = (await page.locator(".o-header").boundingBox())!;
-      expect(frame.y).toBeGreaterThanOrEqual(header.y + header.height + 12);
+      expect(frame.y).toBeGreaterThanOrEqual(-1);
+      expect(header.y).toBeGreaterThanOrEqual(frame.y);
       expect(frame.y + frame.height).toBeLessThanOrEqual(901);
       const scene = (await viewer.locator(".twin-scene").boundingBox())!;
-      const controls = (await viewer.locator(".aircraft-camera-controls").boundingBox())!;
+      const controls = (await viewer.locator(".twin-views").boundingBox())!;
       const browse = (await viewer.locator(".twin-browse").boundingBox())!;
-      expect(controls.y + controls.height).toBeLessThanOrEqual(scene.y);
-      expect(scene.y + scene.height).toBeLessThanOrEqual(browse.y);
+      expect(controls.x).toBeGreaterThanOrEqual(frame.x);
+      expect(controls.x + controls.width).toBeLessThanOrEqual(width + 1);
+      expect(browse.x + browse.width).toBeLessThanOrEqual(width + 1);
+      expect(scene.width).toBeGreaterThan(0);
       expect(await viewer.locator(".twin-scene").evaluate(el => el.getAnimations().length)).toBe(0);
-      await viewer.getByRole("button", { name: "Top", exact: true }).click();
-      await expect(viewer.getByRole("button", { name: "Top", exact: true })).toHaveAttribute("aria-pressed", "true");
-      await viewer.getByRole("button", { name: "Reset aircraft camera" }).click();
-      await expect(viewer.getByRole("button", { name: "3/4", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await viewer.getByRole("button", { name: "Top view", exact: true }).click();
+      await expect(viewer.getByRole("button", { name: "Top view", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await viewer.getByRole("button", { name: "3/4 view", exact: true }).click();
+      await expect(viewer.getByRole("button", { name: "3/4 view", exact: true })).toHaveAttribute("aria-pressed", "true");
       await viewer.screenshot({ path: info.outputPath(`${families[i].id}-${width}.png`) });
     }
   }

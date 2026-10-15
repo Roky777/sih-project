@@ -3,11 +3,10 @@
 import argparse
 import getpass
 
-from sqlalchemy import delete
-
 from fleet_maintenance.persistence.database import SessionLocal
 from fleet_maintenance.persistence.models import AuditEvent, LoginSession, User
 from fleet_maintenance.services.access import passwords
+from sqlalchemy import delete
 
 
 def main() -> None:

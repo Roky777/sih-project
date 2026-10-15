@@ -1,0 +1,21 @@
+{
+  "schema_version": "qualification-evidence-v1",
+  "kind": "visual_geometry",
+  "evidence_kind": "synthetic_fixture",
+  "support_scope": {
+    "aircraft_configuration": null,
+    "configuration_revision": null,
+    "units_axes_reference": null,
+    "installation_effectivity_reference": null,
+    "dimensions_tolerance_reference": null,
+    "mesh_component_mapping_reference": null,
+    "support_exclusions": null
+  },
+  "criteria_frozen_at": null,
+  "evaluation_started_at": null,
+  "reviewer_reference": null,
+  "decision_reference": null,
+  "declared_decision": "pending",
+  "partitions": {},
+  "artifacts": []
+}

@@ -3,6 +3,46 @@
 Status: proposed operator-specific evaluation. Existing simulated-data benchmarks remain useful
 research evidence; they do not transfer automatically to a new aircraft or component.
 
+## Implemented evidence-package checks
+
+`scripts/check_qualification_evidence.py` now audits a strict `qualification-evidence-v1`
+manifest using shared `artifacts/qualification.py`. The model and visual-geometry templates are
+[model-qualification.example.json](templates/model-qualification.example.json) and
+[geometry-qualification.example.json](templates/geometry-qualification.example.json).
+
+It checks declared scope/reference completeness, a declared criteria-freeze timestamp strictly
+before evaluation start, reviewer/decision references, required artifact roles and SHA-256 byte
+bindings. The model audit also checks nonempty, nonduplicated, disjoint fit/validation/calibration/
+independent-evaluation asset IDs. IDs must be source/asset namespaced upstream; the audit cannot
+discover undisclosed reuse under aliases or authenticate the declared timestamps and reviewers.
+Preserve historical inspection disclosure. Geometry requires drawing, permitted geometry,
+installation-mapping, dimensional/selection checks and review evidence; hashing does not verify
+their engineering content or convert an illustrative airframe into a physical twin.
+
+Artifacts are records with `role`, `relative_path` and a lowercase 64-character `sha256`, rooted
+in the explicitly supplied approved evidence directory. Absolute/traversing paths, symlinks
+outside that directory, missing/non-file artifacts, duplicate roles and changed hashes fail.
+The audit only reads bytes; it does not load model pickle files, promote models, update geometry
+or change application approvals. Outputs always retain `operational_qualification_established:
+false`, even when all bindings are complete. Completeness is for a reviewer, not automatic approval.
+
+```sh
+docker run --rm -v "$PWD:/workspace" -w /workspace \
+  -e PYTHONPATH=/workspace/backend/src fleet-maintenance-test \
+  python scripts/check_qualification_evidence.py \
+  --manifest docs/pilot/templates/model-qualification.example.json \
+  --evidence-root . --output artifacts/pilot/model-evidence-gaps.json
+docker run --rm -v "$PWD:/workspace" -w /workspace \
+  -e PYTHONPATH=/workspace/backend/src fleet-maintenance-test \
+  python scripts/check_qualification_evidence.py \
+  --manifest docs/pilot/templates/geometry-qualification.example.json \
+  --evidence-root . --output artifacts/pilot/geometry-evidence-gaps.json
+```
+
+Both blank templates intentionally exit 2. Use the documented backend test image; keep actual
+restricted evidence outside Git and mount only its approved directory when running real audits.
+Neither template nor the current illustrative models contain operator qualification evidence.
+
 ## Model support statement
 
 Before evaluation, record aircraft/configuration, component type/serial family, input signals and

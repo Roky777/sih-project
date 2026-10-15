@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any, cast
 
 import yaml
-
 from fleet_maintenance.science.data.loaders import load_cmapss_table
 from fleet_maintenance.science.data.robustness import InterventionKind, InterventionSpec
 from fleet_maintenance.science.data.splitting import EngineSplit

@@ -14,6 +14,7 @@ const ResearchPlanning = lazy(() => import("../planning/PlanningPage").then(m =>
 const ResearchInventory = lazy(() => import("../inventory/InventoryPage").then(m => ({ default: m.InventoryPage })));
 const Deliveries = lazy(() => import("./DeliveryWorkspace").then(m => ({ default: m.DeliveryWorkspace })));
 const Inventory = lazy(() => import("./SparesPage").then(module => ({ default: module.SparesPage })));
+const ResearchEvidence = lazy(() => import("./ResearchEvidencePage").then(module => ({ default: module.ResearchEvidencePage })));
 
 export function WorkspaceScope({ fleetWide = false }: { fleetWide?: boolean }) {
   const [params, setParams] = useSearchParams();
@@ -53,8 +54,12 @@ export function SupplyWorkspace() {
 
 export function ResearchWorkspace() {
   const { asOf } = useAsOf();
+  const [params, setParams] = useSearchParams();
+  const view = params.get("view") === "benchmarks" ? "benchmarks" : params.get("view") === "drawings" ? "drawings" : "workflow";
   return <div className="o-screen research-home">
     <div className="o-screen-head"><h1>Technical sandbox</h1><span>C-MAPSS engine evidence · separate synthetic logistics records</span></div>
+    <Segmented label="Research views" value={view} onChange={value => setParams(previous => { const next = new URLSearchParams(previous); next.set("view", value); return next; })} options={[["workflow", "Decision workflow"], ["benchmarks", "Dataset evidence"], ["drawings", "Engineering register"]] as const}/>
+    {view !== "workflow" ? <Suspense fallback={<p role="status">Loading research evidence…</p>}><ResearchEvidence drawings={view === "drawings"}/></Suspense> : <>
     <p className="workspace-description">Review an engine’s recorded history and model uncertainty, calculate a resource-constrained proposal, then review its approval and work records. These tools use their own engine dataset; they do not update the 40-aircraft fleet’s findings or bay schedule.</p>
     {asOf && <p className="o-note">Fleet replay is selected. Engine research uses its own saved input cutoffs.</p>}
     <div className="workspace-research-steps">
@@ -63,5 +68,6 @@ export function ResearchWorkspace() {
       <Link to="/scenarios"><span>03 · Compare & review</span><h2>Inspect projected outcomes</h2><p>Compare saved assumptions. Approve an exact proposal in the planner when authorized.</p><Icon name="arrow" size={20}/></Link>
     </div>
     <div className="workspace-research-links"><Link to="/demo">Try the guided case</Link><Link to="/inventory">Parts & deliveries</Link><Link to="/alerts">Engine alerts</Link><Link to="/ai">How the model helps</Link><Link to="/fleet">Spatial engine inspection</Link></div>
+    </>}
   </div>;
 }

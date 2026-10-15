@@ -34,6 +34,8 @@ def load_cmapss_table(path: Path, subset: str, partition: str) -> CmapssTable:
     if not np.equal(raw_cycles, np.floor(raw_cycles)).all() or (raw_cycles <= 0).any():
         raise ValueError("Cycles must be positive integers.")
     engines = raw_engines.astype(np.int64)
+    if (engines <= 0).any():
+        raise ValueError("Engine numbers must be positive integers.")
     cycles = raw_cycles.astype(np.int64)
     for engine in np.unique(engines):
         observed = cycles[engines == engine]
@@ -45,6 +47,8 @@ def load_cmapss_table(path: Path, subset: str, partition: str) -> CmapssTable:
 
 def load_rul_labels(path: Path, expected_engines: int) -> NDArray[np.int64]:
     labels = np.loadtxt(path, dtype=np.float64).reshape(-1)
+    if not np.isfinite(labels).all():
+        raise ValueError("RUL labels must be finite.")
     if len(labels) != expected_engines:
         raise ValueError(f"Expected {expected_engines} RUL labels, found {len(labels)}.")
     if not np.equal(labels, np.floor(labels)).all() or (labels < 0).any():

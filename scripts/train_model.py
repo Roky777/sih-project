@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import yaml
-
 from fleet_maintenance.science.data.loaders import load_cmapss_table
 from fleet_maintenance.science.data.splitting import EngineSplit
 from fleet_maintenance.science.prediction.training import train_baseline

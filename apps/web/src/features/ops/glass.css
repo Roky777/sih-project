@@ -30,16 +30,9 @@
   --o-glow-1: rgba(105, 155, 69, .30); --o-glow-lime: rgba(194, 213, 117, .12); --o-glow-2: rgba(91, 155, 255, .08);
 }
 
-/* Static atmospheric depth: fine grain, shaded edges and a diffused central light.
-   Texture belongs to the background only; foreground cards and text remain crisp. */
-:root { --o-atmosphere-edge: #173c302b; --o-atmosphere-cool: #28485f20; --o-atmosphere-light: #ffffff52; }
-:root[data-theme="dark"] { --o-atmosphere-edge: #00000066; --o-atmosphere-cool: #1e5b6e30; --o-atmosphere-light: #3c796b12; }
+/* Reference olive/lime wash, fixed to the viewport for the same gradient on every route. */
 html:has(.o-shell), body:has(.o-shell) {
-  background: url("/textures/workspace-grain.svg"),
-    radial-gradient(ellipse 70vw 75vh at 58% 58%,var(--o-atmosphere-light),transparent 75%),
-    radial-gradient(ellipse 90vw 45vh at 30% -15%,var(--o-atmosphere-edge),transparent 80%),
-    linear-gradient(115deg,var(--o-atmosphere-edge),transparent 35%,transparent 74%,var(--o-atmosphere-cool)),
-    radial-gradient(ellipse 65vw 110vh at 0% 0%, var(--o-glow-1), transparent 72%),
+  background: radial-gradient(ellipse 65vw 110vh at 0% 0%, var(--o-glow-1), transparent 72%),
     radial-gradient(ellipse 55vw 100vh at 0% 75%, var(--o-glow-lime), transparent 75%),
     radial-gradient(900px 520px at 100% 0%, var(--o-glow-2), transparent 60%), var(--o-bg);
   background-attachment: fixed;
@@ -411,3 +404,12 @@ i.t-plan { background: var(--o-accent-2); } i.t-crit { background: var(--o-criti
   -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent); mask-image: linear-gradient(to bottom, #000 82%, transparent); }
 .o-shell.is-scrolled .o-header-backdrop { opacity: 1; }
 @media (max-width: 760px) { .o-header-backdrop { height: 84px; } }
+
+/* Keep the last navigation menu clear of the action buttons at narrow desktop widths. */
+@media (min-width: 1241px) {
+  .o-shell .o-header { column-gap: 24px; }
+  .o-shell .o-topnav, .o-topnav > a, .o-topnav > .o-navmenu { flex-shrink: 0; }
+}
+@media (min-width: 1241px) and (max-width: 1500px) {
+  .o-shell .o-header .o-header-brand { min-width: 120px; }
+}

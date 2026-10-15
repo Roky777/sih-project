@@ -1,0 +1,18 @@
+{
+  "version": "cmapss-multisubset-research-v1",
+  "subsets": ["FD002", "FD003", "FD004"],
+  "split_seed": 26251,
+  "model_seed": 26251,
+  "minimum_history_cycles": 30,
+  "feature_window_cycles": 30,
+  "target_cap_cycles": 125,
+  "regime_clusters": {"FD002": 6, "FD003": 1, "FD004": 6},
+  "hist_gradient_boosting": {
+    "max_iter": 250, "learning_rate": 0.06, "max_leaf_nodes": 15,
+    "l2_regularization": 1.0, "early_stopping": false
+  },
+  "nominal_interval_coverage": 0.9,
+  "review_policy_cycles": {"critical_at_or_below": 20, "review_at_or_below": 45},
+  "protocol": "Separate 70/15/15 engine partitions within each supplied training subset. Fit regime clustering/normalisation and predictor on fit engines only. Validation and calibration each use one seeded uniform cutoff per engine after minimum history. Freeze all parameters before opening official test targets; evaluate each official test engine at its supplied endpoint. Short histories withheld and counted. Report capped primary and uncapped secondary error, constant fit-target baseline, empirical interval coverage/width and per-engine errors. No test-based tuning or cross-subset pooled scores.",
+  "limits": "Research benchmark on simulated engine histories. Calibration random cutoffs and official endpoints may differ in distribution; report empirical coverage without claiming exchangeability or conditional guarantees. No operational error budgets, individual failure probabilities, diagnosis or serving-model promotion. FD001 remains historically inspected evidence from a different protocol/model."
+}

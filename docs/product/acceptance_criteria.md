@@ -293,3 +293,49 @@ no future source values or prior snapshot score is substituted. Check stale obse
 reopen and completed-state behavior. Model and 2D map retain a review concern during stale transport,
 keep unsupported parts unassessed and link to the identical component evidence. Verify real worker
 results, phone overflow and missing-model/source states. Physical/operational validation is external.
+
+## Offline operational-evidence preparation — 2026-10-14
+
+Verify unioned downtime per aircraft, membership/window clipping, unknown exposure and bounds,
+null availability with no known state, open-record censoring, membership gaps, touching boundaries,
+timezone offsets and redelivery. Reject conflicting event IDs/states, undeclared aircraft and
+invalid clocks. Retain input/source/implementation hashes. The handover checker must expose
+omitted/null sections and pending acceptance states. Populated fields alone never establish
+authenticity, pilot authorisation, model/geometry qualification or operational benefit.
+See [export contract](../pilot/availability-export.md); synthetic references remain labelled.
+
+Model/geometry evidence-package audits must reject missing scope/artifact roles, changed hashes,
+out-of-root paths/symlinks, duplicate roles, model asset partition leakage, and criteria declared
+at/after evaluation start. Binding-complete test packages must still explicitly establish no
+operational qualification. These checks do not authenticate reviewers or prove artifact content.
+
+## User-requested prototype presentation restoration — 2026-10-14
+
+The supplied full-screen aircraft reference replaces the compact aircraft-viewer layout requirement.
+Verify the green grid, large three-quarter model, right-side camera controls, lower statistics,
+FleetAvail wordmark and More/Research menus. Retain selected-record identity through browsing/error,
+component evidence, blueprint handoff, current maintenance/summary records below the stage,
+desktop/mobile containment and reduced motion. Research menu selection must distinguish its dataset
+from ordinary aircraft. Models remain illustrative and values come from the actual selected record.
+
+## Multi-subset research demonstration — 2026-10-15
+
+Use the frozen protocol in `docs/research/multidataset-demo-protocol.md`. Separate FD002–FD004
+fits must preserve engine-disjoint partitions, fit-only transformations and calibration before
+test targets; a changed test label must not change weights or predictions. Retain source,
+configuration, split, model and implementation hashes, actual denominators, excluded endpoints,
+capped/uncapped errors and empirical interval coverage. Historical inspected FD001 stays labelled.
+No cross-subset pooled score or operational model promotion is implied.
+
+The Research dataset/engine selectors must preserve source identity and cutoff-bound sensor
+history. Withheld records contain no numerical prediction/interval or invented influence. Missing,
+corrupt or mismatched reports produce explicit errors, including under authenticated API access.
+Install verified JSON reports atomically; refuse different installed evidence and never load
+research weights from the read-only browser path. Register drawings/revisions/reviewers as pending
+where absent; do not interpret authored catalogue layouts as approved installations.
+
+The existing preventive simulator must retain its actual aircraft-day denominator, horizon, seed,
+repair/stock/capacity inputs and intervention assumptions. Display availability and difference
+formulas, preserve negative results and distinguish missing snapshots on older runs. Verify the
+full existing FD001 input-to-work journey and restored aircraft UI. Public frontend smoke testing
+must record its actual backend state; a correct offline screen does not establish public readiness.

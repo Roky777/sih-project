@@ -15,7 +15,7 @@ const kinds: { kind: Kind; icon: IconName; text: string }[] = [
   { kind: "early_replacement", icon: "spark", text: "Act early on every P1 (and optionally P2) prediction" },
   { kind: "extra_capacity", icon: "layers", text: "Add a bay or a shift at one maintenance agency" },
 ];
-type Result = { dates: string[]; baseline: Summary; scenario: Summary; delta: { availability_pct_points: number; aircraft_days_lost: number; by_cause: Record<string, number> }; by_aircraft: { aircraft: string; delta_aircraft_days: number }[]; stockouts: { part_number: string; baseline: number; scenario: number }[]; baseline_includes_planned_work: number; framing: string };
+type Result = { assumptions?: { aircraft_count: number; exposure_aircraft_days: number; availability_formula: string; comparison_formula: string; failure_model: string; repair_model: string; [key: string]: unknown }; dates: string[]; baseline: Summary; scenario: Summary; delta: { availability_pct_points: number; aircraft_days_lost: number; by_cause: Record<string, number> }; by_aircraft: { aircraft: string; delta_aircraft_days: number }[]; stockouts: { part_number: string; baseline: number; scenario: number }[]; baseline_includes_planned_work: number; framing: string };
 type Summary = { curve: { p10: number[]; p50: number[]; p90: number[]; mean: number[] }; availability_mean: number; availability_p10: number; availability_p90: number; aircraft_days_lost: number; by_cause: Record<string, number>; expected_failures: number };
 const result = (run: ScenarioRun) => run.results as unknown as Result;
 
@@ -133,6 +133,9 @@ function Comparison({ runs }: { runs: ScenarioRun[] }) {
       };
     }}/>
     <ImpactStrip run={active}/>
+    <div className="o-note" aria-label="Simulation assumptions and formula"><div><strong>Simulated availability — calculation and assumptions</strong><p>Availability = 1 − mean unavailable aircraft-days ÷ (aircraft × horizon days). Change = 100 × (scenario − baseline), in percentage points. A positive change is a simulated projection, not an observed operational improvement.</p>
+      {result(active).assumptions ? <><p>{result(active).assumptions!.aircraft_count} aircraft × {active.horizon_days} days = {result(active).assumptions!.exposure_aircraft_days} aircraft-days. Baseline lost {num(result(active).baseline.aircraft_days_lost, 2)}; intervention lost {num(result(active).scenario.aircraft_days_lost, 2)} aircraft-days.</p><p>{result(active).assumptions!.repair_model}</p><details><summary>Frozen downtime, stock, capacity and intervention inputs</summary><pre>{JSON.stringify(result(active).assumptions, null, 2)}</pre></details></> : <p>This older run does not retain the full assumptions snapshot. Run a new scenario to inspect its actual denominator and downtime inputs.</p>}
+    </div></div>
     <div className="o-grid o-cols-2" style={{ marginTop: 6 }}>
       <div><h4 className="o-sub">Change in aircraft-days lost by cause · {active.name}</h4>
         <OpsChart label="Change in downtime by cause" height={190} deps={[active]} build={p => { const entries = Object.entries(result(active).delta.by_cause); return {

@@ -1235,6 +1235,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/evidence/research": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Index */
+        get: operations["index_api_evidence_research_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/evidence/research/{subset}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Report */
+        get: operations["report_api_evidence_research__subset__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/evidence/drawings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Drawings */
+        get: operations["drawings_api_evidence_drawings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fleet-health/engine": {
         parameters: {
             query?: never;
@@ -2740,6 +2791,33 @@ export interface components {
             /** Spare Wait Days */
             spare_wait_days: number;
         };
+        /** DrawingEvidence */
+        DrawingEvidence: {
+            /** Model Family */
+            model_family: string;
+            /** Component Reference */
+            component_reference: string;
+            /** Mapping Reference */
+            mapping_reference: string;
+            /** Drawing Reference */
+            drawing_reference?: string | null;
+            /** Drawing Revision */
+            drawing_revision?: string | null;
+            /**
+             * Verification Status
+             * @default pending
+             * @constant
+             */
+            verification_status: "pending";
+            /** Reviewer */
+            reviewer?: string | null;
+            /**
+             * Provenance
+             * @default authored_demonstration_mapping
+             * @constant
+             */
+            provenance: "authored_demonstration_mapping";
+        };
         /** EngineIngestionRequest */
         EngineIngestionRequest: {
             /** Component Id */
@@ -2805,6 +2883,17 @@ export interface components {
             scripted: {
                 [key: string]: unknown;
             }[];
+        };
+        /** ErrorMetrics */
+        ErrorMetrics: {
+            /** Count */
+            count: number;
+            /** Mae Cycles */
+            mae_cycles: number;
+            /** Rmse Cycles */
+            rmse_cycles: number;
+            /** Asymmetric Score */
+            asymmetric_score: number;
         };
         /** ExplanationStateResponse */
         ExplanationStateResponse: {
@@ -3097,6 +3186,13 @@ export interface components {
             readings: {
                 [key: string]: unknown;
             }[];
+        };
+        /** InputInfluence */
+        InputInfluence: {
+            /** Feature */
+            feature: string;
+            /** Change When Replaced Cycles */
+            change_when_replaced_cycles: number;
         };
         /** InspectionTaskResponse */
         InspectionTaskResponse: {
@@ -3526,6 +3622,177 @@ export interface components {
              */
             demonstrate_rejection: boolean;
         };
+        /** ResearchEngine */
+        ResearchEngine: {
+            /** Engine Id */
+            engine_id: string;
+            /** Engine Number */
+            engine_number: number;
+            /** Cutoff Cycle */
+            cutoff_cycle: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "evaluated" | "withheld";
+            /** Predicted Rul Cycles */
+            predicted_rul_cycles: number | null;
+            /** Lower Cycles */
+            lower_cycles: number | null;
+            /** Upper Cycles */
+            upper_cycles: number | null;
+            /** Reference Rul Cycles */
+            reference_rul_cycles: number;
+            /**
+             * Review Urgency
+             * @enum {string}
+             */
+            review_urgency: "critical_review" | "review" | "routine" | "unavailable";
+            /** Recommendation */
+            recommendation: string;
+            /** Sensor Trend */
+            sensor_trend: components["schemas"]["SensorPoint"][];
+            /**
+             * Influences
+             * @default []
+             */
+            influences: components["schemas"]["InputInfluence"][];
+        };
+        /** ResearchIndex */
+        ResearchIndex: {
+            /** Version */
+            version: string;
+            /** Summaries */
+            summaries: components["schemas"]["ResearchSummary"][];
+        };
+        /** ResearchReport */
+        ResearchReport: {
+            /**
+             * Schema Version
+             * @default research-benchmark-v1
+             * @constant
+             */
+            schema_version: "research-benchmark-v1";
+            /**
+             * Subset
+             * @enum {string}
+             */
+            subset: "FD001" | "FD002" | "FD003" | "FD004";
+            /**
+             * Simulated
+             * @default true
+             * @constant
+             */
+            simulated: true;
+            /**
+             * Evidence Status
+             * @enum {string}
+             */
+            evidence_status: "historical_inspected" | "research_only";
+            /** Model Version */
+            model_version: string;
+            /** Operating Conditions */
+            operating_conditions: number;
+            /** Fault Modes */
+            fault_modes: number;
+            /** Target Cap Cycles */
+            target_cap_cycles: number;
+            /** Minimum History Cycles */
+            minimum_history_cycles: number;
+            /** Train Engine Count */
+            train_engine_count: number;
+            /** Test Engine Count */
+            test_engine_count: number;
+            /** Withheld Count */
+            withheld_count: number;
+            /** Split Counts */
+            split_counts: {
+                [key: string]: number;
+            };
+            capped_primary: components["schemas"]["ErrorMetrics"];
+            uncapped_secondary: components["schemas"]["ErrorMetrics"];
+            validation: components["schemas"]["ErrorMetrics"] | null;
+            constant_baseline: components["schemas"]["ErrorMetrics"] | null;
+            /** Interval Coverage */
+            interval_coverage: number;
+            /** Mean Interval Width Cycles */
+            mean_interval_width_cycles: number;
+            /** Nominal Interval Coverage */
+            nominal_interval_coverage: number;
+            /** Protocol */
+            protocol: string;
+            /** Limitations */
+            limitations: string;
+            /** Provenance */
+            provenance: {
+                [key: string]: unknown;
+            };
+            /** Engines */
+            engines: components["schemas"]["ResearchEngine"][];
+        };
+        /** ResearchSummary */
+        ResearchSummary: {
+            /**
+             * Schema Version
+             * @default research-benchmark-v1
+             * @constant
+             */
+            schema_version: "research-benchmark-v1";
+            /**
+             * Subset
+             * @enum {string}
+             */
+            subset: "FD001" | "FD002" | "FD003" | "FD004";
+            /**
+             * Simulated
+             * @default true
+             * @constant
+             */
+            simulated: true;
+            /**
+             * Evidence Status
+             * @enum {string}
+             */
+            evidence_status: "historical_inspected" | "research_only";
+            /** Model Version */
+            model_version: string;
+            /** Operating Conditions */
+            operating_conditions: number;
+            /** Fault Modes */
+            fault_modes: number;
+            /** Target Cap Cycles */
+            target_cap_cycles: number;
+            /** Minimum History Cycles */
+            minimum_history_cycles: number;
+            /** Train Engine Count */
+            train_engine_count: number;
+            /** Test Engine Count */
+            test_engine_count: number;
+            /** Withheld Count */
+            withheld_count: number;
+            /** Split Counts */
+            split_counts: {
+                [key: string]: number;
+            };
+            capped_primary: components["schemas"]["ErrorMetrics"];
+            uncapped_secondary: components["schemas"]["ErrorMetrics"];
+            validation: components["schemas"]["ErrorMetrics"] | null;
+            constant_baseline: components["schemas"]["ErrorMetrics"] | null;
+            /** Interval Coverage */
+            interval_coverage: number;
+            /** Mean Interval Width Cycles */
+            mean_interval_width_cycles: number;
+            /** Nominal Interval Coverage */
+            nominal_interval_coverage: number;
+            /** Protocol */
+            protocol: string;
+            /** Limitations */
+            limitations: string;
+            /** Provenance */
+            provenance: {
+                [key: string]: unknown;
+            };
+        };
         /** ReservationHistoryResponse */
         ReservationHistoryResponse: {
             /** Id */
@@ -3671,6 +3938,17 @@ export interface components {
             dataset: string;
             /** To */
             to: string;
+        };
+        /** SensorPoint */
+        SensorPoint: {
+            /** Cycle */
+            cycle: number;
+            /** Sensor 2 */
+            sensor_2: number;
+            /** Sensor 3 */
+            sensor_3: number;
+            /** Sensor 4 */
+            sensor_4: number;
         };
         /** SensorSeries */
         SensorSeries: {
@@ -6900,6 +7178,104 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    index_api_evidence_research_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string;
+                "x-demo-role"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchIndex"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_api_evidence_research__subset__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string;
+                "x-demo-role"?: string;
+            };
+            path: {
+                subset: "FD001" | "FD002" | "FD003" | "FD004";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    drawings_api_evidence_drawings_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string;
+                "x-demo-role"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DrawingEvidence"][];
                 };
             };
             /** @description Validation Error */

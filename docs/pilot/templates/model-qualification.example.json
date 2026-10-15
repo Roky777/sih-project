@@ -1,0 +1,23 @@
+{
+  "schema_version": "qualification-evidence-v1",
+  "kind": "prediction_model",
+  "evidence_kind": "synthetic_fixture",
+  "support_scope": {
+    "aircraft_configuration": null,
+    "component_family": null,
+    "signals_units_reference": null,
+    "operating_regimes_reference": null,
+    "prediction_target_and_unit": null,
+    "label_definition_reference": null,
+    "historical_inspection_disclosure": null,
+    "support_exclusions": null,
+    "monitoring_rollback_reference": null
+  },
+  "criteria_frozen_at": null,
+  "evaluation_started_at": null,
+  "reviewer_reference": null,
+  "decision_reference": null,
+  "declared_decision": "pending",
+  "partitions": {"fit": [], "validation": [], "calibration": [], "independent_evaluation": []},
+  "artifacts": []
+}

@@ -27,6 +27,8 @@ make its sensors eligible for that model. Reads currently share one agency's aut
 | [Pilot manifest template](templates/pilot-manifest.example.json) | Versioned record of scope, owners, approvals, budgets and evidence. Nulls mean unresolved, not passed. |
 | [Signal mapping template](templates/signal-mapping.example.json) | Source-to-canonical mapping fields; contains no invented aircraft signals. |
 | [Acceptance register](templates/acceptance-register.example.json) | Proposed gates, evidence required, owner and current status. |
+| [Recorded availability evaluator](availability-export.md) | Offline state-export metrics and handover-completeness checks; no operational gains or qualification established. |
+| [Model/geometry evidence audit](qualification.md#implemented-evidence-package-checks) | Strict manifests, byte bindings, scope/timing/partition checks; never automatic qualification. |
 
 ## Stage gates
 
