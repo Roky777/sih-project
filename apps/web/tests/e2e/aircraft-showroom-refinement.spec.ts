@@ -1,5 +1,13 @@
+import { handleWorkspaceEntry } from "./workspaceEntry";
 import { expect, test, type Page } from "@playwright/test";
 import { AIRFRAME_INFO } from "../../src/features/ops/airframeInfo";
+
+test.beforeEach(async ({ page }) => {
+  await handleWorkspaceEntry(page);
+  await page.addLocatorHandler(page.getByRole('dialog', { name: 'A quick look around your dashboard' }), async dialog => {
+    await dialog.getByRole('button', { name: 'Skip', exact: true }).click();
+  });
+});
 
 const families = Object.values(AIRFRAME_INFO);
 const record = (id: string, family = families[0]) => ({

@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from "react";
 import { AssistantProvider } from "../features/assistant/AssistantProvider";
 import { createBrowserRouter, createHashRouter, Link, Navigate, useLocation, useRouteError } from "react-router-dom";
 import { SessionGate } from "../features/access/SessionGate";
+import { RoleEntryGate } from "../features/access/RoleEntryGate";
 import { AsOfProvider } from "../features/ops/AsOf";
 import { OpsLayout } from "../features/ops/OpsLayout";
 import { RoleProvider } from "../features/ops/roles";
@@ -50,9 +51,10 @@ function RouteFailure() {
 const loading = <div className="async-state loading-state" role="status"><span className="spinner"/><strong>Opening workspace…</strong></div>;
 const createRouter = import.meta.env.VITE_PAGES === 'true' ? createHashRouter : createBrowserRouter;
 const page = (element: ReactNode) => <Suspense fallback={loading}>{element}</Suspense>;
-export const router = createRouter([{ path:"/", element:<SessionGate><RoleProvider><AsOfProvider><ToastProvider><AssistantProvider><OpsLayout/></AssistantProvider></ToastProvider></AsOfProvider></RoleProvider></SessionGate>, errorElement:<RouteFailure/>, children:[
+export const router = createRouter([{ path:"/", element:<SessionGate><RoleProvider><RoleEntryGate><AsOfProvider><ToastProvider><AssistantProvider><OpsLayout/></AssistantProvider></ToastProvider></AsOfProvider></RoleEntryGate></RoleProvider></SessionGate>, errorElement:<RouteFailure/>, children:[
   { index:true, element:import.meta.env.VITE_PAGES === 'true' ? <Navigate to="/demo" replace/> : page(<HomeRedirect/>) },
   { path:"home", element:page(<HomeRedirect/>) },
+  { path:"login", element:page(<HomeRedirect/>) },
   { path:"welcome", element:page(<WelcomePage/>) },
   { path:"review", element:<RouteAlias to="/advisories" defaults={{ status: "proposed" }}/> },
   { path:"plan", element:<RouteAlias to="/maintenance" defaults={{ view: "work" }}/> },

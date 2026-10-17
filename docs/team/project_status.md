@@ -241,3 +241,183 @@ image passed 10 tests; the sequence-model module was explicitly skipped because 
 installed in that image. No fresh LSTM evaluation is claimed. The newly evaluated models are the
 fixed classical research models described above. The final API/worker images were rebuilt with
 the JSON report installer; data volumes and serving-model artifacts were retained.
+
+## Optional dashboard overview — 2026-10-15
+
+Added a scoped light/dark welcome modal with Skip and Start overview on every full workspace load
+or refresh. Dismissal is memory-only; internal navigation does not reopen it. The six-step overview
+highlights existing navigation/Ask AI, with a menu-button fallback on mobile, Back/Next/Finish and
+Escape. It does not navigate the product, change backend records or alter the dashboard layout.
+
+Verified: frontend lint/typecheck/production build and all 29 unit tests passed. Nine browser checks
+passed for overview refresh/dismissal/navigation, unchanged selected-aircraft data, mobile fit,
+research evidence/error states and all five restored aircraft model families. The existing complete
+customer-trial journey also passed after dismissing the popup. Earlier browser runs needed a hidden
+background-element locator correction and isolated output directories to avoid test-trace collisions;
+final isolated run passed. Logs: `artifacts/overview-final-browser.log`,
+`artifacts/overview-customer-regression.log`, `artifacts/overview-web-check.log`.
+Local web image rebuilt/restarted at `http://localhost:8080`; no publication performed in this step.
+
+### Role-first overview refinement
+
+The welcome popup now requires Choose your role before Start overview: maintenance engineer,
+maintenance supervisor, logistics team or fleet manager. It uses the existing product-role labels
+and distinct role-specific tours. Change role returns from the first guided step to the dropdown;
+Skip remains available without selection. Selection resets on full refresh and never changes
+account/demo-role storage, permissions, backend records or the underlying dashboard flow.
+
+Verified: frontend lint/typecheck/production build and 29 unit tests passed. Ten browser tests
+passed, covering all four role paths, changing role, completing the engineer tour, reset on refresh,
+Skip/Escape, mobile highlighting, unchanged account-role storage/aircraft identity and preserved
+research/aircraft flows. Local web rebuilt/restarted. Evidence:
+`artifacts/role-overview-web-check.log`, `artifacts/role-overview-browser.log` and
+`artifacts/demo-verification/role-overview-*.png`. No publication in this step.
+
+## Visual login/workspace entry — 16 October 2026
+
+Added `/login` and a dedicated green/white entry screen reusing the existing layered interactive
+workspace grid. Four visual role cards replace the overview dropdown. Local mode is explicitly
+password-free demonstration entry; selecting a role applies the existing demo role, enters its
+existing work area and drives the optional overview. Real account sign-in retains existing backend
+credentials, CSRF, registration and retry handling with the new presentation. After server sign-in,
+only the assigned role can be selected; other cards are disabled. Login clears prior entry completion.
+Existing tab entry survives refresh, while the overview still repeats; account menu / first overview
+step can reopen Choose workspace. Record deep links are preserved.
+
+The existing Fleet Dashboard retains its KPI/chart/twin/data representation. Its Priority actions
+panel now defaults to the current next responsible team from actual case data, with All teams
+available; fleet managers retain the full queue. This is team responsibility, not a fabricated
+individual assignment. Shared source datasets, serving models and backend business logic are unchanged.
+
+Executed: frontend lint/typecheck/build and 29 unit tests passed. Final Docker web production build
+passed; thirteen browser checks passed across all four role paths, reload/Skip, bookmarked aircraft,
+mobile/grid containment, server-role UI restrictions, account sign-in presentation, team priority
+filtering, and existing aircraft/research screens. The complete existing customer trial also passed
+(1 further browser check), including actual inference, scheduling, supply, approval and work. Server
+credential UI tests use explicitly mocked session responses; they do not establish live production
+login/cookie verification. Actual local API denied an engineer planning command with HTTP 403.
+
+Initial mobile verification caught unwrapped card text inherited from global action-button styles;
+scoped wrapping corrected it. Final actual entry capture reported no page errors or document overflow.
+Logs: `artifacts/workspace-entry-web-final.log`, `artifacts/workspace-entry-build-final.log`,
+`artifacts/workspace-entry-final-browser.log`, `artifacts/workspace-entry-customer.log`.
+Captures: `artifacts/demo-verification/workspace-entry-final-*.png`.
+Local website rebuilt/restarted at `http://localhost:8080/login`; no public deployment performed.
+
+### Role-card hover correction — 16 October 2026
+
+Scoped hover/focus/pressed card surfaces to override the global blue action-button hover. Cards
+retain their white/green surfaces and text colours while lifting 3px with a soft shadow; selected
+cards retain the green selection. Dark surfaces remain consistent and reduced motion still disables
+translation. Docker web build/restart passed. Browser computed-style checks on the served site
+confirmed unchanged background/text and a -3px transform for light/dark, selected/unselected cards.
+Evidence: `artifacts/demo-verification/role-card-hover-check.json` and `role-card-hover-fixed.png`.
+
+### Progressive hover-to-workspace entry — 16 October 2026
+
+Mouse dwell now reveals the exact selected-card green gradient left-to-right over two seconds,
+then enters that role through the existing permission-aware entry path. Animation completion drives
+normal entry with a delayed fallback for disabled animations/reduced motion. Leaving/switching cards,
+pointer cancellation, window blur or visibility changes clear the dwell; unmount clears its timer.
+Click/tap selection plus Open workspace and keyboard entry remain available. Locked server-role
+cards remain inert, the navigation is guarded against double entry, and fleet records are unchanged.
+A short interaction hint explains automatic entry without describing it as data loading.
+
+Verified production build, frontend lint and 29 unit tests passed. Sixteen browser checks passed,
+including exact intermediate fill colours/progress, automatic role landing, cancellation after the
+original dwell time, touch/keyboard fallback, locked roles, and preserved research/aircraft flows.
+A separate reduced-motion check passed (17 browser checks total); it removes the sweep while
+preserving the entry delay. Local web rebuilt/restarted. Logs: `artifacts/hover-entry-web-check.log`,
+`artifacts/hover-entry-build.log`, `artifacts/hover-entry-browser.log`, `artifacts/hover-entry-reduced.log`.
+
+## Liquid selection and loading-path correction — 16 October 2026
+
+Supersedes hover-to-entry: a smooth rising/waving liquid mask reveals the same selected green.
+Completion only sets the selected role. No hover/animation/timer calls entry or writes the entry
+marker/effective role. **Select workspace** is required for entry; click/tap/keyboard remain supported.
+The liquid effect uses CSS on one card rather than a frame-by-frame React loop, and reduced motion
+removes the sweep. Locked server roles and existing data/permission boundaries remain unchanged.
+
+Loading investigation found the API healthy during the current check; the earlier screenshot's
+transient offline condition was not reproduced as an ongoing backend outage. Optimised the actual
+startup path: prefetch/cache the read-only engine readiness while choosing a role, remove the duplicate
+engine observer, bound readiness and health requests to five seconds without automatic engine retry,
+and open the event stream only after entry. Hidden tabs close their streams and returning tabs
+reconnect/refresh authoritative queries. No engine/model is retrained and no synthetic ready data
+is substituted. Existing engine generation still polls; failed connection presents Retry.
+
+Executed: frontend lint/typecheck/build plus 29 unit tests passed; Docker web production build and
+restart passed. Twenty targeted browser checks passed for liquid progress/exact colours, selection
+without navigation, explicit confirmation, cancellation, mobile, reduced motion, cached readiness,
+no pre-entry stream, hidden-stream reconnect, a stalled engine's five-second retry state and preserved
+research/aircraft screens. The complete existing customer trial also passed (21 browser checks total),
+including live job results, scheduling, supply comparison, approval and completed work.
+
+One actual warm-API local Chrome measurement was **1,009 ms from Select workspace to rendered
+availability chart**, including automated Skip of the overview. This is a diagnostic, not a general
+latency guarantee or a directly comparable percentage speedup: the earlier baseline capture included
+a fixed 1.5-second settle interval. Retained request/status timings:
+`artifacts/demo-verification/dashboard-performance-before.json` and `dashboard-performance-after.json`.
+Further evidence: `artifacts/liquid-selection-{web-check,build,browser,customer}.log`,
+`artifacts/demo-verification/liquid-role-fill.png`. Deployment verification script updated for the new
+confirmation/overview steps and syntax checked; no fresh public deployment/authentication claim.
+
+## Tour highlights and workflow card polish — 16 October 2026
+
+Tour outlines now sit inside the control and match its rounding, with no protruding green halo.
+Navigation child sizes are observed so late badge counts cannot leave the highlight over a neighbour.
+All role steps retain their existing targets and mobile menu fallback. Each maintenance-flow item is
+now a separate rounded card with consistent gaps and responsive wrapping. Nonzero counts and the
+unchanged simulated availability percentage use green badges; zero counts remain neutral. No data,
+role permissions, stage calculations or destination links changed.
+
+Executed frontend lint/typecheck/production build and 29 unit tests; all passed. Rebuilt/restarted the
+local Docker web service. Nineteen browser checks passed: all steps of all four tours on desktop and
+mobile, five-card spacing/forecast preservation on findings/maintenance/spares, and existing entry,
+liquid selection, authentication presentation and readiness checks. Initial checks exposed badge-load
+layout drift; observing navigation children fixed it, and the complete rerun passed. Evidence:
+`artifacts/tour-flow-polish-{web,browser,build,lint}.log` and
+`artifacts/demo-verification/{tour-highlight-contained,workflow-metric-cards,workflow-metric-cards-mobile}.png`.
+
+## Reference layout restored — 16 October 2026
+
+User supplied a reference superseding the separate-card layout: restored a continuous rounded white
+workflow bar, five equal desktop columns, pale green active step and plain counts/forecast. Smaller
+screens wrap. Restored the supplied AeroCare logo, Analysis navigation label and reference tool order.
+More/Research moved into expandable account-menu groups and remain in mobile navigation; destination
+links and data are unchanged. Contained tour highlights remain intact.
+
+Verified lint/typecheck/build and 29 unit tests passed; Docker web rebuilt and restarted. All 19
+entry/tour/reference-flow browser checks passed, covering desktop/mobile, live forecast preservation
+and all role tour targets. Separately verified account-menu Research links are visible when expanded.
+Logs: `artifacts/reference-flow-{web,build,browser}.log`; visual capture:
+`artifacts/demo-verification/reference-workflow-bar.png`. Available locally; no publish performed.
+
+### Availability percentage polish — 16 October 2026
+
+The forecast now has a pale green rounded badge, stronger green percentage and thin proportional
+track. The shared bar, other counts and forecast source are unchanged; unavailable values show a
+dash without a track. Verified production build/typecheck, lint and five targeted browser checks
+(desktop/mobile flow, API forecast preservation, all role tour outlines). Docker web rebuilt and
+restarted. Logs: `artifacts/availability-badge-{build,lint,browser,docker}.log`; screenshot:
+`artifacts/demo-verification/availability-badge.png`.
+
+## Workspace selection fits the viewport — 17 October 2026
+
+Removed `01 / WORKSPACE` and its extra spacing. Role entry now uses a viewport-sized panel with
+dedicated confirmation area and more compact cards. Short screens omit secondary copy rather than
+requiring scrolling to confirm; role labels, selection, destinations and demo footer remain visible.
+Verified all four cards and Select workspace fit without page or internal scrolling at 1440×900,
+1366×768, 1280×720, 1024×600, 820×1180, 390×844, 375×667 and 320×568. Enlarged text retains an internal
+overflow fallback instead of clipping controls. Account sign-in layout and role permissions unchanged.
+
+Also completed the requested availability visual state: green percentage and progress track remain,
+with transparent background/border until the availability step is selected. Selected state retains
+the green badge fill. Forecast data and other workflow counts are unchanged.
+
+Executed frontend lint/typecheck/build and 29 unit tests; passed. Final Docker build/restart passed.
+Twenty browser checks passed, including the eight-size no-scroll check, explicit role confirmation,
+liquid interaction, assigned-role restrictions and contained tour highlights. An initial spacing check
+caught role-content overlap; corrected the spacing before the successful final run. Logs:
+`artifacts/entry-viewport-{web,docker,lint,browser}.log`, `artifacts/entry-fit-browser.log`.
+Final screenshots: `artifacts/demo-verification/workspace-fit-{1366,390,320}.png`. Local changes only.

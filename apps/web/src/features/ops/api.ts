@@ -102,8 +102,14 @@ function withAsOf(path: string, asOf: string | null) {
   return `${path}${path.includes("?") ? "&" : "?"}as_of=${asOf}`;
 }
 
+export const engineQueryOptions = {
+  queryKey: ["ops", "engine"],
+  queryFn: () => api(`${base}/engine`, { signal: AbortSignal.timeout(5000) }, isEngine),
+  staleTime: 60_000,
+  retry: false,
+};
 export function useEngine(poll = false) {
-  return useQuery({ queryKey: ["ops", "engine"], queryFn: () => api(`${base}/engine`, undefined, isEngine), refetchInterval: poll ? 4000 : 60_000 });
+  return useQuery({ ...engineQueryOptions, refetchInterval: query => poll && !query.state.data?.ready ? 4000 : 60_000 });
 }
 function useReplayQuery<T>(key: string, path: string, validate: Validator<T>, enabled = true) {
   const { asOf } = useAsOf();

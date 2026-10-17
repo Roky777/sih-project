@@ -18,11 +18,15 @@ import { Card, Query, Segmented } from "./ui";
 export function FleetDashboard() {
   const summary = useSummary();
   const { role } = useRole();
+  const [allTeams, setAllTeams] = useState(false);
   const workspace = useQuery({ queryKey: ["workspace-summary"], queryFn: () => api<components["schemas"]["WorkspaceSummary"]>("/workspace/summary"), enabled: !useAsOf().asOf });
   const trend = useTrend();
   const alerts = useAlerts();
   const { asOf } = useAsOf();
   const navigate = useNavigate();
+  const openActions = workspace.data?.actions.filter(item => !["closed", "cancelled", "monitoring"].includes(item.state)) ?? [];
+  const teamActions = role.id === "fleet_manager" ? openActions : openActions.filter(item => item.next_action.role === role.label);
+  const visibleActions = allTeams ? openActions : teamActions;
   const s = summary.data;
   const forecast = s?.forecast_30d as { availability_mean: number; availability_p10: number; availability_p90: number } | undefined;
   const delta = s ? s.availability_today - s.availability_7d : 0;
@@ -38,7 +42,7 @@ export function FleetDashboard() {
       </div>
       <HeadingReplay/>
     </div>
-    {!asOf && <section className="workspace-next-steps" aria-label="Workspace next steps"><div><Icon name={role.icon} size={18}/><span><strong>{role.label}</strong><small>Review, plan and secure resources</small></span></div><nav aria-label="Maintenance workflow shortcuts"><Link className={role.id === "engineer" ? "current" : ""} to="/advisories?status=proposed"><b>{workspace.data?.awaiting_review ?? "—"}</b> To review <Icon name="arrow" size={15}/></Link><Link className={role.id === "supervisor" ? "current" : ""} to="/maintenance"><b>{workspace.data?.work_needing_action ?? "—"}</b> Work actions <Icon name="arrow" size={15}/></Link><Link className={role.id === "logistics" ? "current" : ""} to="/spares?view=requests">Supply readiness <Icon name="arrow" size={15}/></Link></nav></section>}
+    {!asOf && <section className="workspace-next-steps" aria-label="Workspace next steps"><div><Icon name={role.icon} size={18}/><span><strong>{role.label}</strong><small>{role.question}</small></span></div><nav aria-label="Maintenance workflow shortcuts"><Link className={role.id === "engineer" ? "current" : ""} to="/advisories?status=proposed"><b>{workspace.data?.awaiting_review ?? "—"}</b> To review <Icon name="arrow" size={15}/></Link><Link className={role.id === "supervisor" ? "current" : ""} to="/maintenance"><b>{workspace.data?.work_needing_action ?? "—"}</b> Work actions <Icon name="arrow" size={15}/></Link><Link className={role.id === "logistics" ? "current" : ""} to="/spares?view=requests">Supply readiness <Icon name="arrow" size={15}/></Link></nav></section>}
 
     <div className="o-kpi-row">
       <KpiBlock label="Fleet availability" value={s ? pct(s.availability_today, 0) : "—"} tone={s ? tone(s.availability_today) : undefined} big
@@ -62,11 +66,11 @@ export function FleetDashboard() {
     </div>
     <div className="o-grid-12 fleet-detail-grid">
       <Card className={asOf ? "span-12 fleet-health-panel" : "span-5 fleet-health-panel"} title="Aircraft × system health" subtitle="Select an aircraft or system to inspect its records"><HeatMatrix/></Card>
-      {!asOf && <Card title="Priority actions" className="span-7 fleet-priority-actions" subtitle="Open cases and the next responsible step" actions={<Link className="o-link" to="/advisories?status=proposed">All findings →</Link>}>
+      {!asOf && <Card title="Priority actions" className="span-7 fleet-priority-actions" subtitle={allTeams || role.id === "fleet_manager" ? "Open cases and the next responsible team" : `Next steps for ${role.label.toLowerCase()} · shared case records`} actions={<><button type="button" className="o-link" onClick={() => setAllTeams(value => !value)}>{allTeams ? "My team" : "All teams"}</button><Link className="o-link" to="/advisories?status=proposed">All findings →</Link></>}>
         {workspace.error && <p role="alert">Case actions unavailable. Retry from Maintenance.</p>}
-        <div className="overview-action-grid">{workspace.data?.actions.filter(item => !["closed", "cancelled", "monitoring"].includes(item.state)).slice(0, 4).map(item => <CaseHeader compact key={item.id} record={item}/>)}</div>
+        <div className="overview-action-grid">{visibleActions.slice(0, 4).map(item => <CaseHeader compact key={item.id} record={item}/>)}</div>
         {workspace.isLoading && <p role="status">Loading priority actions…</p>}
-        {workspace.isSuccess && !workspace.data.actions.some(item => !["closed", "cancelled", "monitoring"].includes(item.state)) && <p className="o-note">No open actions are recorded for the current snapshot.</p>}
+        {workspace.isSuccess && visibleActions.length === 0 && <p className="o-note">No open actions for this team are recorded in the current snapshot. Choose All teams to inspect shared priorities.</p>}
       </Card>}
     </div>
 

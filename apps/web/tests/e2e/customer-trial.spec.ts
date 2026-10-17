@@ -1,5 +1,13 @@
+import { handleWorkspaceEntry } from "./workspaceEntry";
 import { expect, test, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
+
+test.beforeEach(async ({ page }) => {
+  await handleWorkspaceEntry(page);
+  await page.addLocatorHandler(page.getByRole('dialog', { name: 'A quick look around your dashboard' }), async dialog => {
+    await dialog.getByRole('button', { name: 'Skip', exact: true }).click();
+  });
+});
 
 const artifactDir = '../../artifacts/ui-flow';
 async function capture(page: Page, name: string) {

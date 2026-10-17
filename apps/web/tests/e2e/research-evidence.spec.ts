@@ -1,4 +1,12 @@
+import { handleWorkspaceEntry } from "./workspaceEntry";
 import { expect, test } from '@playwright/test';
+
+test.beforeEach(async ({ page }) => {
+  await handleWorkspaceEntry(page);
+  await page.addLocatorHandler(page.getByRole('dialog', { name: 'A quick look around your dashboard' }), async dialog => {
+    await dialog.getByRole('button', { name: 'Skip', exact: true }).click();
+  });
+});
 
 test('separate research datasets retain identity, counts, sensor history and withheld states', async ({ page, request }) => {
   await page.goto('/research?view=benchmarks');

@@ -450,3 +450,105 @@ boundaries. A conceptual 3D engine envelope and top-down schematic show the same
 snapshot-bound review concern; unmapped parts remain unassessed. Evidence links lead to the existing
 component/review journey. See [transport contract](../engineering/live_telemetry_demo.md). This adds
 a live-ingestion demonstration without changing the real-aircraft/physical-twin scope gates.
+
+## Dashboard overview invitation — 2026-10-15
+
+On every full workspace page load/refresh, show a compact welcome dialog with Skip and Start
+overview. Keep dismissal in component memory only; do not persist a seen flag. Internal navigation
+within the workspace must not reopen it. Skip, Escape and completion close the dialog and return
+focus to the workspace. Starting the overview highlights existing navigation controls for fleet
+overview, aircraft, AI findings, maintenance/spares, simulation and Ask AI. Back/Next navigate the
+overview itself, without navigating product routes or changing records. At narrow widths highlight
+the existing navigation-menu button for hidden navigation links. Retain current data, routes,
+dashboard layout and permissions. The dialog follows the current light/dark theme.
+
+### Role-first overview refinement
+
+The invitation starts with an unselected Choose your role dropdown using the four existing product
+roles: maintenance engineer, maintenance supervisor, logistics team and fleet manager. Start overview
+is disabled until selection. Each role has its own steps, ordering, responsibilities and evidence
+boundaries. Change role on the first guided step returns to the invitation; Back returns between
+steps. Choosing a tour role does not switch the account/demo role, grant permissions or alter data.
+The role selection resets on refresh along with the invitation; Skip needs no selection.
+
+## Role workspace entry — 2026-10-16
+
+Replace the tour's native role dropdown with a dedicated visual workspace entry, using the shared
+layered grid and green/white surfaces. Local development explicitly identifies role selection as
+password-free demo entry: selecting one of the existing four role cards applies the actual local
+demo role and opens its existing home. Preserve deep links to aircraft/cases/research records.
+Real account sign-in retains the existing credentials, CSRF, registration and lockout behaviour;
+only the server-assigned workspace is selectable after authentication. Client cards cannot promote
+an account. Each successful sign-in clears entry completion; normal refresh retains workspace entry
+within the tab but still shows the optional overview. Change workspace reopens entry. No fake login,
+private role credential storage or real user assignment is introduced.
+
+The overview automatically follows the selected/assigned workspace role, without a second dropdown.
+The existing dashboard's Priority actions defaults to the case's next responsible team (fleet
+manager sees all); All teams retains shared context. A team queue is not an individual assignment.
+Existing KPIs, fleet data, twin, records and maintenance/supply/scenario flows are retained.
+
+### Progressive hover entry — 2026-10-16
+
+On a fine mouse pointer, staying over an available role card reveals the exact selected green
+surface left-to-right over two seconds. Completion enters that role through the existing entry
+function; it does not represent data loading or grant additional access. Leaving, switching cards,
+pointer cancellation, Escape on the card, window blur or visibility changes cancel the dwell.
+Click/tap selection and Open workspace remain available; keyboard focus alone never enters.
+Disabled server-role cards cannot start the animation or enter. Reduced-motion preference removes
+the moving fill while retaining the delay and explicit entry alternatives. Reuse existing role
+homes, deep-link preservation and permission boundaries; no fleet-data changes.
+
+### Liquid role selection and explicit entry — 2026-10-16
+
+Supersedes automatic hover entry: the exact selected-card green rises behind a gently moving liquid
+edge. Completing the two-second fill selects the role only. No hover, timer or animation callback
+may enter the workspace, change the effective account/demo role or navigate. Only Select workspace
+confirms entry. Pointer cancellation retains any previous completed selection. Click/tap/keyboard
+and reduced-motion alternatives remain available, and locked roles remain inert.
+
+Warm the read-only engine-readiness query during the authenticated role-entry screen. Reuse that
+cache when the workspace opens, with a single readiness observer and a five-second connection
+deadline without automatic request retry. Incomplete engine generation still polls; unavailable
+status shows an explicit Retry state. Live events open only after workspace entry, close while the
+tab is hidden, and reconnect with authoritative-query refresh on return. Do not change fleet data
+or hide connection failures with fabricated ready states.
+
+### Contained tour highlights and workflow cards — 2026-10-16
+
+Tour outlines sit two pixels inside the visible control and inherit its corner radius. Dim the
+surrounding page without a protruding halo. Track navigation sizing changes, including asynchronously
+loaded badges, as well as viewport changes; hidden mobile controls use the existing menu fallback.
+Show each of the five maintenance-flow items as an individual rounded card with consistent gaps.
+Use green value badges for nonzero work counts and the simulated availability forecast; zero counts
+remain neutral. Preserve values, links, role ownership and stage semantics. Cards wrap responsively.
+
+### Reference workflow bar — 2026-10-16
+
+Supersedes the separate-card presentation above: use one white rounded bar with five equal desktop
+columns, no individual borders or count capsules, and a pale green active step. Keep neutral plain
+counts, green role ownership indicators and existing links/data. Wrap only on smaller screens.
+Use the existing AeroCare logo, six primary navigation links (Analysis for `/analysis`), and
+search/theme/Ask AI/notifications/account controls. More and Research remain accessible in the
+account menu and mobile navigation. Preserve the contained tour highlights.
+
+Availability visual refinement: the forecast alone uses a compact pale green badge, stronger green
+percentage and a slim proportional track. Keep the same forecast value and simulated-forecast title;
+unavailable data stays a dash without a filled track. Other workflow counts remain plain.
+
+### Viewport-contained workspace entry — 2026-10-17
+
+Keep role selection inside the viewport with a dedicated, always-visible confirmation area. Tighten
+spacing and role-card height on laptops; on narrow screens prioritise the role panel over decorative
+intro copy. On constrained heights, only the role content scrolls; it must not overlap the confirmation
+area. Preserve explicit Select workspace, all four roles, liquid selection and permission boundaries.
+
+Remove the redundant `01 / WORKSPACE` label and top spacing. At short viewport heights, omit repeated
+interaction guidance and secondary descriptive copy so the complete role grid and confirmation fit
+without internal scrolling at the verified laptop/phone dimensions. Preserve role names, icons,
+destinations, selection state and demonstration-data footer. Overflow remains an accessibility
+fallback for enlarged text or other constrained viewports rather than clipping role choices.
+
+Availability refinement: retain green forecast text and proportional track, but use a transparent
+badge background and border when the availability step is unselected. Only its selected state gets
+the green fill/border. Hover alone must not fill the percentage badge.

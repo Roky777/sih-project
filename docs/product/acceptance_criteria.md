@@ -339,3 +339,58 @@ repair/stock/capacity inputs and intervention assumptions. Display availability 
 formulas, preserve negative results and distinguish missing snapshots on older runs. Verify the
 full existing FD001 input-to-work journey and restored aircraft UI. Public frontend smoke testing
 must record its actual backend state; a correct offline screen does not establish public readiness.
+
+## Dashboard overview invitation — 2026-10-15
+
+Verify invitation on initial page load and after refresh; Skip and Escape dismiss without changing
+the current route. Internal navigation after dismissal must remain uninterrupted. Start overview,
+Back, Next and Finish must work and highlight actual visible controls, with the menu-button fallback
+on mobile. Confirm selected-aircraft record identity remains unchanged and dialog fits phone widths.
+Use an accessible labelled modal with contained focus; return focus on dismissal. No backend command,
+new record, persisted tour-dismissal flag or dashboard redesign is part of this change.
+
+Role-first refinement: require an explicit dropdown selection before Start overview, allow Skip
+without selection and reset selection on refresh. Verify all four roles show distinct, relevant
+first/second steps and Change role returns to the selector. Verify the engineer path can finish,
+mobile navigation highlighting still fits, and account-role storage and selected-aircraft records
+are unchanged by tour selection. Existing research/aircraft journeys must remain usable after Skip.
+
+## Role workspace entry — 2026-10-16
+
+Verify four keyboard-operable visual role cards, explicit selection/disabled continue, correct local
+role/home, preserved record deep links and role-specific tour. Refresh must retain tab entry while
+showing the overview. Change workspace must reopen entry. Login failures and offline/registration
+states remain truthful. Under server authentication, only the assigned role card can be selected;
+no local role or browser field can elevate account permissions. Verify real sign-in presentation,
+role-limited entry and actual local API role denial. Check desktop/mobile, reduced motion and shared
+grid rendering. Dashboard priorities follow next_action.role with All teams available, rather than
+claiming personal assignment. No fleet KPI or underlying record may be changed by choosing a role.
+
+Hover entry: check intermediate fill, exact green colours and correct role/home on completion
+without clicking. Check that moving away, switching cards and window blur cancel entry even after
+the original dwell duration. Verify touch does not start a dwell; keyboard selection and explicit
+entry still work. Disabled assigned-role alternatives must remain inert. Confirm card text stays
+above the fill, and reduced motion does not trigger immediate navigation.
+
+Liquid refinement: assert intermediate rising-wave fill and unchanged green stops; a completed hover
+sets aria-pressed but leaves URL, session-entry marker and effective demo role unchanged. Require
+Select workspace for navigation, including reduced motion. Verify readiness prefetch is reused,
+no event stream opens before confirmation, hidden tabs release/reconnect streams, and a stalled
+engine request yields an actionable error within its five-second deadline.
+
+Tour/card refinement: inspect every step of all four role tours on desktop and mobile. Highlight
+bounds must stay inside their target and never overlap neighbouring navigation controls, including
+after badge counts load. Across findings, maintenance and spares, verify five separate bordered cards
+with at least eight pixels between them, no horizontal overflow, and an unchanged API-backed forecast
+percentage in a coloured badge. Preserve existing role-entry and overview interactions.
+
+Reference revision supersedes separate cards/coloured metric badges: at desktop widths above 1000px,
+verify five steps in one row inside a rounded white bar, no individual borders and plain forecast
+value equal to the API value. Verify narrow screens fit without horizontal overflow. Retain tour
+containment checks and access to secondary destinations through account/mobile navigation.
+
+Viewport entry: before and after selecting a role, the entire Select workspace button must remain
+inside the viewport without page scrolling. Check laptop, tablet and small phone dimensions. If role
+content scrolls internally, its last card must remain reachable above the confirmation area. Preserve
+entry permissions, explicit confirmation and liquid-selection behavior. Unselected forecast badge
+must be transparent with green text/track; selected availability keeps its green fill.

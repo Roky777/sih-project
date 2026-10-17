@@ -8,7 +8,7 @@ const object = (v: unknown): v is Record<string, unknown> => typeof v === 'objec
 export function EventStreamBridge() {
   const client = useQueryClient();
   useEffect(() => {
-    const source = new EventSource(apiUrl('/events'), { withCredentials: true });
+    let source: EventSource | null = null;
     const refresh = (event: MessageEvent<string>) => {
       if (event.type === 'resync') { void client.invalidateQueries(); return; }
       let value: unknown;
@@ -47,14 +47,26 @@ export function EventStreamBridge() {
         }
       }
     };
-    const expired = () => { source.close(); window.dispatchEvent(new Event('fleet:session-expired')); };
-    source.addEventListener('auth.required', expired);
-    for (const type of eventTypes) source.addEventListener(type, refresh as EventListener);
-    return () => {
+    const expired = () => { source?.close(); window.dispatchEvent(new Event('fleet:session-expired')); };
+    const connect = () => {
+      if (source || document.hidden) return;
+      source = new EventSource(apiUrl('/events'), { withCredentials: true });
+      source.addEventListener('auth.required', expired);
+      for (const type of eventTypes) source.addEventListener(type, refresh as EventListener);
+    };
+    const disconnect = () => {
+      if (!source) return;
       for (const type of eventTypes) source.removeEventListener(type, refresh as EventListener);
       source.removeEventListener('auth.required', expired);
-      source.close();
+      source.close(); source = null;
     };
+    const visibility = () => {
+      if (document.hidden) disconnect();
+      else { void client.invalidateQueries(); connect(); }
+    };
+    document.addEventListener('visibilitychange', visibility);
+    connect();
+    return () => { document.removeEventListener('visibilitychange', visibility); disconnect(); };
   }, [client]);
   return null;
 }

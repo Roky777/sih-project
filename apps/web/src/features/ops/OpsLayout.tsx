@@ -11,6 +11,8 @@ import { useAcknowledgeAlert, useAdvisories, useAlerts, useEngine, useRequestEng
 import { roleById, stageCounts, useActorRole, useRole, type RoleId } from "./roles";
 import { useToast } from "./ui";
 import { WorkspaceGrid } from "./WorkspaceGrid";
+import { BrandLogo } from "../../shared/ui/BrandLogo";
+import { DashboardOverview } from "./DashboardOverview";
 
 import { isResearchPath, navigationGroups, type NavItem } from "./workspaceNavigation";
 import { WorkspaceConnections } from "./WorkspaceConnections";
@@ -29,7 +31,7 @@ export function OpsLayout() {
   const menuButton = useRef<HTMLButtonElement>(null);
   const shell = useRef<HTMLDivElement>(null);
   const lab = isResearchPath(location.pathname) || new URLSearchParams(location.search).get("dataset") === "research" || location.pathname === "/demo";
-  const health = useQuery({ queryKey: ["api-health"], queryFn: () => api("/health/ready", undefined, isHealth), refetchInterval: 30_000, retry: false });
+  const health = useQuery({ queryKey: ["api-health"], queryFn: () => api("/health/ready", { signal: AbortSignal.timeout(5000) }, isHealth), refetchInterval: 30_000, retry: false });
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setPaletteOpen(open => !open); }
@@ -69,7 +71,7 @@ export function OpsLayout() {
     <a className="skip-link" href="#main-content">Skip to content</a>
     <header className="o-header">
       <button type="button" ref={menuButton} className="o-round-btn o-mobile-only" aria-label="Open navigation" onClick={() => setMobileOpen(true)}><Icon name="menu" size={18}/></button>
-      <Link to="/dashboard" className="o-header-brand" aria-label="FleetAvail — home"><span className="o-wordmark"><strong>FleetAvail</strong><small>Integrated Fleet Availability</small></span></Link>
+      <Link to="/dashboard" className="o-header-brand" aria-label="AeroCare — home"><BrandLogo/></Link>
       <TopNav/>
       <div className="o-header-tools">
         <AskAIButton/>
@@ -80,6 +82,7 @@ export function OpsLayout() {
       </div>
     </header>
     <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}><Dialog.Portal><Dialog.Overlay className="o-overlay"/><Dialog.Content className="o-mobile-nav" aria-describedby={undefined} onCloseAutoFocus={event => { event.preventDefault(); menuButton.current?.focus(); }}><Dialog.Title className="sr-only">Workspace navigation</Dialog.Title><div className="o-mobile-nav-head"><strong>FleetAvail</strong><Dialog.Close asChild><button type="button" className="o-round-btn" aria-label="Close navigation"><Icon name="close" size={16}/></button></Dialog.Close></div><CompactMenu/></Dialog.Content></Dialog.Portal></Dialog.Root>
+    <DashboardOverview/>
     <AssistantPanel/>
     {!lab && asOf && <div className="o-replay-banner" role="status"><strong>History/replay · {asOf} · Read only</strong><button className="o-btn ghost" onClick={() => setAsOf(null)}>Exit replay</button></div>}
     <div className="o-main">
@@ -198,9 +201,11 @@ function ProfileMenu() {
     <div className="o-glass-pop">
       <div className="o-profile-who"><strong>{session?.authentication === "server session" ? session.id : `demo-${role.id.replace("_", "-")}`}</strong><small>{role.label} · {session?.authentication === "server session" ? "signed in" : "local demo"}</small></div>
       <Link to="/account">Account</Link>
+      <button type="button" className="o-link" onClick={() => window.dispatchEvent(new Event("fleet:choose-workspace"))}>Choose workspace</button>
       {["engineer", "planner", "supervisor", "administrator"].includes(actorRole ?? "") && <Link to="/data">Data & integrations</Link>}
       <Link to="/settings">Settings</Link>
       <Link to="/help">Help</Link>
+      {navigationGroups.slice(1).map(group => <details className="o-profile-support" key={group.title}><summary>{group.title}</summary>{group.items.map(item => <Link key={item.to} to={item.to}>{item.label}</Link>)}</details>)}
       {session?.authentication === "server session" && <button type="button" className="o-link" disabled={signingOut} onClick={() => { setSigningOut(true); void api("/access/session", { method: "DELETE" }).then(() => window.dispatchEvent(new Event("fleet:session-expired"))).catch(error => toast({ tone: "error", title: "Could not sign out", body: error instanceof Error ? error.message : "Please retry." })).finally(() => setSigningOut(false)); }}>{signingOut ? "Signing out…" : "Sign out"}</button>}
     </div>
   </details>;
@@ -267,14 +272,13 @@ function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (
 
 function EngineGate({ children }: { children: ReactNode }) {
   const actorRole = useActorRole();
-  const engine = useEngine();
+  const engine = useEngine(true);
   const request = useRequestEngineRun();
   const ready = engine.data?.ready;
-  const poll = useEngine(!ready);
   if (engine.isLoading) return <div className="o-gate"><span className="o-spinner"/><strong>Connecting to the fleet engine…</strong></div>;
   if (engine.error && !engine.data) return <div className="o-gate"><Icon name="warning" size={28}/><strong>Fleet engine unavailable</strong><p>{engine.error.message}</p><button type="button" className="o-btn" onClick={() => void engine.refetch()}>Retry</button></div>;
   if (ready) return <>{children}</>;
-  const pending = poll.data?.pending_run ?? engine.data?.pending_run;
+  const pending = engine.data?.pending_run;
   const failed = !pending && engine.data?.runs.some(run => run.state === "failed");
   return <div className="o-gate">
     <div className="o-gate-art"><Icon name="spark" size={30}/></div>

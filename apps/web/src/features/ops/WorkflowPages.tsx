@@ -27,7 +27,8 @@ function NotYourStep({ owner }: { owner: RoleId }) {
 }
 
 export function HomeRedirect() {
-  return <Navigate to="/dashboard" replace/>;
+  const { role } = useRole();
+  return <Navigate to={role.home} replace/>;
 }
 
 /* 2. Maintenance supervisor ---------------------------------------------------------------------- */

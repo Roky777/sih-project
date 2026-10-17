@@ -1,0 +1,34 @@
+.dashboard-overview-overlay { position: fixed; inset: 0; z-index: 90; background: rgb(9 23 24 / 35%); backdrop-filter: blur(6px); }
+.dashboard-overview-overlay.is-touring { backdrop-filter: none; background: transparent; }
+.dashboard-overview { position: fixed; z-index: 92; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); overflow-y: auto; box-sizing: border-box; padding: 32px; border: 1px solid rgb(255 255 255 / 65%); border-radius: 26px; color: #172f2b; background: linear-gradient(135deg, rgb(247 255 250 / 97%), rgb(239 247 251 / 94%)); backdrop-filter: blur(28px); box-shadow: 0 24px 90px rgb(7 30 25 / 22%), inset 0 1px 0 #fff; font-family: Inter, sans-serif; }
+.dashboard-overview.is-touring { top: auto; bottom: 28px; right: 28px; left: auto; transform: none; }
+.dashboard-overview-mark { width: 54px; height: 54px; display: grid; place-items: center; border: 1px solid #b5d8c2; border-radius: 18px; background: #dceee3; color: #287958; margin-bottom: 22px; }
+.dashboard-overview-eyebrow { margin: 0 0 12px; font-size: 10px; font-weight: 600; letter-spacing: .14em; color: #427463; }
+.dashboard-overview h2 { margin: 0 0 14px; font-size: 26px; line-height: 1.22; font-weight: 600; letter-spacing: -.7px; }
+.dashboard-overview [id^="radix-"]:not(h2) { margin: 0; font-size: 14px; line-height: 1.75; color: #4e635c; }
+.dashboard-overview-actions { margin-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dashboard-overview-actions > div { display: flex; gap: 8px; }
+.dashboard-overview-actions button { min-height: 44px; padding: 0 18px; border: 1px solid transparent; border-radius: 13px; font: 500 13px Inter, sans-serif; cursor: pointer; }
+.dashboard-overview-actions .overview-skip, .dashboard-overview-actions .overview-back { background: transparent; color: #405b50; }
+.dashboard-overview-actions .overview-skip { border-color: #c5d4cc; }
+.dashboard-overview-actions .overview-start { background: #245e47; color: #fff; box-shadow: 0 4px 10px rgb(36 94 71 / 15%); }
+.dashboard-overview-actions .overview-start span { margin-left: 12px; }
+.dashboard-overview-actions button:hover { filter: brightness(.94); }
+.dashboard-overview-actions button:focus-visible { outline: 3px solid #73ae91; outline-offset: 3px; }
+.dashboard-overview-actions button:disabled { opacity: .4; cursor: default; }
+.dashboard-overview-progress { display: flex; gap: 6px; margin-top: 24px; }
+.dashboard-overview-progress span { height: 3px; border-radius: 3px; background: #ccdcd3; flex: 1; }
+.dashboard-overview-progress span.done { background: #398564; }
+.dashboard-overview .dashboard-overview-hint { font-size: 11px; line-height: 1.6; color: #667e72; margin-top: 12px; }
+.dashboard-overview-highlight { position: fixed; z-index: 91; border: 2px solid #38865b; pointer-events: none; background: rgb(164 225 182 / 10%); box-shadow: 0 0 0 200vmax rgb(9 23 24 / 42%); box-sizing: border-box; }
+[data-theme="dark"] .dashboard-overview { color: #ecf6ef; background: linear-gradient(135deg, rgb(25 45 39 / 98%), rgb(21 35 48 / 97%)); border-color: #526b60; box-shadow: 0 24px 90px rgb(0 0 0 / 45%); }
+[data-theme="dark"] .dashboard-overview [id^="radix-"]:not(h2) { color: #c2d3ca; }
+[data-theme="dark"] .dashboard-overview-eyebrow { color: #a6c8b4; }
+[data-theme="dark"] .dashboard-overview-mark { color: #b1e6c4; background: #284737; border-color: #4d745c; }
+[data-theme="dark"] .dashboard-overview-actions :is(.overview-skip,.overview-back) { color: #d2e4d8; }
+[data-theme="dark"] .dashboard-overview-actions .overview-start { background: #9acdb0; color: #142b20; }
+[data-theme="dark"] .dashboard-overview .dashboard-overview-hint { color: #adc3b6; }
+@media (max-width: 600px) { .dashboard-overview { padding: 24px; }.dashboard-overview.is-touring { right: 16px; bottom: 16px; }.dashboard-overview h2 { font-size: 23px; }.dashboard-overview-actions button { padding-inline: 13px; } }
+.dashboard-overview-workspace { margin-top: 20px; padding: 16px; border: 1px solid #b7cfc1; border-radius: 14px; background: #e8f2eb; }
+.dashboard-overview-workspace strong { font-size: 13px; }.dashboard-overview-workspace p { margin: 8px 0; font-size: 13px; line-height: 1.6; }.dashboard-overview-workspace span { font-size: 11px; line-height: 1.7; color: #607369; }
+[data-theme="dark"] .dashboard-overview-workspace { background: #284432; border-color: #597a66; }[data-theme="dark"] .dashboard-overview-workspace span { color: #b0c6b7; }

@@ -2,7 +2,7 @@ import { useThemePreference } from "../../shared/ui/theme";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { api, ApiError, setCsrfToken, pagesDeployment, fullAppUrl, isHealth } from "../../shared/api/client";
-import { EventStreamBridge } from "../../shared/api/eventStream";
+import { AccessFrame } from "./AccessFrame";
 import { BrandLogo } from "../../shared/ui/BrandLogo";
 
 type SessionInfo = { id: string; role: string; authentication: string; csrf_token: string | null };
@@ -100,20 +100,22 @@ export function SessionGate({ children }: { children: ReactNode }) {
         catch { throw new Error('This browser could not retain the cross-site session. Open the complete demo below to sign in.'); }
       }
       setPassword(""); setExpired(false);
+      try { sessionStorage.removeItem("fleet:workspace-entry"); } catch { /* Entry is also tracked in memory. */ }
       queryClient.clear(); queryClient.setQueryData(["session"], value);
     } catch (cause) { showAccessError(cause, "Sign in failed"); }
     finally { setBusy(false); }
   }
-  if (session.data && !expired) return <SessionContext.Provider value={session.data}><EventStreamBridge/>{children}</SessionContext.Provider>;
+  if (session.data && !expired) return <SessionContext.Provider value={session.data}>{children}</SessionContext.Provider>;
   if (session.isPending && !expired) return <div className="async-state loading-state" role="status"><span className="spinner"/><strong>Opening your workspace…</strong></div>;
   if (!signInRequired) return <main className="login-shell"><section className="login-card" role="alert"><BrandLogo className="aerocare-logo-login"/><h1>Demo backend offline</h1><p>AeroCare connects AI engine-health evidence with parts, crew, a checked schedule and human approval.</p><p>The demo server is currently unreachable. Its host needs to keep Docker and the HTTPS tunnel running. No calculations are available while disconnected.</p><button onClick={() => void session.refetch()}>Try again</button>{fullAppUrl && <p><a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open complete demo</a></p>}</section></main>;
-  return <main className="login-shell"><section className="login-card">
-    <BrandLogo className="aerocare-logo-login"/>
-    <h1>{creatingAccount ? "Create your AeroCare account" : "Sign in to AeroCare"}</h1>
+  return <AccessFrame title="A clearer path to
+fleet readiness." description="Sign in to connect aircraft health evidence with the people, parts and maintenance decisions that keep your team moving." eyebrow="YOUR FLEET WORKSPACE">
+    <span className="entry-step">01 / ACCOUNT</span>
+    <h2>{creatingAccount ? "Create your FleetAvail account" : "Sign in to FleetAvail"}</h2>
     <p>{creatingAccount ? "Create an account to explore the maintenance workspace." : "Use your maintenance workspace account."}</p>
     {pagesDeployment && fullAppUrl && <p><a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open complete demo</a><small>Use this when your browser blocks cross-site sign-in.</small></p>}
     {notice && <p role="status" className="form-success">{notice}</p>}
-    <form onSubmit={(event) => void (creatingAccount ? register(event) : login(event))}>
+    <form className="entry-auth-form" onSubmit={(event) => void (creatingAccount ? register(event) : login(event))}>
       {creatingAccount && <label>Display name<input autoComplete="name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} required maxLength={120}/></label>}
       <label>Account ID<input autoComplete="username" autoCapitalize="none" spellCheck={false} value={user} onChange={(event) => setUser(event.target.value)} required minLength={creatingAccount ? 3 : undefined} maxLength={64} pattern={creatingAccount ? "[a-zA-Z0-9][a-zA-Z0-9._-]*" : undefined}/>
         {creatingAccount && <small>3–64 letters, numbers, dots, underscores or hyphens. Starts with a letter or number; saved in lowercase.</small>}
@@ -124,11 +126,11 @@ export function SessionGate({ children }: { children: ReactNode }) {
       {creatingAccount && <label>Confirm password<input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required minLength={14} maxLength={256}/></label>}
       {error && <p role="alert" className="form-error">{error}</p>}
       {retrySeconds > 0 && <p role="status">Try again in {retrySeconds} seconds.</p>}
-      <button className="button" disabled={busy || retrySeconds > 0}>{busy ? creatingAccount ? "Creating account…" : "Signing in…" : retrySeconds > 0 ? `Wait ${retrySeconds}s` : creatingAccount ? "Create account" : "Sign in"}</button>
+      <button type="submit" className="entry-continue" disabled={busy || retrySeconds > 0}>{busy ? creatingAccount ? "Creating account…" : "Signing in…" : retrySeconds > 0 ? `Wait ${retrySeconds}s` : creatingAccount ? "Create account" : "Sign in"}</button>
     </form>
     {registration.data?.enabled && <p className="account-switch">{creatingAccount ? "Already have an account? " : "New here? "}<button type="button" className="account-switch-button" disabled={busy || retrySeconds > 0} onClick={() => changeMode(!creatingAccount)}>{creatingAccount ? "Sign in" : "Create account"}</button></p>}
     {creatingAccount && <p className="signup-access-note">New accounts can view the shared demonstration workspace. Contact the administrator for planning or approval access.</p>}
     {pagesDeployment && fullAppUrl && <a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open the complete demo</a>}
     <small>Evidence supports human review.</small>
-  </section></main>;
+  </AccessFrame>;
 }

@@ -9,7 +9,7 @@ export const navigationGroups: { title: string; items: NavItem[] }[] = [{ title:
   { to: "/advisories", label: "Findings", icon: "activity", badge: "review", match: ["/health/"] },
   { to: "/maintenance", label: "Maintenance", icon: "calendar", badge: "schedule", match: ["/maintenance/", "/cases/"] },
   { to: "/spares?view=requests", label: "Spares", icon: "box", match: ["/spares"] },
-  { to: "/analysis", label: "Simulator", icon: "sliders", match: ["/simulator", "/analytics", "/analysis"] },
+  { to: "/analysis", label: "Analysis", icon: "sliders", match: ["/simulator", "/analytics", "/analysis"] },
 ] }];
 /** Sandbox links are local tools in Help, never a second global navigation. */
 export const labTools: NavItem[] = [
