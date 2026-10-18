@@ -46,9 +46,9 @@ make setup
 make dev
 ```
 
-Open <http://localhost:8080>. The Compose stack migrates PostgreSQL and seeds the labelled demo records on first API startup. RabbitMQ management is exposed at <http://localhost:15672> for local inspection only.
+Open <http://localhost:8080>, choose a workspace, and sign in with an account assigned to that role. The Compose stack migrates PostgreSQL and seeds the labelled demo records on first API startup. RabbitMQ management is exposed at <http://localhost:15672> for local inspection only.
 
-Environment defaults are in `.env.example`. Do not use the demonstration credentials or session secret outside local development.
+Environment defaults are in `.env.example`. Local Compose now requires server-session credentials. Account setup is documented in `docs/operations/local_setup.md`; existing accounts are preserved.
 
 ## Verified checks
 

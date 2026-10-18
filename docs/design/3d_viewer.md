@@ -102,3 +102,24 @@ The first contained revision made the stage too shallow and the aircraft too sma
 The user rejected that scale. Summary now allocates a responsive 440–620px stage
 (320px on phones), and Visual inspection uses a 540–740px stage. Bounds-based camera
 fitting scales the aircraft with that space while keeping controls outside the canvas.
+
+### Component inspection update — 18 October 2026
+
+Component inspection separates complete, opaque **Assembled** models from explicit
+**Cutaway**, **Exploded** and **Wireframe** modes. The aircraft architecture retains its
+cutaway presentation. Recorded attention no longer repaints every surface red: metal,
+rubber, copper and electronics keep distinct finishes, while the evidence panel retains
+the recorded condition. These are illustrative assemblies, not manufacturer CAD or
+internal fault diagnoses.
+
+The inspection dialog provides a larger centered studio, bounded zoom, orbit, pan and
+camera reset. Its evidence column scrolls independently on desktop; on phones the model
+and full evidence stack share the dialog's scroll area. Context/render failures offer a
+reload action. The blueprint provenance paragraph and global operations footer were
+removed from the bottom of the page; the component dialog identifies its illustrative
+model in the header.
+
+Verification covers all 20 component records on AC-011 in all four modes, bounded finite
+geometry for the catalogue structure types, complete opaque assembled casings, preserved
+material finishes and the existing fighter geometry checks (9 passing tests). Browser
+checks also cover model visibility, zoom, reset and mobile evidence access.

@@ -50,3 +50,26 @@ Administrator additionally configures operational resources; planner/supervisor 
 ## Fleet-health workspace decisions
 
 The fleet-health screens follow one decision flow, and the API enforces each step: engineers confirm or dismiss findings; supervisors (and planners) schedule work orders; logistics reserves, orders or receives parts requests; fleet managers run scenarios. Supervisors may act at every step. In local demo mode the role chosen in the top bar is sent as `X-Demo-Role`; signed-in accounts keep their server role.
+
+
+## Workspace-first sign-in — 18 October 2026
+
+The local Compose stack defaults to server-session authentication. Workspace cards
+are public navigation to the credential form; anonymous entry never prefetches
+protected fleet data. Login accepts an optional `workspace` value and validates it
+after password verification, before creating a session. Engineer, logistics and
+fleet-manager accounts match their corresponding workspace; planner and administrator
+map to the supervisor workspace and viewer maps to fleet manager, retaining their
+existing server permissions. A supervisor account can enter any of the four workspaces.
+Its selected workspace is stored on the server session and narrows that session to the
+chosen team role. Existing sessions without a workspace retain their original role. A workspace mismatch returns 403 without a session.
+
+On a successful workspace login, the browser opens that workspace directly. Switching
+workspace from Account ends the existing server session before presenting the new
+credentials form. Passwords are not retained in browser storage. Account provisioning
+is a separate administrator action, not a side effect of selecting a workspace.
+
+
+The local `pushkar` account uses the same credentials for all four workspace choices.
+`LoginSession.workspace` keeps those sessions independent. Password checks run before
+workspace validation; role reductions invalidate incompatible active workspace sessions.

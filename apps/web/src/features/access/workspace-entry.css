@@ -1,9 +1,8 @@
 .workspace-entry { --entry-ink: #193b2d; --entry-muted: #607369; --entry-line: #d4e0d6; position: relative; isolation: isolate; min-height: 100svh; color: var(--entry-ink); font-family: Inter, sans-serif; padding: 30px clamp(22px, 5vw, 80px) 20px; background: radial-gradient(ellipse 65vw 110vh at 0% 0%, rgba(105,155,69,.30), transparent 72%), radial-gradient(ellipse 55vw 100vh at 0% 75%,rgba(194,213,117,.12),transparent 75%),radial-gradient(900px 520px at 100% 0%,rgba(91,155,255,.08),transparent 60%),#f3f6f3; }
 .workspace-entry > .workspace-flow-grid { position: absolute; height: 100%; z-index: -1; }
 .entry-header, .entry-footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-.entry-brand { display: inline-flex; align-items: center; gap: 12px; color: var(--entry-ink); font-size: 22px; font-weight: 600; text-decoration: none; letter-spacing: -.7px; }
-.entry-brand > span { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; background: #ffffffa6; border: 1px solid #ffffffdf; box-shadow: 0 5px 16px #30553a08; }
-.entry-header-note { font-size: 12px; color: var(--entry-muted); }
+.entry-brand { display: inline-flex; align-items: center; gap: 14px; color: var(--entry-ink); font-size: clamp(28px, 3vw, 34px); font-weight: 800; line-height: 1; text-decoration: none; letter-spacing: -1.2px; white-space: nowrap; }
+.entry-brand > span { display: grid; place-items: center; width: 48px; height: 48px; flex-shrink: 0; border-radius: 16px; background: #ffffffa6; border: 1px solid #ffffffdf; box-shadow: 0 5px 16px #30553a08; }
 .entry-layout { width: min(1250px,100%); margin: auto; min-height: calc(100svh - 140px); display: grid; grid-template-columns: .9fr 1.1fr; align-items: center; gap: clamp(32px,6vw,100px); padding-block: 46px; }
 .entry-eyebrow { color: #457d5c; font-size: 10px; letter-spacing: .2em; font-weight: 600; margin: 0 0 22px; }
 .entry-intro h1 { font-size: clamp(38px,4.5vw,65px); font-weight: 500; line-height: 1.1; letter-spacing: -2.6px; white-space: pre-line; margin: 0 0 25px; }
@@ -21,12 +20,12 @@
 .entry-role-check { position: absolute; top: 18px; right: 16px; width: 19px; height: 19px; border: 1px solid #bdcfc1; border-radius: 50%; display: grid; place-items: center; }.selected .entry-role-check { color: #fff; background: #477e58; border-color: #477e58; }
 .entry-role-card strong { font-size: 13px; font-weight: 600; line-height: 1.4; }.entry-role-card > span:not([class]) { font-size: 11px; line-height: 1.6; color: var(--entry-muted); }.entry-role-card small { font-size: 10px; color: #457c57; margin-top: auto; padding-top: 3px; }.entry-role-card:disabled { opacity: .55; cursor: not-allowed; }
 .entry-selection { min-height: 64px; display: flex; flex-direction: column; justify-content: center; gap: 4px; margin-top: 15px; font-size: 11px; line-height: 1.6; color: var(--entry-muted); }.entry-selection strong { font-size: 12px; color: #2b5a3c; }
-.entry-continue { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 46px; padding: 12px 18px; border: 1px solid #286343; border-radius: 12px; background: #286343; color: #fff; font: 500 13px Inter,sans-serif; cursor: pointer; box-shadow: 0 5px 12px #28634312; }.entry-continue:disabled { opacity: .4; cursor: default; box-shadow: none; }.entry-access-note { font-size: 10px; line-height: 1.7; color: var(--entry-muted); margin: 12px 0 0; }
+.entry-continue { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 46px; padding: 12px 18px; border: 1px solid #286343; border-radius: 12px; background: #286343; color: #fff; font: 500 13px Inter,sans-serif; cursor: pointer; box-shadow: 0 5px 12px #28634312; transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease; }.entry-continue:disabled { opacity: 1; cursor: not-allowed; box-shadow: none; }.entry-access-note { font-size: 10px; line-height: 1.7; color: var(--entry-muted); margin: 12px 0 0; }
 .entry-footer { color: #6b8072; font-size: 10px; line-height: 1.7; flex-wrap: wrap; }.workspace-entry :is(button,a,input):focus-visible { outline: 3px solid #6eab82; outline-offset: 4px; }
 .entry-auth-form { display: grid; gap: 18px; margin-block: 24px; }.entry-auth-form label { display: grid; gap: 8px; font-size: 12px; font-weight: 500; }.entry-auth-form input { width: 100%; min-height: 46px; padding: 12px; border: 1px solid var(--entry-line); border-radius: 10px; background: #ffffffc9; color: var(--entry-ink); font: 14px Inter,sans-serif; }.entry-auth-form small { font-size: 10px; line-height: 1.7; color: var(--entry-muted); }.entry-panel .account-switch { font-size: 12px; color: var(--entry-muted); }.entry-panel .account-switch-button { padding: 0; border: 0; background: transparent; text-decoration: underline; color: #286343; cursor: pointer; }.entry-panel .form-error { font-size: 12px; line-height: 1.7; color: #a63232; }.entry-panel .form-success { font-size: 12px; color: #286343; }.entry-panel .signup-access-note { font-size: 11px; line-height: 1.7; color: var(--entry-muted); }
 [data-theme="dark"] .workspace-entry { --entry-ink: #e1ede5; --entry-muted: #adc2b3; --entry-line: #4d6957; background: radial-gradient(ellipse at 0% 10%,#273f28,transparent 75%),#111e19; }[data-theme="dark"] .entry-panel { background: #1d3028c9; border-color: #496153; box-shadow: 0 24px 80px #0002; }[data-theme="dark"] .entry-role-card { background: #213a2b; border-color: #4b6654; }[data-theme="dark"] .entry-role-card.selected { background: #2c4d37; border-color: #99bd9e; }[data-theme="dark"] .entry-role-icon { background: #34533b; color: #b5d6b7; }[data-theme="dark"] .entry-auth-form input { background: #152b20; }[data-theme="dark"] :is(.entry-eyebrow,.entry-role-card small,.entry-selection strong,.entry-step) { color: #accfae; }
 @media (max-width: 900px) { .entry-layout { grid-template-columns: 1fr; gap: 30px; max-width: 580px; padding-block: 38px; }.entry-intro h1 { font-size: 43px; }.entry-journey { margin-block: 22px; }.entry-shared { display: none; } }
-@media (max-width: 480px) { .entry-header-note { display: none; }.entry-role-card { padding: 14px; min-height: 180px; }.entry-panel { padding: 20px; border-radius: 22px; }.entry-layout { gap: 26px; }.entry-intro h1 { font-size: 38px; letter-spacing: -1.5px; }.entry-role-check { top: 14px; right: 12px; }.entry-role-grid { gap: 10px; }.entry-role-card strong { font-size: 12px; } }
+@media (max-width: 480px) { .entry-role-card { padding: 14px; min-height: 180px; }.entry-panel { padding: 20px; border-radius: 22px; }.entry-layout { gap: 26px; }.entry-intro h1 { font-size: 38px; letter-spacing: -1.5px; }.entry-role-check { top: 14px; right: 12px; }.entry-role-grid { gap: 10px; }.entry-role-card strong { font-size: 12px; } }
 @media (prefers-reduced-motion: reduce) { .entry-role-card { transition: none; }.entry-role-card:not(:disabled):hover { transform: none; } }
 /* Global action buttons keep labels on one line; role-card copy must wrap within each card. */
 .entry-role-card { white-space: normal; }
@@ -53,48 +52,72 @@
   .entry-role-card.is-filling::before { animation: none; transform: translateY(0); }
 }
 
-/* Keep confirmation visible; only the role choices scroll on constrained screens. */
-.workspace-selection { height: 100svh; min-height: 0; display: grid; grid-template-rows: auto minmax(0,1fr) auto; gap: 12px; padding-block: 18px 12px; overflow: hidden; }
-.workspace-selection .entry-layout { height: 100%; min-height: 0; padding-block: 8px; gap: clamp(24px,4vw,64px); }
-.workspace-selection .entry-panel { height: 100%; max-height: 720px; min-height: 0; display: flex; flex-direction: column; padding: clamp(18px,2vw,28px); }
-.entry-role-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 3px 3px 10px; margin: -3px -3px 0; scrollbar-width: thin; }
-.workspace-selection .entry-panel-heading p { margin-bottom: 14px; }
-.workspace-selection .entry-hover-hint { margin: 0 0 12px; }
-.workspace-selection .entry-role-card { min-height: 138px; padding: 14px; gap: 5px; }
-.workspace-selection .entry-role-icon { width: 30px; height: 30px; margin-bottom: 0; border-radius: 10px; }
-.entry-actions { flex-shrink: 0; padding-top: 10px; margin-top: auto; border-top: 1px solid var(--entry-line); }
-.workspace-selection .entry-selection { min-height: 0; margin: 0 0 8px; line-height: 1.4; }
-.workspace-selection .entry-access-note { margin-top: 8px; line-height: 1.4; }
+/* Center a compact entry composition; keep actions next to the role cards. */
+.workspace-selection { height: 100svh; min-height: 0; display: grid; grid-template-rows: auto minmax(0,1fr); gap: 16px; padding-block: 24px; overflow: hidden; }
+.workspace-selection .entry-layout { height: 100%; min-height: 0; padding-block: 20px; grid-template-columns: minmax(0,.95fr) minmax(0,1.05fr); gap: clamp(36px,5vw,80px); }
+.workspace-selection .entry-intro { min-width: 0; }
+.workspace-selection .entry-eyebrow { display: inline-flex; align-items: center; gap: 9px; border: 1px solid #a9c7b36b; border-radius: 999px; padding: 7px 12px; margin-bottom: 24px; background: #ffffff70; font-size: 10px; letter-spacing: .16em; }
+.workspace-selection .entry-eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #4d8b61; box-shadow: 0 0 0 4px #4d8b6110; }
+.workspace-selection .entry-intro h1 { font-family: Inter, sans-serif; font-size: clamp(36px,4vw,56px); font-weight: 600; line-height: 1.12; letter-spacing: -.055em; margin: 0 0 26px; }
+.workspace-selection .entry-intro h1 > span { display: block; white-space: nowrap; }
+.workspace-selection .entry-intro h1 > .entry-title-accent { color: #4f805f; }
+.workspace-selection .entry-description { max-width: 440px; font-size: 14px; line-height: 1.8; }
+.entry-capabilities { display: grid; max-width: 450px; gap: 0; margin: 26px 0 0; }
+.entry-capabilities > div { position: relative; padding: 15px 0 15px 54px; }
+.entry-capabilities > div:last-child { padding-bottom: 0; }
+.entry-capabilities dt { font-size: 13px; font-weight: 600; line-height: 1.5; color: var(--entry-ink); }
+.entry-capabilities dt svg { position: absolute; left: 0; top: 16px; box-sizing: content-box; padding: 10px; border-radius: 12px; background: #e1ede2; color: #477e58; }
+.entry-capabilities dd { margin: 4px 0 0; font-size: 12px; line-height: 1.65; color: var(--entry-muted); }
+.workspace-selection .entry-panel { height: auto; max-height: 100%; min-height: 0; display: flex; flex-direction: column; padding: clamp(22px,2.4vw,34px); border-radius: 26px; box-shadow: 0 20px 70px #244b3510, inset 0 1px 0 #fff; }
+.entry-role-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 3px 3px 6px; margin: -3px -3px 0; scrollbar-width: thin; }
+.workspace-selection .entry-panel h2 { margin: 0 0 10px; font-size: clamp(21px,2vw,26px); font-weight: 600; line-height: 1.25; letter-spacing: -.8px; }
+.workspace-selection .entry-panel-heading p { max-width: 390px; margin: 0 0 22px; line-height: 1.65; font-size: 12px; }
+.workspace-selection .entry-role-grid { gap: 12px; }
+.workspace-selection .entry-role-card { min-height: 148px; padding: 16px; gap: 6px; border-radius: 16px; }
+.workspace-selection .entry-role-icon { width: 32px; height: 32px; margin-bottom: 3px; border-radius: 10px; }
+.workspace-selection .entry-role-card strong { font-size: 12px; }
+.workspace-selection .entry-role-check { top: 16px; right: 14px; }
+.entry-actions { flex-shrink: 0; padding-top: 16px; margin-top: 14px; border-top: 1px solid var(--entry-line); }
+.workspace-selection .entry-selection { min-height: 0; margin: 0; line-height: 1.4; }
+.workspace-selection .entry-selection:not(:empty) { margin-bottom: 10px; }
+.workspace-selection .entry-continue { min-height: 48px; border-radius: 12px; font-size: 13px; }
+.workspace-entry .entry-continue:is(:hover, :focus-visible) { background: #d8eddf; border-color: #9bc7aa; color: #193b2d; box-shadow: 0 6px 16px #28634318; }
+.workspace-entry .entry-continue:not(:disabled):active { background: #c4e2cf; border-color: #89b99a; color: #193b2d; }
+[data-theme="dark"] .workspace-selection .entry-eyebrow { background: #213a2b; border-color: #496153; }
+[data-theme="dark"] .workspace-selection .entry-intro h1 > .entry-title-accent { background: none; color: #accfae; -webkit-text-fill-color: currentColor; }
+[data-theme="dark"] .entry-capabilities dt svg { background: #2c4837; color: #accfae; }
 @media (max-height: 760px) and (min-width: 901px) {
-  .workspace-selection .entry-panel h2 { margin-block: 8px; font-size: 21px; }
-  .workspace-selection .entry-role-card { min-height: 120px; padding: 11px; }
-  .workspace-selection .entry-role-grid { gap: 10px; }
-  .workspace-selection .entry-role-icon { width: 26px; height: 26px; }
-  .workspace-selection .entry-journey { margin-block: 22px; }
+  .workspace-selection { padding-block: 18px; }
+  .workspace-selection .entry-layout { padding-block: 12px; }
+  .workspace-selection .entry-intro h1 { font-size: clamp(34px,3.8vw,48px); }
+  .workspace-selection .entry-eyebrow { margin-bottom: 18px; }
+  .entry-capabilities { margin-top: 18px; }
+  .entry-capabilities > div { padding-block: 11px; }
+  .entry-capabilities dt svg { top: 12px; }
+  .workspace-selection .entry-panel { padding: 22px; }
+  .workspace-selection .entry-role-card { min-height: 128px; padding: 12px; gap: 5px; }
+  .workspace-selection .entry-role-icon { width: 28px; height: 28px; }
 }
 @media (max-width: 900px) {
-  .workspace-selection { padding-inline: 18px; gap: 8px; }
-  .workspace-selection .entry-layout { display: flex; padding-block: 4px; }
+  .workspace-selection { padding: 18px; gap: 12px; }
+  .workspace-selection .entry-layout { display: flex; align-items: center; justify-content: center; padding-block: 4px; }
   .workspace-selection .entry-intro { display: none; }
-  .workspace-selection .entry-panel { width: 100%; max-height: none; }
-  .workspace-selection .entry-footer { font-size: 9px; gap: 2px; }
-  .workspace-selection .entry-panel h2 { font-size: 21px; }
+  .workspace-selection .entry-panel { width: 100%; max-width: 580px; }
 }
 @media (max-width: 480px) {
-  .workspace-selection .entry-panel { padding: 16px; }
-  .workspace-selection .entry-role-card { min-height: 142px; padding: 12px; }
+  .workspace-selection .entry-panel { padding: 18px; border-radius: 22px; }
+  .workspace-selection .entry-panel h2 { font-size: 21px; }
+  .workspace-selection .entry-role-card { min-height: 145px; padding: 12px; }
+  .workspace-selection .entry-role-grid { gap: 10px; }
 }
-/* The role-selection panel starts directly with its useful heading. */
-.workspace-selection .entry-panel h2 { margin-top: 0; }
 @media (max-height: 700px) {
-  .workspace-selection .entry-hover-hint { display: none; }
-  .workspace-selection .entry-selection > span,
-  .workspace-selection .entry-access-note { display: none; }
-  .workspace-selection .entry-role-card { min-height: 100px; gap: 4px; }
+  .workspace-selection .entry-role-card { min-height: 106px; gap: 4px; }
   .workspace-selection .entry-role-card > span:not([class]) { display: none; }
-  .workspace-selection .entry-panel-heading p { margin-bottom: 12px; line-height: 1.5; }
+  .workspace-selection .entry-panel-heading p { margin-bottom: 14px; }
 }
 @media (max-height: 600px) and (max-width: 900px) {
   .workspace-selection .entry-panel-heading p { display: none; }
-  .workspace-selection .entry-panel h2 { margin-bottom: 12px; }
+  .workspace-selection .entry-panel h2 { margin-bottom: 16px; }
 }
+
+.entry-header .entry-brand .aerocare-logo { width: clamp(184px, 18vw, 250px); height: auto; filter: none; }

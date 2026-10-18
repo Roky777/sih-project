@@ -313,7 +313,7 @@ operational qualification. These checks do not authenticate reviewers or prove a
 
 The supplied full-screen aircraft reference replaces the compact aircraft-viewer layout requirement.
 Verify the green grid, large three-quarter model, right-side camera controls, lower statistics,
-FleetAvail wordmark and More/Research menus. Retain selected-record identity through browsing/error,
+AeroCare wordmark and More/Research menus. Retain selected-record identity through browsing/error,
 component evidence, blueprint handoff, current maintenance/summary records below the stage,
 desktop/mobile containment and reduced motion. Research menu selection must distinguish its dataset
 from ordinary aircraft. Models remain illustrative and values come from the actual selected record.

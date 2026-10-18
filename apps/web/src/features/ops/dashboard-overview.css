@@ -32,3 +32,8 @@
 .dashboard-overview-workspace { margin-top: 20px; padding: 16px; border: 1px solid #b7cfc1; border-radius: 14px; background: #e8f2eb; }
 .dashboard-overview-workspace strong { font-size: 13px; }.dashboard-overview-workspace p { margin: 8px 0; font-size: 13px; line-height: 1.6; }.dashboard-overview-workspace span { font-size: 11px; line-height: 1.7; color: #607369; }
 [data-theme="dark"] .dashboard-overview-workspace { background: #284432; border-color: #597a66; }[data-theme="dark"] .dashboard-overview-workspace span { color: #b0c6b7; }
+
+/* Soft green mesh and fine grid echo the workspace backdrop. */
+.dashboard-overview { isolation: isolate; --overview-mesh-line: rgb(66 118 82 / 7%); background: radial-gradient(ellipse at 0% 0%, #dfeeda 0%, transparent 58%), radial-gradient(ellipse at 100% 85%, #deeee6 0%, transparent 60%), linear-gradient(135deg, #f7fcf7, #eef6f5); }
+.dashboard-overview::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; background-image: repeating-linear-gradient(8deg, transparent 0 43px, var(--overview-mesh-line) 44px, transparent 45px), repeating-linear-gradient(105deg, transparent 0 55px, var(--overview-mesh-line) 56px, transparent 57px); mask-image: linear-gradient(to bottom, #0003, #000 60%); }
+[data-theme="dark"] .dashboard-overview { --overview-mesh-line: rgb(153 200 164 / 8%); background: radial-gradient(ellipse at 0% 0%, #2b4933 0%, transparent 65%), radial-gradient(ellipse at 100% 100%, #203d36 0%, transparent 65%), #182c25; }

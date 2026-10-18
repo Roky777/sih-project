@@ -42,7 +42,7 @@ export function DashboardOverview() {
       {active && bounds && <div aria-hidden="true" className="dashboard-overview-highlight" style={bounds} data-overview-target={active.target}/>}
       <Dialog.Content className={`dashboard-overview${active ? ' is-touring' : ''}`} onCloseAutoFocus={e => { e.preventDefault(); document.getElementById('main-content')?.focus({ preventScroll: true }); }} onPointerDownOutside={e => e.preventDefault()}>
         <div className="dashboard-overview-mark" aria-hidden="true"><Icon name={active ? 'activity' : 'aircraft'} size={25}/></div>
-        <p className="dashboard-overview-eyebrow">{active ? `${role.short.toUpperCase()} OVERVIEW · ${step + 1} OF ${steps.length}` : 'WELCOME TO FLEETAVAIL'}</p>
+        <p className="dashboard-overview-eyebrow">{active ? `${role.short.toUpperCase()} OVERVIEW · ${step + 1} OF ${steps.length}` : 'WELCOME TO AEROCARE'}</p>
         <Dialog.Title>{active?.title ?? 'A quick look around your dashboard'}</Dialog.Title>
         <Dialog.Description>{active?.text ?? 'Follow the journey from aircraft health and AI findings to maintenance, spares and fleet availability. Take a short overview, or go straight to your workspace.'}</Dialog.Description>
         {!active && <div className="dashboard-overview-workspace"><strong>{role.label}</strong><p>{role.question}</p><span>{role.does.join(' · ')}</span></div>}

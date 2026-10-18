@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Box3, Mesh, Vector3 } from "three";
+import { Box3, LatheGeometry, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import type { AircraftDetail, TwinComponent } from "./api";
 import { architectureColor, architectureComponents, componentLayouts, structureLabels } from "./componentArchitecture";
 import { createComponentStructure } from "./componentStructure";
@@ -29,12 +29,39 @@ describe("illustrative architecture selection", () => {
     expect(result[0].attention).toBe(true); expect(result[0].openAdvisories[0].id).toBe("ADV-1");
     expect(result[1].attention).toBe(false); expect(result[1].openAdvisories).toEqual([]);
   });
+  it("shows a complete opaque casing in assembled view while keeping cutaway internals available", () => {
+    for (const kind of ["compressor", "turbine", "pump", "generator", "actuator", "strut", "electronics", "battery", "sensor", "cooling", "valve", "reservoir", "filter"] as const) {
+      for (const cutaway of [false, true]) {
+        const model = createComponentStructure(kind, false, false, "#ed525c", cutaway);
+        let shells = 0;
+        const finishes = new Set<string>();
+        model.traverse(object => {
+          if (!(object instanceof Mesh)) return;
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          for (const material of materials) {
+            if (!(material instanceof MeshStandardMaterial)) continue;
+            finishes.add(material.color.getHexString());
+            if (material.color.getHexString() === "7fa3b8") {
+              shells++;
+              expect(material.transparent).toBe(cutaway);
+              expect(material.depthWrite).toBe(!cutaway);
+              expect(material.opacity).toBe(cutaway ? .2 : 1);
+              if (!cutaway && object.geometry instanceof LatheGeometry) expect(object.geometry.parameters.phiLength).toBeCloseTo(Math.PI * 2);
+            }
+          }
+          object.geometry.dispose(); materials.forEach(material => material.dispose());
+        });
+        expect(shells).toBeGreaterThan(0);
+        expect(finishes.size).toBeGreaterThan(2);
+      }
+    }
+  });
   it("builds finite, bounded, explicitly illustrative assemblies for every catalogue layout and view", () => {
     expect(Object.keys(componentLayouts)).toHaveLength(20);
     for (const kind of new Set(Object.values(componentLayouts).map(item => item.kind))) {
       expect(structureLabels[kind].length).toBeGreaterThan(1);
-      for (const [exploded, wireframe] of [[false, false], [true, false], [false, true]]) {
-        const model = createComponentStructure(kind, exploded, wireframe, "#ed525c");
+      for (const [exploded, wireframe, cutaway] of [[false, false, false], [false, false, true], [true, false, true], [false, true, true]]) {
+        const model = createComponentStructure(kind, exploded, wireframe, "#ed525c", cutaway);
         expect(model.userData.engineeringValidated).toBe(false);
         const size = new Box3().setFromObject(model).getSize(new Vector3());
         expect(size.toArray().every(value => value > 0 && value < 10)).toBe(true);

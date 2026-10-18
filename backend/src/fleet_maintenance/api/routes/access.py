@@ -1,3 +1,5 @@
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.orm import Session
@@ -5,7 +7,13 @@ from sqlalchemy.orm import Session
 from fleet_maintenance.api.dependencies import Actor, current_actor
 from fleet_maintenance.persistence.database import get_session
 from fleet_maintenance.persistence.models import User
-from fleet_maintenance.services.access import COOKIE_NAME, login, register, session_record
+from fleet_maintenance.services.access import (
+    COOKIE_NAME,
+    effective_session_role,
+    login,
+    register,
+    session_record,
+)
 from fleet_maintenance.settings import get_settings
 
 router = APIRouter(prefix="/access", tags=["access"])
@@ -14,6 +22,7 @@ router = APIRouter(prefix="/access", tags=["access"])
 class Credentials(BaseModel):
     user_id: str = Field(min_length=1, max_length=64)
     password: str = Field(min_length=1, max_length=256)
+    workspace: Literal["engineer", "supervisor", "logistics", "fleet_manager"] | None = None
 
 
 class SessionInfo(BaseModel):
@@ -102,7 +111,9 @@ def create_session(
         raise HTTPException(404, "Session login is disabled in demonstration mode")
     if request.headers.get("origin") not in settings.allowed_origins:
         raise HTTPException(403, "Allowed request origin required")
-    token, record = login(database, credentials.user_id, credentials.password)
+    token, record = login(
+        database, credentials.user_id, credentials.password, credentials.workspace
+    )
     response.set_cookie(
         COOKIE_NAME,
         token,
@@ -116,7 +127,7 @@ def create_session(
     assert user is not None
     return {
         "id": record.user_id,
-        "role": user.role,
+        "role": effective_session_role(user, record),
         "authentication": "server session",
         "csrf_token": record.csrf_token,
     }

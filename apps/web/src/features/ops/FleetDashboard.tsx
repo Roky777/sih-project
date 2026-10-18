@@ -13,6 +13,7 @@ import { availabilityLabel, longDate, pct, shortDate, stateLabel } from "./forma
 import { MONO, OpsChart, areaFill, baseAxes, tooltip, withAlpha } from "./OpsChart";
 import { HeadingReplay } from "./ReplaySlider";
 import { Card, Query, Segmented } from "./ui";
+import "./fleet-dashboard.css";
 
 /** Screen 1 · Fleet Dashboard (UI spec §3): every value is computed by the engine and simulator. */
 export function FleetDashboard() {
@@ -56,7 +57,7 @@ export function FleetDashboard() {
         sub={forecast ? `${falling ? "Trending down" : "Stable or improving"} · P10–P90 ${pct(forecast.availability_p10)}–${pct(forecast.availability_p90)}` : ""}/>
     </div>
     <RegistrationCoverage/>
-    <div className="o-grid-12">
+    <div className="o-grid-12 fleet-chart-grid">
       <Card className="span-7" title="Availability trend" subtitle="T−14 to T+30 · recorded (solid) and Monte Carlo forecast median (dotted) with P10–P90 band">
         <Query query={trend} rows={5}>{data => <TrendChart data={data}/>}</Query>
       </Card>
@@ -87,7 +88,7 @@ function TrendChart({ data }: { data: NonNullable<ReturnType<typeof useTrend>["d
   const dates = [...history.map(point => point.date), ...data.forecast.map(point => point.date)];
   const pad = (values: (number | null)[], before: number, after: number) => [...Array(before).fill(null), ...values, ...Array(after).fill(null)];
   const last = history.at(-1);
-  return <OpsChart label="Availability trend T−14 to T+30 with forecast band" height={260} deps={[data]} build={p => ({
+  return <OpsChart label="Availability trend T−14 to T+30 with forecast band" height={280} deps={[data]} build={p => ({
     grid: { left: 42, right: 12, top: 14, bottom: 24 },
     tooltip: { ...tooltip(p), valueFormatter: (value: unknown) => typeof value === "number" ? pct(value, 1) : "—" },
     xAxis: { type: "category", data: dates, boundaryGap: false, ...baseAxes(p), axisLabel: { color: p.muted, fontSize: 10.5, fontFamily: MONO, formatter: (value: string, index: number) => index === history.length - 1 ? "T0" : shortDate(value) } },
@@ -112,8 +113,8 @@ function DowntimeWeeks({ history }: { history: { date: string; scheduled_mainten
     });
   }, [history]);
   return <>
-    <OpsChart label="Downtime by cause, last five weeks" height={236} deps={[weeks]} build={p => ({
-    grid: { left: 92, right: 14, top: 6, bottom: 22 },
+    <OpsChart label="Downtime by cause, last five weeks" height={260} deps={[weeks]} build={p => ({
+    grid: { left: 100, right: 76, top: 6, bottom: 24 },
     tooltip: { ...tooltip(p), axisPointer: { type: "shadow" } },
     xAxis: { type: "value", ...baseAxes(p), name: "aircraft-days", nameLocation: "end", nameTextStyle: { color: p.muted, fontSize: 10 } },
     yAxis: { type: "category", data: weeks.map(w => w.label), inverse: true, ...baseAxes(p), axisLabel: { color: p.muted, fontSize: 10, fontFamily: MONO } },

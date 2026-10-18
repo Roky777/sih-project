@@ -1,0 +1,34 @@
+/* Shared toolbar geometry: selected states change color, never control size. */
+.o-shell { --o-control-height: 40px; --o-control-font-size: 13px; }
+.o-shell .o-header { height: 72px; margin: 16px 24px 0; padding-inline: 24px; }
+.o-shell .o-header .o-header-brand { min-width: 180px; }
+.o-shell .o-header .aerocare-logo { width: 184px; }
+.o-shell .o-header .o-topnav { gap: 2px; padding: 4px; }
+.o-shell .o-header .o-topnav > a, .o-shell .o-header .o-navmenu > summary { display: inline-flex; align-items: center; height: var(--o-control-height); min-height: var(--o-control-height); padding: 0 12px; font: 600 var(--o-control-font-size)/1.4 Inter, sans-serif; }
+.o-shell .o-header .o-header-tools { gap: 8px; }
+.o-shell .o-header :is(.o-round-btn,.o-ask-ai,.o-profile summary) { height: var(--o-control-height); min-height: var(--o-control-height); box-sizing: border-box; font-size: var(--o-control-font-size); }
+.o-shell .o-header .o-round-btn { width: var(--o-control-height); }
+.o-shell .o-header .o-avatar { width: 34px; height: 34px; }
+.o-shell .o-content .o-segmented { padding: 4px; }
+.o-shell .o-content .o-segmented button { display: inline-flex; align-items: center; justify-content: center; height: var(--o-control-height); min-height: var(--o-control-height); padding: 0 16px; box-sizing: border-box; font: 500 var(--o-control-font-size)/1.4 Inter, sans-serif; }
+.o-shell .o-content .o-chip { min-height: var(--o-control-height); padding: 0 14px; font: 500 var(--o-control-font-size)/1.4 Inter, sans-serif; }
+.o-shell .o-content :is(.o-control-bar,.o-card-actions,.o-filters) select.o-input, .o-shell .o-content .o-field select { height: var(--o-control-height); min-height: var(--o-control-height); padding-block: 0; box-sizing: border-box; font: 500 var(--o-control-font-size)/1.4 Inter, sans-serif; }
+.o-shell .o-content :is(.o-control-bar,.o-filters) .o-searchbox { height: var(--o-control-height); min-height: var(--o-control-height); box-sizing: border-box; }
+.o-shell .o-content :is(.o-control-bar,.o-filters) .o-searchbox input { min-height: 0; height: 100%; font: 500 var(--o-control-font-size)/1.4 Inter, sans-serif; }
+@media (max-width: 1240px) { .o-shell .o-header .o-header-tools { margin-left: auto; } }
+@media (max-width: 760px) {
+  .o-shell .o-header { height: 62px; margin: 10px 16px 0; padding-inline: 10px; gap: 6px; }
+  .o-shell .o-header .o-header-brand { min-width: 0; }
+  .o-shell .o-header .aerocare-logo { width: 96px; }
+  .o-shell .o-header .o-header-tools { gap: 4px; }
+  .o-shell .o-header :is(.o-round-btn,.o-ask-ai,.o-profile summary) { width: 34px; height: 36px; min-height: 36px; }
+  .o-shell .o-header .o-avatar { width: 34px; height: 34px; }
+  .o-shell .o-content .o-segmented { max-width: 100%; flex-wrap: wrap; }
+  .o-shell .o-content .o-segmented button { height: auto; white-space: normal; padding: 8px 12px; }
+}
+@media (max-width: 360px) {
+  .o-shell .o-header { margin-inline: 12px; gap: 4px; }
+  .o-shell .o-header .aerocare-logo { width: 64px; }
+  .o-shell .o-header :is(.o-round-btn,.o-ask-ai,.o-profile summary) { width: 30px; }
+  .o-shell .o-header .o-avatar { width: 30px; height: 30px; }
+}

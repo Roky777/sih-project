@@ -1,14 +1,14 @@
-# FleetAvail — SIH presentation preparation
+# AeroCare — SIH presentation preparation
 
 Reviewed 12 October 2026 against repository revision `da96d4a`. Repository: `pallavpushkar3-gif/sih-project`. This is a source and live website review, not a new operational or scientific acceptance report.
 
 ## The main message
 
-**FleetAvail connects aircraft health predictions with maintenance work, spare availability and workshop capacity so teams can act before a predicted failure becomes avoidable downtime.**
+**AeroCare connects aircraft health predictions with maintenance work, spare availability and workshop capacity so teams can act before a predicted failure becomes avoidable downtime.**
 
 The supplied PS 26249 describes fragmented, reactive maintenance and inadequate integration of health-monitoring data, technical records, spares and maintenance agencies. Prediction alone is insufficient: a team also needs the right part, a maintenance slot and a human decision. That connection is the presentation's strongest product story.
 
-Current website brand: **FleetAvail**. Use it consistently in the slides and screenshots.
+Current website brand: **AeroCare**. Use it consistently in the slides and screenshots.
 
 ## Problem statement → implemented solution
 

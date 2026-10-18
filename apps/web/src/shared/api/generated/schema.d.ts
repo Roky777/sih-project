@@ -2728,6 +2728,8 @@ export interface components {
             user_id: string;
             /** Password */
             password: string;
+            /** Workspace */
+            workspace?: ("engineer" | "supervisor" | "logistics" | "fleet_manager") | null;
         };
         /** CsvImportRequest */
         CsvImportRequest: {

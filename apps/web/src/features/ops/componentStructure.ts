@@ -7,9 +7,9 @@ const HEALTHY_COLOR = "#76d5b1";
    (bladed spools, piston pumps, wound stators, multi-disc brakes, card-cage avionics…).
    Proportions are typical, not taken from any manufacturer drawing: no dimensional, damage or
    fault-location claim. Long axis is X; the cutaway scales each assembly to its real size. */
-export function createComponentStructure(kind: StructureKind, exploded: boolean, wireframe: boolean, color: string) {
+export function createComponentStructure(kind: StructureKind, exploded: boolean, wireframe: boolean, color: string, cutaway = true) {
   const group = new Group();
-  group.userData = { engineeringValidated: false, units: "normalised assembly units", kind };
+  group.userData = { engineeringValidated: false, units: "normalised assembly units", kind, cutaway };
   const mat = (hex: string, metalness: number, roughness: number, extra: Partial<MeshStandardMaterial> = {}) =>
     Object.assign(new MeshStandardMaterial({ color: hex, metalness, roughness, wireframe }), extra);
   const titanium = mat("#a9b0b5", .85, .32), steel = mat("#c7ccd0", .92, .2), alloy = mat("#9aa3a8", .78, .38);
@@ -17,14 +17,14 @@ export function createComponentStructure(kind: StructureKind, exploded: boolean,
   const nickel = mat("#8d8478", .88, .36), carbon = mat("#2a2b2d", .2, .75), pcb = mat("#2f6a4c", .1, .6), rubber = mat("#1f2022", 0, .92);
   // Healthy parts keep their real finish; maintenance / attention states colour the key parts.
   const highlight = color.toLowerCase() === HEALTHY_COLOR ? mat("#b9bec2", .85, .3) : mat(color, .45, .4);
-  const shell = mat("#7fa3b8", .3, .4, { transparent: true, opacity: wireframe ? 1 : .2, side: DoubleSide, depthWrite: false });
+  const shell = mat("#7fa3b8", .3, .4, { transparent: cutaway && !wireframe, opacity: cutaway && !wireframe ? .2 : 1, side: DoubleSide, depthWrite: !cutaway || wireframe });
   const spread = exploded ? 1 : 0;
   const add = (name: string, geometry: BufferGeometry, material: Material, x = 0, y = 0, z = 0, rotation: [number, number, number] = [0, 0, 0]) => {
     const mesh = new Mesh(geometry, material); mesh.name = name; mesh.position.set(x, y, z); mesh.rotation.set(...rotation); group.add(mesh); return mesh;
   };
   /** Body of revolution about X from [radius, x] points. `phi` < 2π gives a cutaway shell. */
   const lathe = (name: string, points: [number, number][], material: Material, x = 0, phi = Math.PI * 2, segments = 64) => {
-    const geometry = new LatheGeometry(points.map(([r, px]) => new Vector2(Math.max(.001, r), px)), segments, Math.PI / 2, phi).rotateZ(-Math.PI / 2);
+    const geometry = new LatheGeometry(points.map(([r, px]) => new Vector2(Math.max(.001, r), px)), segments, Math.PI / 2, !cutaway && phi > Math.PI ? Math.PI * 2 : phi).rotateZ(-Math.PI / 2);
     return add(name, geometry, material, x);
   };
   const cylinderX = (name: string, radius: number, length: number, x = 0, material: Material = alloy, open = false, y = 0, z = 0, segments = 40) =>

@@ -168,7 +168,7 @@ and operational impact evaluation remain pending. See [qualification commands](.
 ## Requested prototype UI restoration — 14 October 2026
 
 Restored the `da96d4a` aircraft presentation to match the supplied screenshot: full-viewport green
-grid, large model, right camera controls, lower statistics, FleetAvail wordmark and More/Research
+grid, large model, right camera controls, lower statistics, AeroCare wordmark and More/Research
 navigation. Current onboarding, summary, maintenance, history, blueprint, assistant and backend
 records remain available; the inspection workspace sits below the aircraft. The initial camera
 uses the three-quarter direction and bounds update when aircraft families change. Research links

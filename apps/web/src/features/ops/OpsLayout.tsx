@@ -4,7 +4,7 @@ import { AskAIButton, AssistantPanel } from "../assistant/AssistantPanel";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { api, isHealth } from "../../shared/api/client";
+import { api } from "../../shared/api/client";
 import { Icon, type IconName } from "../../shared/ui/Icon";
 import { useSession } from "../access/SessionGate";
 import { useAcknowledgeAlert, useAdvisories, useAlerts, useEngine, useRequestEngineRun } from "./api";
@@ -18,6 +18,7 @@ import { isResearchPath, navigationGroups, type NavItem } from "./workspaceNavig
 import { WorkspaceConnections } from "./WorkspaceConnections";
 import "./workspace-flow.css";
 import "./connected-workspace.css";
+import "./toolbar.css";
 import { useAsOf } from "./AsOf";
 const groups = navigationGroups;
 const titles: Record<string, string> = Object.fromEntries(groups.flatMap(group => group.items).map(item => [item.to.split("?")[0], item.label]));
@@ -31,7 +32,6 @@ export function OpsLayout() {
   const menuButton = useRef<HTMLButtonElement>(null);
   const shell = useRef<HTMLDivElement>(null);
   const lab = isResearchPath(location.pathname) || new URLSearchParams(location.search).get("dataset") === "research" || location.pathname === "/demo";
-  const health = useQuery({ queryKey: ["api-health"], queryFn: () => api("/health/ready", { signal: AbortSignal.timeout(5000) }, isHealth), refetchInterval: 30_000, retry: false });
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setPaletteOpen(open => !open); }
@@ -65,7 +65,7 @@ export function OpsLayout() {
 
   useEffect(() => { document.title = `${title} · AeroCare`; }, [title]);
   const visualAircraft = location.pathname.startsWith("/aircraft/") && new URLSearchParams(location.search).get("dataset") !== "research";
-  return <div ref={shell} className={`o-shell${visualAircraft ? " o-twin-atmosphere" : ""}${scrolled ? " is-scrolled" : ""}`}>
+  return <div ref={shell} className={`o-shell${location.pathname === "/advisories" ? " findings-shell" : ""}${location.pathname === "/aircraft" ? " aircraft-register-shell" : ""}${visualAircraft ? " o-twin-atmosphere" : ""}${scrolled ? " is-scrolled" : ""}`}>
     <div className="o-header-backdrop" aria-hidden="true"/>
     {!visualAircraft && <WorkspaceGrid host={shell} paused={mobileOpen || paletteOpen}/>}
     <a className="skip-link" href="#main-content">Skip to content</a>
@@ -81,7 +81,7 @@ export function OpsLayout() {
         <ProfileMenu/>
       </div>
     </header>
-    <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}><Dialog.Portal><Dialog.Overlay className="o-overlay"/><Dialog.Content className="o-mobile-nav" aria-describedby={undefined} onCloseAutoFocus={event => { event.preventDefault(); menuButton.current?.focus(); }}><Dialog.Title className="sr-only">Workspace navigation</Dialog.Title><div className="o-mobile-nav-head"><strong>FleetAvail</strong><Dialog.Close asChild><button type="button" className="o-round-btn" aria-label="Close navigation"><Icon name="close" size={16}/></button></Dialog.Close></div><CompactMenu/></Dialog.Content></Dialog.Portal></Dialog.Root>
+    <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}><Dialog.Portal><Dialog.Overlay className="o-overlay"/><Dialog.Content className="o-mobile-nav" aria-describedby={undefined} onCloseAutoFocus={event => { event.preventDefault(); menuButton.current?.focus(); }}><Dialog.Title className="sr-only">Workspace navigation</Dialog.Title><div className="o-mobile-nav-head"><strong>AeroCare</strong><Dialog.Close asChild><button type="button" className="o-round-btn" aria-label="Close navigation"><Icon name="close" size={16}/></button></Dialog.Close></div><CompactMenu/></Dialog.Content></Dialog.Portal></Dialog.Root>
     <DashboardOverview/>
     <AssistantPanel/>
     {!lab && asOf && <div className="o-replay-banner" role="status"><strong>History/replay · {asOf} · Read only</strong><button className="o-btn ghost" onClick={() => setAsOf(null)}>Exit replay</button></div>}
@@ -91,7 +91,6 @@ export function OpsLayout() {
         {lab ? <><div className="workspace-research-context"><Link to="/research">Engine research workspace</Link><span>Engine dataset & saved logistics · independent of fleet replay</span><Link to="/dashboard">Return to fleet operations</Link></div><div className="page"><Outlet/></div></> : ["/", "/welcome", "/home", "/overview", "/review", "/plan", "/parts", "/status", "/help", "/account", "/settings"].includes(location.pathname) || location.pathname.startsWith("/cases/") ? <Outlet/> : <EngineGate><Outlet/></EngineGate>}
         {!location.pathname.startsWith("/aircraft/") && <WorkspaceConnections/>}
       </main>
-      <footer className="o-footer"><span>AeroCare · Aircraft maintenance & fleet availability · PS 26249</span><span>Synthetic data environment · Decision support only · No airworthiness or dispatch authority</span><span className="o-footer-connection">{health.isError ? "API offline" : health.isSuccess ? "API connected" : "Connecting to API"}</span></footer>
     </div>
     <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen}/>
   </div>;

@@ -12,6 +12,7 @@ class LoginSession(Base):
     __tablename__ = "login_sessions"
     token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    workspace: Mapped[str | None] = mapped_column(String(32), nullable=True)
     csrf_token: Mapped[str] = mapped_column(String(128))
     expires_at: Mapped[datetime] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))

@@ -31,6 +31,9 @@
 .availability-study { display: grid; gap: 24px; min-width: 0; }
 .availability-study .o-card { min-width: 0; }
 .availability-study .registration-import-actions > label { display: grid; gap: 6px; min-width: 0; max-width: 100%; font-size: 12px; }
+.availability-study .registration-import-actions { align-items: flex-end; margin-top: 16px; }
+.o-shell .availability-study .registration-import-actions > .o-btn,
+.o-shell .availability-study .registration-import-actions select { height: 40px; min-height: 40px; box-sizing: border-box; margin: 0; padding-block: 0; }
 .availability-study select { width: min(440px,100%); max-width: 100%; min-width: 0; padding: 10px; border-radius: 8px; border: 1px solid var(--o-border); background: var(--o-surface); color: var(--o-text); }
 .availability-study details { margin-top: 16px; font-size: 12px; color: var(--o-text-2); }
 .availability-study summary { cursor: pointer; color: var(--o-accent-ink); }

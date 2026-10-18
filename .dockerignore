@@ -13,3 +13,6 @@ data/processed
 data/splits
 artifacts
 backend/artifacts
+
+# Local account credentials
+LOCAL_LOGIN_CREDENTIALS.json

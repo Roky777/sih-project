@@ -10259,6 +10259,23 @@
             "maxLength": 256,
             "minLength": 1,
             "title": "Password"
+          },
+          "workspace": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "engineer",
+                  "supervisor",
+                  "logistics",
+                  "fleet_manager"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace"
           }
         },
         "type": "object",

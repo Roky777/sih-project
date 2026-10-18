@@ -31,8 +31,9 @@ test("login uses AeroCare branding and keeps the existing authentication contrac
   await page.route("**/api/access/session", route => route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ detail: "Authentication required" }) }));
   await page.route("**/api/access/registration", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ enabled: false }) }));
   await page.goto("/dashboard");
+  await page.getByRole("button", { name: /Fleet manager/ }).click();
   await expect(page.getByRole("heading", { name: "Sign in to AeroCare" })).toBeVisible();
-  await expect(page.getByRole("img", { name: "AeroCare" })).toBeVisible();
+  await expect(page.locator(".entry-brand")).toContainText("AeroCare");
   await expect(page.getByLabel("Account ID")).toBeVisible();
   await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
 });

@@ -1,3 +1,4 @@
+import "./findings.css";
 import { HeadingReplay } from "./ReplaySlider";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -66,11 +67,11 @@ function FleetFindings() {
   const counts = (key: "priority" | "spare" | "status", value: string) => items.filter(a => (key === "priority" ? a.priority.level : key === "spare" ? a.spare.status : a.status) === value).length;
   const single = (list: string[], set: (value: string[]) => void) => (value: string) => set(value ? [value] : []);
   const spareIcon = (a: Advisory) => <Pill tone={a.spare.status === "available" ? "healthy" : a.spare.status === "short" ? "critical" : "watch"}>{a.spare.status === "available" ? "In stock" : a.spare.status === "additive_print" ? "Print assumption" : a.spare.status === "contested" ? "Competing demand" : "Part short"}</Pill>;
-  return <div className="o-screen">
+  return <div className="o-screen findings-screen">
     <div className="o-screen-head"><h1>Findings & evidence</h1><span>Risk queue · {rows.length} of {items.length} advisories{asOf ? " · REPLAY (read only)" : ""}</span><HeadingReplay/></div>
     <FlowStrip compact/>
     <WorkspaceScope/>
-    <Card>
+    <Card className="findings-queue">
       <div className="o-control-bar">
         <label>Priority<select className="o-input" value={priority[0] ?? ""} onChange={event => single(priority, setPriority)(event.target.value)}><option value="">All</option>{filters.priority.map(level => <option key={level} value={level}>{level} ({counts("priority", level)})</option>)}</select></label>
         <label>System<select className="o-input" value={system} onChange={event => setSystem(event.target.value)}><option value="">All systems</option>{systems.map(name => <option key={name}>{name}</option>)}</select></label>
@@ -83,7 +84,7 @@ function FleetFindings() {
         <button type="button" className="o-btn sm ghost" onClick={() => navigate(`/simulator?kind=early_replacement&components=${selected.map(id => items.find(a => a.id === id)?.component_id).filter(Boolean).join(",")}`)}><Icon name="sliders" size={14}/>Simulate early replacement</button>
         <button type="button" className="o-link" onClick={() => setSelected([])}>Clear</button></div>}
       <Query query={advisories} rows={10}>{() => rows.length === 0 ? <EmptyState title="No advisories match these filters" icon="filter">Clear a filter to see more of the queue.</EmptyState> :
-        <div className="o-table-wrap"><table className="o-table dense o-grid-table">
+        <div className="o-table-wrap"><table className="o-table o-grid-table">
           <thead><tr><th><input type="checkbox" aria-label="Select all" checked={selected.length > 0 && selected.length === rows.length} onChange={event => setSelected(event.target.checked ? rows.map(r => r.id) : [])}/></th>
             <th>{header("aircraft", "Aircraft")}</th><th>System</th><th>Component</th><th>{header("priority", "Priority")}</th><th className="num">{header("risk", "Risk (14d)")}</th><th className="num">{header("rul", "RUL")}</th><th className="center">Spares</th><th className="num">{header("downtime", "Exp. downtime")}</th><th>Status</th><th>Action</th></tr></thead>
           <tbody>{shown.map(a => <tr key={a.id} className={`clickable${selected.includes(a.id) ? " selected" : ""}`} onClick={() => setOpen(a)}>
@@ -96,8 +97,8 @@ function FleetFindings() {
             <td className="num">{num(a.downtime.act_now_days, 1)}d</td>
             <td><Pill tone={a.status}>{statusLabel[a.status]}</Pill></td>
             <td onClick={event => event.stopPropagation()}>{!asOf && can.schedule(role.id) && a.status === "accepted"
-              ? <button type="button" className="o-btn sm o-row-cta" onClick={() => navigate(`/maintenance?component=${a.component_id}&aircraft=${a.aircraft}`)}>PLAN</button>
-              : <button type="button" className="o-btn sm ghost o-row-cta" aria-label={`${a.status === "proposed" ? "Review" : "View"} ${a.aircraft} ${a.component_name}`} onClick={() => setOpen(a)}>{a.status === "proposed" ? "REVIEW" : "VIEW"}</button>}</td>
+              ? <button type="button" className="o-btn findings-row-action" onClick={() => navigate(`/maintenance?component=${a.component_id}&aircraft=${a.aircraft}`)}>PLAN</button>
+              : <button type="button" className="o-btn ghost findings-row-action" aria-label={`${a.status === "proposed" ? "Review" : "View"} ${a.aircraft} ${a.component_name}`} onClick={() => setOpen(a)}>{a.status === "proposed" ? "REVIEW" : "VIEW"}</button>}</td>
           </tr>)}</tbody>
         </table></div>}</Query>
       <div className="case-pagination"><button className="o-btn ghost" disabled={!page} onClick={() => movePage(page - 1)}>Previous</button><span>{rows.length} findings · page {page + 1}</span><button className="o-btn ghost" disabled={(page + 1) * 25 >= rows.length} onClick={() => movePage(page + 1)}>Next</button></div>

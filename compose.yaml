@@ -33,6 +33,7 @@ services:
       context: ./backend
       target: runtime
     environment:
+      FLEET_AUTHENTICATION_MODE: ${FLEET_AUTHENTICATION_MODE:-session}
       FLEET_DATABASE_URL: postgresql+psycopg://fleet:fleet@postgres:5432/fleet
       FLEET_BROKER_URL: amqp://fleet:fleet@rabbitmq:5672//
       FLEET_ARTIFACT_ROOT: /var/lib/fleet-maintenance/artifacts
@@ -66,6 +67,7 @@ services:
       context: ./backend
       target: runtime
     environment:
+      FLEET_AUTHENTICATION_MODE: ${FLEET_AUTHENTICATION_MODE:-session}
       FLEET_DATABASE_URL: postgresql+psycopg://fleet:fleet@postgres:5432/fleet
       FLEET_BROKER_URL: amqp://fleet:fleet@rabbitmq:5672//
       FLEET_ARTIFACT_ROOT: /var/lib/fleet-maintenance/artifacts
@@ -81,6 +83,7 @@ services:
       context: ./backend
       target: runtime
     environment:
+      FLEET_AUTHENTICATION_MODE: ${FLEET_AUTHENTICATION_MODE:-session}
       FLEET_DATABASE_URL: postgresql+psycopg://fleet:fleet@postgres:5432/fleet
       FLEET_BROKER_URL: amqp://fleet:fleet@rabbitmq:5672//
     command: ["python", "-m", "fleet_maintenance.workers.outbox_dispatcher"]

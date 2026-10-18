@@ -44,3 +44,6 @@ data/raw/**
 data/processed/**
 data/splits/**
 artifacts/**
+
+# Local account credentials
+LOCAL_LOGIN_CREDENTIALS.json

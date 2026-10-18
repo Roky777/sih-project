@@ -1,0 +1,34 @@
+/* Spacious aircraft register based on the five-column reference. */
+.o-shell.aircraft-register-shell .o-content { padding: 26px 30px 32px; }
+.aircraft-register { display: flex; flex-direction: column; gap: 26px; min-width: 0; }
+.aircraft-register .o-page-head { margin: 0; }
+.aircraft-register .o-page-head h1 { font-size: 36px; }
+.aircraft-register .o-page-head p { font-size: 15px; }
+.aircraft-register .o-page-head .o-btn { min-height: 48px; padding-inline: 20px; border-radius: 12px; font-size: 14px; }
+.aircraft-register .o-filters { gap: 12px; margin: 0; }
+.aircraft-register .o-chip { min-height: 36px; font-size: 13px; padding-inline: 14px; }
+.aircraft-register .o-chip-count { font-size: 12px; }
+.aircraft-register .o-searchbox { min-width: 240px; }
+.aircraft-register .o-searchbox input { width: 240px; }
+.aircraft-register-sort { flex: 0 0 100%; margin-top: 4px; }
+.aircraft-register .o-aircraft-grid { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 16px; }
+.aircraft-register .o-aircraft-card { padding: 18px; min-height: 190px; gap: 12px; border-radius: 18px; }
+.aircraft-register .o-aircraft-card::before { width: 4px; }
+.aircraft-register .o-aircraft-card-top { gap: 12px; }
+.aircraft-register .o-aircraft-card-top strong { font-size: 21px; font-weight: 600; }
+.aircraft-register .o-aircraft-card-top small { display: block; font-size: 13px; line-height: 1.65; }
+.aircraft-register .o-aircraft-card-top .o-ring { flex-shrink: 0; }
+.aircraft-register .o-aircraft-card-mid { gap: 7px; }
+.aircraft-register .o-aircraft-card-foot { margin-top: auto; font-size: 13px; }
+.aircraft-register .o-aircraft-card :is(.o-state,.o-pill) { font-size: 11px; }
+@media (max-width: 1400px) { .aircraft-register .o-aircraft-grid { grid-template-columns: repeat(4,minmax(0,1fr)); } }
+@media (max-width: 1100px) { .aircraft-register .o-aircraft-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (max-width: 760px) {
+  .o-shell.aircraft-register-shell .o-content { padding: 20px 16px; }
+  .aircraft-register { gap: 20px; }
+  .aircraft-register .o-page-head h1 { font-size: 28px; }
+  .aircraft-register .o-aircraft-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .aircraft-register .o-searchbox { width: 100%; min-width: 0; }
+  .aircraft-register .o-searchbox input { width: 100%; }
+}
+@media (max-width: 500px) { .aircraft-register .o-aircraft-grid { grid-template-columns: minmax(0,1fr); }.aircraft-register .o-aircraft-card { min-height: 180px; } }

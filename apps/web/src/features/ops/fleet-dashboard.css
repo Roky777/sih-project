@@ -1,0 +1,46 @@
+/* Full-width overview panels, matching the dashboard reference. */
+.fleet-overview .fleet-chart-grid,
+.fleet-overview .fleet-detail-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+.fleet-overview :is(.fleet-chart-grid, .fleet-detail-grid) > .o-card {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding: 24px;
+}
+.fleet-overview :is(.fleet-chart-grid, .fleet-detail-grid) .o-card-head h2 {
+  font-size: 18px;
+  font-weight: 500;
+}
+.fleet-overview .fleet-health-panel .o-matrix.o-matrix-split {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.fleet-overview .fleet-health-panel .o-matrix-row {
+  grid-template-columns: 62px repeat(7, minmax(24px, 1fr));
+}
+.fleet-overview .fleet-health-panel :is(.o-matrix-cell, .o-matrix-tail) { height: 30px; }
+.fleet-overview .fleet-health-panel .o-matrix-col { font-size: 9px; }
+.fleet-overview .fleet-priority-actions .overview-action-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.fleet-overview .fleet-priority-actions .case-context {
+  min-height: 200px;
+  padding: 20px;
+  gap: 14px;
+  border-radius: 16px;
+}
+.fleet-overview .fleet-priority-actions .case-context nav { align-self: flex-start; }
+@media (max-width: 760px) {
+  .fleet-overview :is(.fleet-chart-grid, .fleet-detail-grid) > .o-card { padding: 18px; }
+  .fleet-overview .fleet-health-panel .o-matrix.o-matrix-split {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 420px;
+  }
+  .fleet-overview .fleet-priority-actions .overview-action-grid { grid-template-columns: minmax(0, 1fr); }
+  .fleet-overview .fleet-priority-actions .case-context { min-height: 0; }
+}

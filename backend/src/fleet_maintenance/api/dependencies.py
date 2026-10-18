@@ -4,7 +4,11 @@ from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from fleet_maintenance.persistence.database import get_session
-from fleet_maintenance.services.access import authenticate_session
+from fleet_maintenance.services.access import (
+    authenticate_session,
+    effective_session_role,
+    session_record,
+)
 from fleet_maintenance.settings import get_settings
 
 
@@ -39,7 +43,7 @@ def current_actor(
         raise HTTPException(409, "History/replay is read-only; exit replay before changing records")
     if get_settings().authentication_mode == "session":
         user = authenticate_session(session, request)
-        return Actor(user.id, user.role)
+        return Actor(user.id, effective_session_role(user, session_record(session, request)))
     if x_demo_role not in {
         "viewer",
         "fleet_manager",

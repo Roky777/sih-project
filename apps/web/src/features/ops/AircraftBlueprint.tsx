@@ -7,7 +7,7 @@ import { num, pct, rulText, shortDate, stateLabel } from "./format";
 import { Icon } from "../../shared/ui/Icon";
 import { BlueprintDrawing } from "./BlueprintDrawing";
 import { airframeOf } from "./airframes";
-import type { BlueprintCamera } from "./BlueprintStudio";
+import type { BlueprintCamera, ComponentView } from "./BlueprintStudio";
 import "./aircraft-blueprint.css";
 
 const Studio = lazy(() => import("./BlueprintStudio").then(module => ({ default: module.BlueprintStudio })));
@@ -22,7 +22,7 @@ export function AircraftBlueprint({ data }: { data: AircraftDetail }) {
   const [view, setView] = useState<"drawing" | "spatial">("drawing");
   const [findingsOnly, setFindingsOnly] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [mode, setMode] = useState<"assembled" | "exploded" | "wireframe">("assembled");
+  const [mode, setMode] = useState<ComponentView>("assembled");
   const [reset, setReset] = useState(0);
   const [camera, setCamera] = useState<BlueprintCamera>("perspective");
   const [wireframe, setWireframe] = useState(false);
@@ -55,14 +55,13 @@ export function AircraftBlueprint({ data }: { data: AircraftDetail }) {
         {!visible.length && <p className="bp-empty">{components.length && findingsOnly ? "No condition findings in this snapshot. Turn off Findings only to inspect all components." : "No component records available for this aircraft."}</p>}
       </div></aside>
     </div>
-    <p className="bp-provenance">Illustrative architecture · Synthetic component records. Locations and internal structures are conceptual, not verified installation or fault-location data.</p>
     <Dialog.Root open={Boolean(selected)} onOpenChange={open => { if (!open) setSelectedId(null); }}><Dialog.Portal><Dialog.Overlay className="o-overlay bp-inspection-overlay"/><Dialog.Content className="bp-inspection-dialog" aria-describedby="bp-inspection-context" onCloseAutoFocus={event => { event.preventDefault(); if (lastSelection.current) document.querySelector<HTMLButtonElement>(`.bp-register-item[data-component-id="${CSS.escape(lastSelection.current)}"]`)?.focus(); }}>
-      {selected && <><header className="bp-inspection-header"><div><span className="bp-eyebrow">COMPONENT / 3D INSPECTION</span><Dialog.Title>{selected.name}</Dialog.Title><Dialog.Description id="bp-inspection-context">{String(data.aircraft.id)} · {selected.system} · {shortDate(data.as_of)}</Dialog.Description></div><Dialog.Close asChild><button type="button" aria-label="Close component inspection"><Icon name="close" size={20}/></button></Dialog.Close></header>
-        <div className="bp-inspection-body"><div className="bp-part-stage"><div className="bp-part-toolbar" role="group" aria-label="Component structure view">{(["assembled", "exploded", "wireframe"] as const).map(item => <button type="button" key={item} aria-pressed={mode === item} onClick={() => setMode(item)}>{item[0].toUpperCase() + item.slice(1)}</button>)}<button type="button" aria-label="Reset component camera" onClick={() => setReset(value => value + 1)}><Icon name="history" size={15}/></button></div>
+      {selected && <><header className="bp-inspection-header"><div><span className="bp-eyebrow">COMPONENT / 3D INSPECTION · ILLUSTRATIVE MODEL</span><Dialog.Title>{selected.name}</Dialog.Title><Dialog.Description id="bp-inspection-context">{String(data.aircraft.id)} · {selected.system} · {shortDate(data.as_of)}</Dialog.Description></div><Dialog.Close asChild><button type="button" aria-label="Close component inspection"><Icon name="close" size={20}/></button></Dialog.Close></header>
+        <div className="bp-inspection-body"><div className="bp-part-stage"><div className="bp-part-toolbar" role="group" aria-label="Component structure view">{(["assembled", "cutaway", "exploded", "wireframe"] as const).map(item => <button type="button" key={item} aria-pressed={mode === item} onClick={() => setMode(item)}>{item[0].toUpperCase() + item.slice(1)}</button>)}<button type="button" aria-label="Reset component camera" onClick={() => setReset(value => value + 1)}><Icon name="history" size={15}/></button></div>
           <div className="bp-part-canvas" aria-label={`3D structure of ${selected.name}`}>{selected.layout ? <BlueprintBoundary key={selected.id}><Suspense fallback={<p role="status">Preparing component structure…</p>}><Studio airframe={airframe} components={components} selected={selected} mode={mode} reset={String(reset)}/></Suspense></BlueprintBoundary> : <p className="bp-renderer-fallback">A structure model is not available for this component type. Its condition records remain available.</p>}</div>
-          <div className="bp-part-legend">{selected.layout && structureLabels[selected.layout.kind].map(label => <span key={label}>{label}</span>)}</div><p className="bp-part-note">Illustrative section model · Drag to rotate. Red marks the component’s recorded condition, not a diagnosed internal defect.</p>
+          <div className="bp-part-legend">{selected.layout && structureLabels[selected.layout.kind].map(label => <span key={label}>{label}</span>)}</div><p className="bp-part-note">Drag to rotate · Scroll to zoom · Right-drag to pan</p>
         </div><aside className="bp-part-evidence"><span className={`bp-condition ${selected.attention ? "has-finding" : selected.state === "under_maintenance" ? "state-maintenance" : ""}`}>{stateLabel[selected.state]}</span><dl><div><dt>Health index</dt><dd>{num(selected.hi)}<small>/100</small></dd></div><div><dt>Remaining life</dt><dd>{rulText(selected.rul)}</dd></div><div><dt>14-day risk</dt><dd>{pct(selected.risk14)}</dd></div><div><dt>Serial</dt><dd className="bp-serial">{selected.serial || "Unavailable"}</dd></div></dl>
-          <h3>Recorded findings</h3>{selected.openAdvisories.length ? selected.openAdvisories.map(advisory => <p key={advisory.id}>{advisory.id} · {advisory.status.replaceAll("_", " ")}</p>) : <p>No open advisory in this snapshot. The condition shown above is the component record, not a confirmed fault cause.</p>}
+          <h3>Recorded findings</h3>{selected.openAdvisories.length ? selected.openAdvisories.map(advisory => <p key={advisory.id}>{advisory.id} · {advisory.status.replaceAll("_", " ")}</p>) : <p>No open findings recorded for this component.</p>}
           <Link className="bp-evidence-action" to={`/health/${selected.id}`}>Open condition evidence <Icon name="arrow" size={16}/></Link>
         </aside></div></>}
     </Dialog.Content></Dialog.Portal></Dialog.Root>

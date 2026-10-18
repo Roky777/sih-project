@@ -94,7 +94,8 @@ test('real account sign-in retains validation and opens only the authenticated r
   });
   await page.route('**/api/access/registration',route=>route.fulfill({json:{enabled:false}}));
   await page.goto('/dashboard');
-  await expect(page.getByRole('heading',{name:'Sign in to FleetAvail'})).toBeVisible();
+  await page.getByRole('button', { name: /Logistics team/ }).click();
+  await expect(page.getByRole('heading',{name:'Sign in to AeroCare'})).toBeVisible();
   await page.getByLabel('Account ID',{exact:true}).fill('logistics-demo');
   await page.getByLabel('Password',{exact:true}).fill('test-password-fixture');
   await page.getByRole('button',{name:'Sign in',exact:true}).click();

@@ -55,7 +55,26 @@ def register(session: Session, user_id: str, display_name: str, password: str) -
     return user
 
 
-def login(session: Session, user_id: str, password: str) -> tuple[str, LoginSession]:
+def allowed_workspaces(role: str) -> set[str]:
+    if role == "supervisor":
+        return {"engineer", "supervisor", "logistics", "fleet_manager"}
+    mapped = {"viewer": "fleet_manager", "planner": "supervisor", "administrator": "supervisor"}
+    return {mapped.get(role, role)}
+
+
+def effective_session_role(user: User, record: LoginSession) -> str:
+    if record.workspace and record.workspace not in allowed_workspaces(user.role):
+        raise HTTPException(401, "Workspace access has changed. Sign in again.")
+    # Supervisor workspaces narrow the session's permissions to the chosen team.
+    # Other account types retain their original server permissions.
+    if user.role == "supervisor" and record.workspace:
+        return record.workspace
+    return user.role
+
+
+def login(
+    session: Session, user_id: str, password: str, workspace: str | None = None
+) -> tuple[str, LoginSession]:
     user = session.scalar(select(User).where(User.id == user_id).with_for_update())
     now = datetime.now(UTC)
     valid = passwords.verify(
@@ -69,12 +88,15 @@ def login(session: Session, user_id: str, password: str) -> tuple[str, LoginSess
             user.locked_until = now + timedelta(minutes=15)
         session.commit()
         raise HTTPException(401, "Invalid credentials or unavailable account")
+    if workspace is not None and workspace not in allowed_workspaces(user.role):
+        raise HTTPException(403, "This account does not have access to the selected workspace")
     user.failed_logins = 0
     user.locked_until = None
     token = secrets.token_urlsafe(48)
     record = LoginSession(
         token_hash=token_hash(token),
         user_id=user.id,
+        workspace=workspace,
         csrf_token=secrets.token_urlsafe(32),
         expires_at=now + timedelta(hours=get_settings().session_hours),
     )
@@ -96,6 +118,7 @@ def authenticate_session(session: Session, request: Request) -> User:
     user = session.get(User, record.user_id)
     if user is None or user.disabled:
         raise HTTPException(401, "Authentication required")
+    effective_session_role(user, record)
     if request.method not in {"GET", "HEAD", "OPTIONS"}:
         supplied = request.headers.get("x-csrf-token", "")
         if not secrets.compare_digest(supplied, record.csrf_token):

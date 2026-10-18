@@ -1,8 +1,9 @@
 import { CapacitySettings } from "./CapacitySettings";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Icon } from "../../shared/ui/Icon";
 import { useThemePreference } from "../../shared/ui/theme";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { api } from "../../shared/api/client";
 import { useSession } from "../access/SessionGate";
 import { labTools } from "./workspaceNavigation";
 import { roles, useActorRole, useRole } from "./roles";
@@ -40,10 +41,34 @@ export function HelpPage() {
 export function AccountPage() {
   const session = useSession();
   const { role, setRole, canSwitch } = useRole();
+  const navigate = useNavigate();
+  const [switchingRole, setSwitchingRole] = useState(false);
+  const [switchError, setSwitchError] = useState("");
+  const changeRole = async (value: string) => {
+    const next = roles.find(item => item.id === value);
+    if (!next || next.id === role.id || switchingRole) return;
+    if (canSwitch) {
+      setRole(next.id);
+      window.dispatchEvent(new CustomEvent("fleet:choose-workspace", { detail: { role: next.id } }));
+      navigate(`/login?workspace=${next.id}`, { replace: true });
+      return;
+    }
+    setSwitchingRole(true); setSwitchError("");
+    try {
+      await api("/access/session", { method: "DELETE" });
+      navigate(`/login?workspace=${next.id}`, { replace: true });
+      window.dispatchEvent(new Event("fleet:session-expired"));
+    } catch (cause) {
+      setSwitchError(cause instanceof Error ? cause.message : "Unable to sign out. Try again.");
+      setSwitchingRole(false);
+    }
+  };
   return <div className="o-screen utility-screen account-screen"><PageHead title="Account" description="Your identity and permitted responsibilities"/>
     <Card title="Profile" subtitle="Identity used for the current workspace"><dl className="account-details"><div><dt>Account</dt><dd>{canSwitch ? `demo-${role.id.replace("_", "-")}` : session?.id ?? "Identity unavailable"}</dd></div><div><dt>Role</dt><dd>{role.label}</dd></div><div><dt>Session</dt><dd>{session?.authentication === "server session" ? "Signed in" : "Local demonstration"}</dd></div></dl></Card>
-    <Card title={canSwitch ? "Demonstration role" : "Responsibilities"} subtitle={canSwitch ? "Explore another role’s view in this local demonstration" : "Your server role is controlled by an administrator"}>
-      {canSwitch && <label className="o-field account-role-field">Current role<select value={role.id} onChange={e => setRole(e.target.value as typeof role.id)}>{roles.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label>}
+    <Card title="Workspace role" subtitle="Switching workspace requires signing in with an account assigned to that role.">
+      <label className="o-field account-role-field">Current role<select value={role.id} disabled={switchingRole} onChange={e => void changeRole(e.target.value)}>{roles.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label>
+      {switchError && <p role="alert">{switchError}</p>}
+      {switchingRole && <p role="status">Opening sign-in…</p>}
       <ul className="account-responsibilities">{role.does.map(item => <li key={item}><Icon name="check" size={16}/>{item}</li>)}</ul>
       <Link className="o-btn ghost" to={role.home}>{role.homeLabel}<Icon name="arrow" size={16}/></Link>
     </Card></div>;

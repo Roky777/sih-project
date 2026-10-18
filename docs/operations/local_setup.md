@@ -11,7 +11,7 @@ Use Node 24 with pnpm 12.8.1 and Docker Compose. Backend containers use Python 3
 1. Run `make setup` to install the frozen web lock and build the Python 3.13 backend test image.
 2. Review `.env.example`; copy it to the ignored `.env` only when overriding local defaults.
 3. Run `make dev`. Compose starts PostgreSQL and RabbitMQ, applies Alembic migrations, seeds labelled fixtures, and starts the API, outbox dispatcher, worker and web proxy.
-4. Check `http://localhost:8000/api/health/ready` and open `http://localhost:8080`.
+4. Check `http://localhost:8000/api/health/ready`, open `http://localhost:8080`, choose a workspace, and enter credentials for an account permitted to use that workspace.
 5. Run `make web-check`, `make backend-check`, and `make e2e` as appropriate.
 
 `make services-down` stops containers without deleting named volumes. Do not add `-v` as routine troubleshooting because it destroys persisted local PostgreSQL/artifact state.
@@ -43,3 +43,35 @@ docker compose run --rm -v "$PWD:/workspace" -w /workspace \
 This requires the independently retained `artifacts/models/customer-trial-v1` and matching `data/raw/cmapss/train_FD001.txt`; it rejects different bytes under an existing version and does not invent a prediction if artifacts are absent. A fresh training candidate requires a new version and explicit evaluation; do not overwrite selected release bytes.
 
 Open `/demo`: enter a case → inspect AI evidence → calculate schedule → compare the exact saved plan → record receipt/replan → approve → start/complete work. For reproducible isolated acceptance use `compose.verify.yaml` and `http://localhost:18080`; see backup/restore for installation and recovery evidence. Ordinary local UI remains at `http://localhost:8080`. Production mode excludes customer-trial routes.
+
+
+## Workspace credentials — 18 October 2026
+
+Local Compose and `.env.example` use `FLEET_AUTHENTICATION_MODE=session`. The public
+entry page shows the four workspaces; clicking one opens `/login?workspace=…` with
+account ID and password fields. Valid credentials open that workspace directly.
+The server verifies the selected workspace against the account's assigned role;
+choosing a role never grants permissions. Account role switching signs out the
+current server session and requests credentials for the new workspace.
+
+Existing accounts are not changed. Accounts without password hashes cannot sign in.
+An administrator can use the existing interactive `scripts/provision_user.py` to
+provision credentials. A separate `scripts/bootstrap_local_accounts.py` is prepared
+for creating four dedicated local accounts, without resetting any existing account.
+Run it only when creation of these role-bearing accounts is authorized:
+
+```sh
+docker compose run --rm -T --no-deps -v "$PWD:/workspace" -w /workspace \
+  -e PYTHONPATH=/workspace/backend/src api python scripts/bootstrap_local_accounts.py
+```
+
+The setup script writes generated credentials to the owner-only
+`LOCAL_LOGIN_CREDENTIALS.json`; Git and Docker build contexts exclude this file.
+Do not publish it. Re-running the script verifies the saved accounts and preserves
+their credentials. This script is not run automatically by application startup.
+
+Legacy browser fixtures that intentionally exercise header identities require an
+explicit isolated `FLEET_AUTHENTICATION_MODE=demo` test stack. The credential-entry
+browser tests use mocked sessions; backend login tests use temporary databases.
+
+The local `pushkar` supervisor account supports the same login across all four workspace choices; each login session uses the selected team role. The private credentials file lists workspace choices even when they share one account.

@@ -39,6 +39,8 @@ html:has(.o-shell), body:has(.o-shell) {
 }
 .o-shell, .o-shell.collapsed { display: block; min-height: 100vh; background: transparent; }
 .o-main { min-width: 0; }
+/* The page is a focus destination after the welcome dialog closes. */
+.o-shell #main-content:focus { outline: none; }
 
 /* Header + pill navigation ----------------------------------------------------------------- */
 .o-header { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 16px; height: 72px; padding: 0 24px;
@@ -392,7 +394,7 @@ i.t-plan { background: var(--o-accent-2); } i.t-crit { background: var(--o-criti
   .o-footer { flex-wrap: wrap; gap: 8px; }
 }
 .o-mobile-nav-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 14px 0 22px; }
-.o-mobile-nav-head strong { font-size: 17px; font-weight: 600; letter-spacing: -.3px; }
+.o-mobile-nav-head strong { font-size: 26px; font-weight: 800; line-height: 1.1; letter-spacing: -.9px; }
 
 /* Backdrop band behind the floating header: repeats the page canvas (same fixed gradients)
    so scrolled content is hidden above and around the header rather than showing through. */
