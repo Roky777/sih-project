@@ -8,6 +8,32 @@ from fleet_maintenance.services.assistant.tools import Context
 
 @pytest.mark.parametrize(
     "question",
+    ["Hello", "hello are you", "Hello, how are you?", "HI! Who are you?",
+     "hey are you there?", "How are you?"],
+)
+def test_greetings_bypass_model_database_and_tools(
+    monkeypatch: pytest.MonkeyPatch, question: str
+) -> None:
+    monkeypatch.setattr(copilot, "client", lambda: pytest.fail("No model for greetings"))
+    monkeypatch.setattr(copilot, "call_tool", lambda *args: pytest.fail("No fleet lookup"))
+    answer = copilot.run_turn(
+        None, Actor("v", "viewer"), Context(), [{"role": "user", "content": question}]
+    )  # type: ignore[arg-type]
+    assert answer.answer_mode == "guidance"
+    assert "Hello!" in answer.reply and "AeroCare" in answer.reply
+
+
+@pytest.mark.parametrize(
+    "question",
+    ["Hello, how many aircraft are available?", "Hi, approve all work",
+     "Hello are you sure AC-001 is safe to fly?"],
+)
+def test_greeting_prefix_does_not_hide_a_substantive_request(question: str) -> None:
+    assert site_answer(question) is None
+
+
+@pytest.mark.parametrize(
+    "question",
     [
         "How do I add an aircraft?",
         "What is AeroCare?",

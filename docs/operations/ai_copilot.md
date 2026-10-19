@@ -2,6 +2,39 @@
 
 An optional assistant that answers questions about the fleet using AeroCare's own records and services. It runs an open model (Qwen3-8B by default) through Ollama, behind the existing backend and its authentication.
 
+Greeting handling includes complete phrases such as “Hello, how are you?”, “Who are
+you?” and the incomplete “hello are you”. These return explicit site guidance without
+loading the model or querying fleet records. A greeting followed by an operational
+question is not truncated into this response. This improves greeting latency only;
+it does not increase CPU inference throughput for model-generated explanations.
+
+### Common wording and slow-model handling — 20 October 2026
+
+Bounded variants of fleet counts/availability, urgent findings, spare shortages,
+selected-aircraft summaries/open work, sensor history and the default availability
+forecast route to existing services without inference. Greeting/polite prefixes are
+normalized while full-match routing preserves dates, aircraft identities, compound
+actions and hypothetical conditions for interpretation. Results retain the selected
+snapshot date; “available” does not mean flight clearance. “Flights”, “fights” and
+“fighters” requests ask whether the visitor means demonstration aircraft rather than
+inventing flight bookings or a fighter-specific count. Missing record selections
+prompt for context. A missing spare record is reported as missing, not zero stock.
+
+The browser now displays the backend's model interpretation/explanation status;
+timeout, truncated stream and cancellation paths remain explicit. This is not a
+promise of fast responses to arbitrary questions. The operator-supplied CPU benchmark
+showed 31.98 seconds cold (18.77 seconds loading) and 13.40 seconds warm, approximately
+2.5 generated tokens/second, for a short standalone prompt. Those observations are
+not a complete application latency benchmark. Longer tool-mediated answers still
+need measured inference capacity.
+
+Local verification: 99 focused assistant tests and Ruff passed, including common
+wording, ambiguous/missing context, dates, evidence grounding and authorization
+regressions. Web lint/typecheck/build and 30 unit tests passed. Browser stream
+fixtures cover final-answer replacement, malformed/truncated responses, timeout,
+cancellation, status and mobile layout; deployed Qwen speed remains to be checked.
+No schema migration or model-weight replacement is required for this repair.
+
 The backend also supports Groq hosted inference. Local Ollama remains the default; there is no automatic provider switch or silent paid fallback. Exact fleet-count/current-availability questions and explicit part-stock questions use existing services without inference. Other questions retain the allowlisted tool loop. The browser uses authenticated `POST /api/assistant/chat/stream`: newline-delimited status, reset, draft-text delta, final checked response, error and heartbeat events. Draft text is marked provisional until citation/number checks complete; the final response replaces it. Truncated streams are errors. Disconnects stop subsequent tool rounds, but do not undo an already saved scenario or instantly interrupt a blocking provider call.
 
 ### Private inference

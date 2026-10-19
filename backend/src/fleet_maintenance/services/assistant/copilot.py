@@ -386,7 +386,11 @@ def run_turn(
     read_cache: dict[str, ToolResult] = {}
     for step in range(settings.assistant_max_tool_iterations + 1):
         if emit:
-            emit({"type": "status", "text": "Checking fleet records…"})
+            emit({
+                "type": "status",
+                "text": "Writing an explanation from retrieved records…" if sources
+                else "Interpreting your question with the configured model…",
+            })
         remaining = deadline - time.monotonic()
         if remaining <= 2:
             raise AssistantUnavailable("The assistant ran out of time for this question.")

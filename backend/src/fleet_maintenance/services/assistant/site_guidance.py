@@ -10,6 +10,12 @@ if TYPE_CHECKING:
 
 # Deliberately bounded: compound, dated or adversarial questions are not silently remapped.
 GUIDANCE: dict[str, tuple[str, str]] = {
+    "greeting": (
+        "Hello! I'm the AeroCare maintenance copilot. I can help you navigate the site "
+        "and inspect fleet evidence, maintenance work and spare parts. "
+        "What would you like to check?",
+        "/help",
+    ),
     "problem": (
         "PS 26249, Air Power — Predictive Maintenance & Fleet Availability, addresses "
         "low aircraft availability associated with fragmented records and reactive maintenance. "
@@ -103,8 +109,12 @@ ALIASES = {
     "is my data private": "privacy",
     "what can you do": "capabilities",
     "help": "capabilities",
-    "hello": "capabilities",
-    "hi": "capabilities",
+    "hello": "greeting",
+    "hi": "greeting",
+    "hey": "greeting",
+    "how are you": "greeting",
+    "who are you": "greeting",
+    "hello are you": "greeting",
     "what are your limitations": "capabilities",
 }
 
@@ -113,6 +123,12 @@ def site_answer(content: str) -> Turn | None:
     from fleet_maintenance.services.assistant.copilot import Turn
 
     question = re.sub(r"\s+", " ", content.lower()).strip(" .?!")
+    # Match the entire greeting, never discard a substantive question after it.
+    if re.fullmatch(
+        r"(?:hello|hi|hey)[,! .]*(?:(?:how|who) are you|are you there|are you)?[.!?]*",
+        question,
+    ):
+        question = "hello"
     if re.search(
         r"(?:reveal|print|give|show).{0,35}(?:api key|password|secret|system prompt)"
         r"|ignore.{0,25}(?:instructions|rules)"

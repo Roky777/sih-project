@@ -577,3 +577,16 @@ fallback for enlarged text or other constrained viewports rather than clipping r
 Availability refinement: retain green forecast text and proportional track, but use a transparent
 badge background and border when the availability step is unselected. Only its selected state gets
 the green fill/border. Hover alone must not fill the percentage badge.
+
+## Copilot common-question routing — 2026-10-20
+
+Complete, bounded wording variants for fleet counts/availability, urgent findings,
+spare shortages, selected aircraft/open work, sensor trends and the standard forecast
+use existing permission-checked services without inference. Preserve selected dates,
+record scope, source links and synthetic/projection labels. Do not truncate compound,
+hypothetical or explicitly dated questions into generic current counts. Ambiguous
+flight/fight/fighter queries ask whether the user means aircraft; no flight-booking
+or fighter-specific coverage is inferred. Missing selections prompt for a record;
+missing spare records do not imply zero stock. Complete greetings use site guidance.
+Model interpretation/explanation stages appear in the chat while generation runs;
+failed, cancelled or truncated answers cannot leave a completed fabricated response.
