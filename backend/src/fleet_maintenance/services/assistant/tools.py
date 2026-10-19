@@ -77,6 +77,14 @@ class NoArgs(Strict):
     pass
 
 
+class HelpArgs(Strict):
+    topic: Literal[
+        "problem", "navigation", "registration", "prediction", "approval",
+        "availability", "privacy",
+        "capabilities",
+    ]
+
+
 class AircraftArgs(Strict):
     aircraft_id: str | None = Field(default=None, pattern=r"^AC-\d{3}$")
 
@@ -867,9 +875,26 @@ class Tool:
     roles: frozenset[str] | None = None  # None: every authenticated role
 
 
+def product_help(session: Session, actor: Actor, ctx: Context, args: HelpArgs) -> ToolResult:
+    """Product guidance does not depend on an installed fleet dataset."""
+    from fleet_maintenance.services.assistant.site_guidance import GUIDANCE
+
+    text, href = GUIDANCE[args.topic]
+    return ToolResult(
+        {"topic": args.topic, "guidance": text},
+        citations=[_cite("help", "HELP-" + args.topic.upper(), "AeroCare product help", href)],
+    )
+
+
 TOOLS: dict[str, Tool] = {
     t.name: t
     for t in (
+        Tool(
+            "get_product_help",
+            "AeroCare product instructions, onboarding, concepts, permissions and limitations.",
+            HelpArgs,
+            product_help,
+        ),
         Tool(
             "get_registered_aircraft",
             "Customer-entered REG aircraft onboarding, source usage and mandatory requirements. "

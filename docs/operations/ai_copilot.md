@@ -8,6 +8,36 @@ loading the model or querying fleet records. A greeting followed by an operation
 question is not truncated into this response. This improves greeting latency only;
 it does not increase CPU inference throughput for model-generated explanations.
 
+### General conversation and evidence correction — 20 October 2026
+
+Unmatched questions are interpreted by the configured model, rather than expanded
+phrase lists. The conversational prompt distinguishes ordinary conversation, basic
+product guidance and application-record questions. It includes the product navigation
+and registration reference; `get_product_help` supplies detailed versioned guidance.
+Conversation and product help do not load the fleet bundle. Record tools still retrieve
+the snapshot themselves and enforce the selected historical cutoff and role permissions.
+The first model response streams provisional drafts, including conversation without tools.
+
+A retrieved answer that omits citation markers gets one bounded, tool-free correction
+pass using the same evidence and allowed source IDs. The corrected answer still goes
+through number, citation and clearance checks. A failed correction remains withheld;
+it does not repeat scenario creation or relax grounding. This can add an inference call.
+
+Verification: 116 focused assistant unit tests passed. Real local `qwen3:4b-instruct`
+checks at a 4096-token context answered an unfamiliar introduction, gave the correct
+Aircraft > Add aircraft workflow, and retrieved/cited counts from a labelled synthetic
+test fixture. These are bounded smoke checks, not proof of general model accuracy or
+remote VM latency. No new identity/pronoun phrase routes were added.
+Reproduce the opt-in real-model checks in the backend test environment:
+
+```bash
+FLEET_TEST_OLLAMA_URL=http://127.0.0.1:11434 \
+  python -m pytest tests/integration/test_assistant_model_live.py -q
+```
+
+Use the private Ollama address reachable from that environment (for Docker Desktop,
+`http://host.docker.internal:11434`). The checks do not use production records or credentials.
+
 ### Common wording and slow-model handling — 20 October 2026
 
 Bounded variants of fleet counts/availability, urgent findings, spare shortages,

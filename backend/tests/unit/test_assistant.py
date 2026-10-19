@@ -234,3 +234,29 @@ def test_empty_reply_gets_one_nudge_and_role_limits_are_explained() -> None:
     assert turn.reply == "Your role cannot run scenarios."
     assert "cannot run what-if scenarios" in llm.sent[0]["messages"][0]["content"]
     assert llm.sent[1]["messages"][-1]["role"] == "user"
+
+
+@pytest.mark.parametrize("invented", [False, True])
+def test_missing_citation_repair_keeps_grounding_checks(
+    monkeypatch: pytest.MonkeyPatch, invented: bool
+) -> None:
+    seen = _fake_tool(monkeypatch, {"rul_days": {"p50": 8.5}})
+    record_id = "ADV-AC-017-FUE-BST-00017"
+    value = "99.9" if invented else "8.5"
+    llm = FakeLLM([
+        call("get_finding_details", {}),
+        {"content": "The model forecasts P50 remaining life of 8.5 days."},
+        {"content": f"The model forecasts P50 remaining life of {value} days [{record_id}]."},
+    ])
+    answer = copilot.run_turn(
+        FakeSession(), Actor("u", "viewer"), Context(),
+        [{"role": "user", "content": "Describe the remaining life for this finding"}], llm,
+    )
+    assert len(seen) == 1  # Repair cannot re-run tools or create another scenario.
+    assert llm.sent[-1]["tools"] is None
+    assert "Allowed IDs" in llm.sent[-1]["messages"][-1]["content"]
+    if invented:
+        assert "withheld" in answer.reply and not answer.citations[0]["cited"]
+    else:
+        assert "8.5" in answer.reply and answer.citations[0]["cited"]
+        assert not answer.warnings

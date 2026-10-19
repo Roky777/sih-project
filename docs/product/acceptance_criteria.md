@@ -422,3 +422,14 @@ record selections produce clarification; unknown parts produce missing-record st
 Verify streamed model status, final replacement, cancellation, timeout, malformed and
 truncated responses in the browser. CPU model throughput and public deployment latency
 must be measured separately; a fast direct answer does not prove fast arbitrary AI.
+
+
+## General copilot conversation regression — 2026-10-20
+
+Unmatched conversational questions reach the model with history and selected context
+without loading fleet data. Product instructions have a shared reference and a typed
+help tool. Operational answers retain fresh tool retrieval and existing role/cutoff rules.
+Missing citation syntax triggers at most one tool-free correction; invented figures or
+invalid citations remain withheld. First-call drafts remain provisional until final checks.
+The opt-in real Qwen smoke check must exercise model mode with unfamiliar wording and
+retrieve/cite synthetic fixture counts; phrase-route tests alone are insufficient evidence.

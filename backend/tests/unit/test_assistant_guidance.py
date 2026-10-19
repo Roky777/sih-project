@@ -360,3 +360,65 @@ def test_retrieved_explanation_requires_individually_checked_citation(
     )  # type: ignore[arg-type]
     assert ("withheld" in answer.reply) is withheld
     assert answer.citations[0]["cited"] is not withheld
+
+
+def test_general_model_conversation_needs_no_fleet_bundle(monkeypatch: pytest.MonkeyPatch) -> None:
+    from fleet_maintenance.services import fleet_health
+
+    monkeypatch.setattr(
+        fleet_health, "active_bundle",
+        lambda _: pytest.fail("Conversation must not load fleet data")
+    )
+    events = []
+    history = [
+        {"role": "user", "content": "I am new to this workspace."},
+        {"role": "assistant", "content": "Welcome to AeroCare."},
+        {"role": "user", "content": "How should I address you while we work together?"},
+    ]
+
+    class LLM:
+        def chat(self, messages, tools, timeout, on_delta=None):
+            assert messages[-3:] == history
+            assert "Answer introductions" in messages[0]["content"]
+            assert on_delta is not None
+            on_delta("You can call me the AeroCare copilot.")
+            return {"content": "You can call me the AeroCare copilot."}
+
+    answer = copilot.run_turn(
+        None, Actor("v", "viewer"), Context(), history, LLM(), events.append
+    )  # type: ignore[arg-type]
+    assert answer.reply == "You can call me the AeroCare copilot."
+    assert not answer.warnings and not answer.tool_calls
+    assert any(e["type"] == "delta" for e in events)
+
+
+def test_model_product_help_runs_without_dataset(monkeypatch: pytest.MonkeyPatch) -> None:
+    from fleet_maintenance.services import fleet_health
+
+    monkeypatch.setattr(
+        fleet_health, "active_bundle", lambda _: pytest.fail("Help must not load fleet data")
+    )
+
+    class Session:
+        def rollback(self):
+            pass
+
+    class LLM:
+        count = 0
+
+        def chat(self, messages, tools, timeout):
+            self.count += 1
+            if self.count == 1:
+                return {"tool_calls": [{"function": {
+                    "name": "get_product_help", "arguments": {"topic": "registration"},
+                }}]}
+            assert "Add aircraft" in messages[-1]["content"]
+            return {"content": "Open Aircraft and choose Add aircraft [HELP-REGISTRATION]."}
+
+    answer = copilot.run_turn(
+        Session(), Actor("v", "viewer"), Context(),
+        [{"role": "user", "content": "Where would I start entering a newly acquired airframe?"}],
+        LLM(),
+    )  # type: ignore[arg-type]
+    assert answer.tool_calls[0]["ok"] and answer.citations[0]["cited"]
+    assert "withheld" not in answer.reply and not answer.warnings
