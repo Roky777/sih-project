@@ -355,7 +355,22 @@ first/second steps and Change role returns to the selector. Verify the engineer 
 mobile navigation highlighting still fits, and account-role storage and selected-aircraft records
 are unchanged by tour selection. Existing research/aircraft journeys must remain usable after Skip.
 
-## Role workspace entry — 2026-10-16
+## Account entry — 2026-10-20
+
+Verify anonymous root/login presents credentials and accessible Create account when
+enabled, without protected fleet requests or staff selection. Signup must survive
+refresh, explain viewer permissions, reject mismatched passwords before submission,
+retain editable inputs after a duplicate ID and honor rate-limit cooldowns. After
+successful signup from a staff workspace link, login must have no stale workspace,
+retain the normalized account ID and clear passwords. A viewer signs in without
+role selection and opens the dashboard; refresh without session-storage entry still
+opens the authenticated workspace. Explicit staff links still submit their workspace
+and switching ends the old session. Disabled signup and backend unavailability must
+offer truthful recovery paths; no fake email/password reset or elevated signup roles.
+Verify desktop/mobile layout and keyboard usability. Browser API fixtures establish
+frontend behavior, not deployed cookies, authorization or real account persistence.
+
+## Role workspace entry — 2026-10-16 (historical server entry)
 
 Verify four keyboard-operable visual role cards, explicit selection/disabled continue, correct local
 role/home, preserved record deep links and role-specific tour. Refresh must retain tab entry while

@@ -121,3 +121,16 @@
 }
 
 .entry-header .entry-brand .aerocare-logo { width: clamp(184px, 18vw, 250px); height: auto; filter: none; }
+
+/* Account entry explains permissions before signup and keeps help within reach. */
+.access-permissions { margin-top: 20px; padding: 15px 17px; border: 1px solid var(--entry-line); border-radius: 12px; background: #e7f0e866; font-size: 12px; line-height: 1.7; }
+.access-permissions p { margin: 5px 0 0; color: var(--entry-muted); }
+.access-help { margin: 20px 0; color: var(--entry-muted); font-size: 12px; line-height: 1.7; }
+.access-help summary { cursor: pointer; color: var(--entry-ink); }
+.entry-auth-form .password-visibility { justify-self: start; min-height: 32px; margin-top: -12px; }
+.entry-auth-form input:disabled { opacity: .65; }
+
+@media (max-width: 900px) {
+  .workspace-entry:not(.workspace-selection) .entry-intro { display: none; }
+  .workspace-entry:not(.workspace-selection) .entry-layout { min-height: 0; padding-block: 24px; }
+}

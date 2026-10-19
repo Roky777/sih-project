@@ -471,7 +471,32 @@ boundaries. Change role on the first guided step returns to the invitation; Back
 steps. Choosing a tour role does not switch the account/demo role, grant permissions or alter data.
 The role selection resets on refresh along with the invitation; Skip needs no selection.
 
-## Role workspace entry — 2026-10-16
+## Account entry — 2026-10-20
+
+Server-session installations open the sign-in form immediately at the public entry,
+without asking visitors to choose a staff role. When self-registration is enabled,
+Create account opens the refreshable `/signup` route. Signup explains shared synthetic
+records and viewer-only access before submission. Name, account ID, password and
+password confirmation are required. Successful registration returns to `/login`,
+retains the normalized account ID, clears passwords and any requested staff workspace,
+and explains that the user can now sign in. Registration does not create a session.
+
+Ordinary sign-in omits a requested workspace: the verified server role determines
+the home screen. Explicit `/login?workspace=…` links remain supported for staff
+workspace switching and retain server-side permission checks. A signed-in account
+does not have to select its role again after refresh or opening another tab. Existing
+record bookmarks remain in place when signing in from a protected record URL.
+
+Disabled signup explains administrator provisioning and offers existing-account
+login. Signup-option failures offer retry without hiding the sign-in form. Mismatch,
+duplicate-account, authentication, offline and rate-limit states remain actionable;
+forms prevent duplicate submission and expose a password visibility control. Recovery
+help accurately describes administrator-assisted reset; no email recovery is claimed.
+No public form can grant staff permissions. Local header-demo role selection remains.
+
+This section supersedes workspace-first anonymous entry below for server sessions.
+
+## Role workspace entry — 2026-10-16 (historical server entry)
 
 Replace the tour's native role dropdown with a dedicated visual workspace entry, using the shared
 layered grid and green/white surfaces. Local development explicitly identifies role selection as

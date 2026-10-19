@@ -40,6 +40,7 @@ export function HelpPage() {
 
 export function AccountPage() {
   const session = useSession();
+  const viewer = session?.authentication === "server session" && session.role === "viewer";
   const { role, setRole, canSwitch } = useRole();
   const navigate = useNavigate();
   const [switchingRole, setSwitchingRole] = useState(false);
@@ -64,12 +65,12 @@ export function AccountPage() {
     }
   };
   return <div className="o-screen utility-screen account-screen"><PageHead title="Account" description="Your identity and permitted responsibilities"/>
-    <Card title="Profile" subtitle="Identity used for the current workspace"><dl className="account-details"><div><dt>Account</dt><dd>{canSwitch ? `demo-${role.id.replace("_", "-")}` : session?.id ?? "Identity unavailable"}</dd></div><div><dt>Role</dt><dd>{role.label}</dd></div><div><dt>Session</dt><dd>{session?.authentication === "server session" ? "Signed in" : "Local demonstration"}</dd></div></dl></Card>
+    <Card title="Profile" subtitle="Identity used for the current workspace"><dl className="account-details"><div><dt>Account</dt><dd>{canSwitch ? `demo-${role.id.replace("_", "-")}` : session?.id ?? "Identity unavailable"}</dd></div><div><dt>Role</dt><dd>{viewer ? "Viewer (read only)" : role.label}</dd></div><div><dt>Session</dt><dd>{session?.authentication === "server session" ? "Signed in" : "Local demonstration"}</dd></div></dl></Card>
     <Card title="Workspace role" subtitle="Switching workspace requires signing in with an account assigned to that role.">
-      <label className="o-field account-role-field">Current role<select value={role.id} disabled={switchingRole} onChange={e => void changeRole(e.target.value)}>{roles.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label>
+      {viewer ? <p className="o-note">You can browse the shared demonstration records. Planning, editing and approval require staff access assigned by your installation administrator.</p> : <label className="o-field account-role-field">Current role<select value={role.id} disabled={switchingRole} onChange={e => void changeRole(e.target.value)}>{roles.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label>}
       {switchError && <p role="alert">{switchError}</p>}
       {switchingRole && <p role="status">Opening sign-in…</p>}
-      <ul className="account-responsibilities">{role.does.map(item => <li key={item}><Icon name="check" size={16}/>{item}</li>)}</ul>
+      <ul className="account-responsibilities">{(viewer ? ["Browse fleet records and supporting evidence", "Review saved maintenance and availability results"] : role.does).map(item => <li key={item}><Icon name="check" size={16}/>{item}</li>)}</ul>
       <Link className="o-btn ghost" to={role.home}>{role.homeLabel}<Icon name="arrow" size={16}/></Link>
     </Card></div>;
 }

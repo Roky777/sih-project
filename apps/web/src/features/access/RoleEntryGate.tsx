@@ -19,6 +19,7 @@ export function RoleEntryGate({ children, onRequestSignIn }: { children: ReactNo
   const identity = session?.authentication === 'server session' ? `${session.id}:${session.role}` : 'local-demo';
   const [entered, setEntered] = useState(() => {
     if (onRequestSignIn) return false;
+    if (session?.authentication === "server session") return true;
     try { return sessionStorage.getItem(entryStorageKey) === identity; } catch { return false; }
   });
   useEffect(() => {

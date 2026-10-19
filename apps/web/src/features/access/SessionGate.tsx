@@ -3,9 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { api, ApiError, setCsrfToken, pagesDeployment, fullAppUrl, isHealth } from "../../shared/api/client";
 import { AccessFrame } from "./AccessFrame";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { RoleProvider, roles } from "../ops/roles";
-import { RoleEntryGate } from "./RoleEntryGate";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { roles } from "../ops/roles";
 import { BrandLogo } from "../../shared/ui/BrandLogo";
 
 type SessionInfo = { id: string; role: string; authentication: string; csrf_token: string | null };
@@ -14,6 +13,7 @@ export function useSession() { return useContext(SessionContext); }
 export function SessionGate({ children }: { children: ReactNode }) {
   useThemePreference();
   const navigate = useNavigate();
+  const location = useLocation();
   const [params] = useSearchParams();
   const workspace = roles.find(role => role.id === params.get("workspace"));
   const queryClient = useQueryClient();
@@ -37,7 +37,8 @@ export function SessionGate({ children }: { children: ReactNode }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [creatingAccount, setCreatingAccount] = useState(false);
+  const creatingAccount = location.pathname === "/signup";
+  const [showPassword, setShowPassword] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [notice, setNotice] = useState("");
@@ -68,12 +69,14 @@ export function SessionGate({ children }: { children: ReactNode }) {
         "enabled" in value && typeof value.enabled === "boolean"),
   });
   function changeMode(create: boolean) {
-    setCreatingAccount(create); setError(""); setNotice("");
+    if (busy) return;
+    navigate(create ? "/signup" : "/login");
+    setError(""); setNotice(""); setShowPassword(false);
     setPassword(""); setConfirmPassword("");
   }
   async function register(event: FormEvent) {
     event.preventDefault();
-    if (busy || Date.now() < retryAt) return;
+    if (busy || Date.now() < retryAt || !registration.data?.enabled) return;
     setError(""); setNotice("");
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
     setBusy(true);
@@ -86,8 +89,9 @@ export function SessionGate({ children }: { children: ReactNode }) {
         value !== null && "id" in value && typeof value.id === "string" &&
         "role" in value && value.role === "viewer");
       setUser(account.id); setPassword(""); setConfirmPassword("");
-      setCreatingAccount(false);
-      setNotice("Account created. Sign in with your account ID and password.");
+      navigate("/login", { replace: true });
+      setShowPassword(false);
+      setNotice("Account created with viewer access. Sign in below to open your fleet dashboard.");
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 422) {
         setError("Check your name, account ID and password requirements.");
@@ -106,39 +110,49 @@ export function SessionGate({ children }: { children: ReactNode }) {
         catch { throw new Error('This browser could not retain the cross-site session. Open the complete demo below to sign in.'); }
       }
       setPassword(""); setExpired(false);
-      try { if (workspace) sessionStorage.setItem("fleet:workspace-entry", `${value.id}:${value.role}`); else sessionStorage.removeItem("fleet:workspace-entry"); } catch { /* Entry is also tracked in memory. */ }
+      try { sessionStorage.setItem("fleet:workspace-entry", `${value.id}:${value.role}`); } catch { /* Entry is also tracked in memory. */ }
       queryClient.clear(); queryClient.setQueryData(["session"], value);
-      if (workspace) navigate(workspace.home, { replace: true });
+      const homeRole = value.role === "viewer" ? "fleet_manager" :
+        ["planner", "administrator"].includes(value.role) ? "supervisor" : value.role;
+      if (workspace || ["/", "/login", "/signup"].includes(location.pathname)) {
+        navigate(roles.find(role => role.id === homeRole)?.home ?? "/dashboard", { replace: true });
+      }
     } catch (cause) { showAccessError(cause, "Sign in failed"); }
     finally { setBusy(false); }
   }
   if (session.data && !expired) return <SessionContext.Provider value={session.data}>{children}</SessionContext.Provider>;
   if (session.isPending && !expired) return <div className="async-state loading-state" role="status"><span className="spinner"/><strong>Opening your workspace…</strong></div>;
-  if (!signInRequired) return <main className="login-shell"><section className="login-card" role="alert"><BrandLogo className="aerocare-logo-login"/><h1>Demo backend offline</h1><p>AeroCare connects AI engine-health evidence with parts, crew, a checked schedule and human approval.</p><p>The demo server is currently unreachable. Its host needs to keep Docker and the HTTPS tunnel running. No calculations are available while disconnected.</p><button onClick={() => void session.refetch()}>Try again</button>{fullAppUrl && <p><a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open complete demo</a></p>}</section></main>;
-  if (!workspace && !creatingAccount) return <RoleProvider><RoleEntryGate onRequestSignIn={role => navigate(`/login?workspace=${role}`)}>{null}</RoleEntryGate></RoleProvider>;
+  if (!signInRequired) return <main className="login-shell"><section className="login-card" role="alert"><BrandLogo className="aerocare-logo-login"/><h1>Demo backend offline</h1><p>AeroCare connects AI engine-health evidence with parts, crew, a checked schedule and human approval.</p><p>The demo server is currently unreachable. Please retry in a moment. Your saved records remain on the server; calculations are unavailable until it reconnects.</p><button onClick={() => void session.refetch()}>Try again</button>{fullAppUrl && <p><a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open complete demo</a></p>}</section></main>;
   return <AccessFrame title="A clearer path to
 fleet readiness." description="Sign in to connect aircraft health evidence with the people, parts and maintenance decisions that keep your team moving." eyebrow="YOUR FLEET WORKSPACE">
-    <span className="entry-step">01 / ACCOUNT</span>
+    <span className="entry-step">{creatingAccount ? "NEW ACCOUNT" : "WELCOME BACK"}</span>
     <h2>{creatingAccount ? "Create your AeroCare account" : "Sign in to AeroCare"}</h2>
-    <p>{creatingAccount ? "Create an account to explore the maintenance workspace." : `Sign in with your ${workspace?.label.toLowerCase() ?? "maintenance workspace"} account.`}</p>
-    {!creatingAccount && <button type="button" className="account-switch-button" onClick={() => { setError(""); setPassword(""); navigate("/login", { replace: true }); }}>← Choose another workspace</button>}
+    <p>{creatingAccount ? "Explore the shared demonstration fleet with a viewer account." : workspace ? `Sign in to the ${workspace.label.toLowerCase()} workspace.` : "Use your account ID and password. We’ll open the workspace assigned to your account."}</p>
+    {!creatingAccount && workspace && <button type="button" className="account-switch-button" disabled={busy} onClick={() => changeMode(false)}>Use my assigned workspace</button>}
     {pagesDeployment && fullAppUrl && <p><a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open complete demo</a><small>Use this when your browser blocks cross-site sign-in.</small></p>}
     {notice && <p role="status" className="form-success">{notice}</p>}
-    <form className="entry-auth-form" onSubmit={(event) => void (creatingAccount ? register(event) : login(event))}>
-      {creatingAccount && <label>Display name<input autoComplete="name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} required maxLength={120}/></label>}
-      <label>Account ID<input autoComplete="username" autoCapitalize="none" spellCheck={false} value={user} onChange={(event) => setUser(event.target.value)} required minLength={creatingAccount ? 3 : undefined} maxLength={64} pattern={creatingAccount ? "[a-zA-Z0-9][a-zA-Z0-9._-]*" : undefined}/>
-        {creatingAccount && <small>3–64 letters, numbers, dots, underscores or hyphens. Starts with a letter or number; saved in lowercase.</small>}
+    {expired && <p role="status" className="signup-access-note">Your session ended. Sign in again to continue.</p>}
+    {creatingAccount && <aside className="access-permissions"><strong>Start with viewer access</strong><p>Browse the shared synthetic fleet and its evidence. Creating an account does not grant planning, editing or approval permissions. Your installation administrator assigns staff access.</p></aside>}
+    {creatingAccount && registration.isPending && <p role="status">Checking account creation availability…</p>}
+    {registration.isError && <p role="alert" className="form-error">We couldn’t check account creation availability. <button type="button" className="account-switch-button" onClick={() => void registration.refetch()}>Retry</button></p>}
+    {creatingAccount && registration.data?.enabled === false && <p role="status">Account creation is closed for this installation. Ask its administrator to create an account, or sign in with an existing account.</p>}
+    {(!creatingAccount || registration.data?.enabled) && <form className="entry-auth-form" onSubmit={(event) => void (creatingAccount ? register(event) : login(event))}>
+      {creatingAccount && <label>Display name<input disabled={busy} autoComplete="name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} required maxLength={120}/></label>}
+      <label>Account ID<input aria-label="Account ID" aria-describedby={creatingAccount ? "signup-id-help" : undefined} disabled={busy} autoComplete="username" autoCapitalize="none" spellCheck={false} value={user} onChange={(event) => setUser(event.target.value)} required minLength={creatingAccount ? 3 : undefined} maxLength={64} pattern={creatingAccount ? "[a-zA-Z0-9][a-zA-Z0-9._-]*" : undefined}/>
+        {creatingAccount && <small id="signup-id-help">3–64 letters, numbers, dots, underscores or hyphens. Starts with a letter or number; saved in lowercase.</small>}
       </label>
-      <label>Password<input type="password" autoComplete={creatingAccount ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={creatingAccount ? 14 : undefined} maxLength={256}/>
-        {creatingAccount && <small>Use at least 14 characters.</small>}
+      <label>Password<input aria-label="Password" aria-describedby={creatingAccount ? "signup-password-help" : undefined} disabled={busy} type={showPassword ? "text" : "password"} autoComplete={creatingAccount ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={creatingAccount ? 14 : undefined} maxLength={256}/>
+        {creatingAccount && <small id="signup-password-help">Use at least 14 characters.</small>}
       </label>
-      {creatingAccount && <label>Confirm password<input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required minLength={14} maxLength={256}/></label>}
+      {creatingAccount && <label>Confirm password<input disabled={busy} type={showPassword ? "text" : "password"} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required minLength={14} maxLength={256}/></label>}
+      <button type="button" className="account-switch-button password-visibility" aria-pressed={showPassword} onClick={() => setShowPassword(value => !value)}>{showPassword ? "Hide password" : "Show password"}</button>
       {error && <p role="alert" className="form-error">{error}</p>}
       {retrySeconds > 0 && <p role="status">Try again in {retrySeconds} seconds.</p>}
       <button type="submit" className="entry-continue" disabled={busy || retrySeconds > 0}>{busy ? creatingAccount ? "Creating account…" : "Signing in…" : retrySeconds > 0 ? `Wait ${retrySeconds}s` : creatingAccount ? "Create account" : "Sign in"}</button>
-    </form>
-    {registration.data?.enabled && <p className="account-switch">{creatingAccount ? "Already have an account? " : "New here? "}<button type="button" className="account-switch-button" disabled={busy || retrySeconds > 0} onClick={() => changeMode(!creatingAccount)}>{creatingAccount ? "Sign in" : "Create account"}</button></p>}
-    {creatingAccount && <p className="signup-access-note">New accounts can view the shared demonstration workspace. Contact the administrator for planning or approval access.</p>}
+    </form>}
+    {(creatingAccount || registration.data?.enabled) && <p className="account-switch">{creatingAccount ? "Already have an account? " : "New here? "}<button type="button" className="account-switch-button" disabled={busy || retrySeconds > 0} onClick={() => changeMode(!creatingAccount)}>{creatingAccount ? "Sign in" : "Create account"}</button></p>}
+    {!creatingAccount && <details className="access-help"><summary>Forgot your account ID or password?</summary><p>Ask this installation’s administrator to confirm your account ID or reset your password. Email recovery is not available.</p></details>}
+    {!creatingAccount && registration.data?.enabled === false && <p className="signup-access-note">Need an account? Ask this installation’s administrator. Public account creation is disabled.</p>}
     {pagesDeployment && fullAppUrl && <a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open the complete demo</a>}
     <small>Evidence supports human review.</small>
   </AccessFrame>;

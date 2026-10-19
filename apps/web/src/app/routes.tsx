@@ -55,6 +55,7 @@ export const router = createRouter([{ path:"/", element:<SessionGate><RoleProvid
   { index:true, element:import.meta.env.VITE_PAGES === 'true' ? <Navigate to="/demo" replace/> : page(<HomeRedirect/>) },
   { path:"home", element:page(<HomeRedirect/>) },
   { path:"login", element:page(<HomeRedirect/>) },
+  { path:"signup", element:page(<HomeRedirect/>) },
   { path:"welcome", element:page(<WelcomePage/>) },
   { path:"review", element:<RouteAlias to="/advisories" defaults={{ status: "proposed" }}/> },
   { path:"plan", element:<RouteAlias to="/maintenance" defaults={{ view: "work" }}/> },

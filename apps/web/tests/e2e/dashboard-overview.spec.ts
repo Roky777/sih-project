@@ -94,13 +94,12 @@ test('real account sign-in retains validation and opens only the authenticated r
   });
   await page.route('**/api/access/registration',route=>route.fulfill({json:{enabled:false}}));
   await page.goto('/dashboard');
-  await page.getByRole('button', { name: /Logistics team/ }).click();
   await expect(page.getByRole('heading',{name:'Sign in to AeroCare'})).toBeVisible();
   await page.getByLabel('Account ID',{exact:true}).fill('logistics-demo');
   await page.getByLabel('Password',{exact:true}).fill('test-password-fixture');
   await page.getByRole('button',{name:'Sign in',exact:true}).click();
-  await expect(page.locator('.entry-role-card.selected')).toContainText('Logistics team');
-  await expect(page.locator('.entry-role-card:disabled')).toHaveCount(3);
+  await expect(page.locator('.o-shell')).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Choose your workspace role' })).toHaveCount(0);
 });
 
 test('team priorities use recorded responsibility and All teams retains shared context',async({page})=>{
