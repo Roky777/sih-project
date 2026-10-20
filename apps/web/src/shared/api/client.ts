@@ -246,7 +246,7 @@ export async function api<T>(
 }
 
 /** Authenticated newline-delimited events; use the same session/CSRF headers as JSON calls. */
-export async function apiStream(path: string, init: RequestInit, onEvent: (event: unknown) => void): Promise<void> {
+export async function apiStream(path: string, init: RequestInit, onEvent: (event: unknown) => unknown): Promise<void> {
   const response = await fetch(apiUrl(path), {
     ...init, credentials: "include", headers: {
       "Content-Type": "application/json", "X-Demo-Role": demoRole,
@@ -267,7 +267,9 @@ export async function apiStream(path: string, init: RequestInit, onEvent: (event
       const { value, done } = await reader.read();
       buffer += decoder.decode(value, { stream: !done });
       const lines = buffer.split("\n"); buffer = lines.pop() ?? "";
-      for (const line of lines) if (line.trim()) onEvent(JSON.parse(line));
+      for (const line of lines) {
+        if (line.trim() && onEvent(JSON.parse(line)) === false) return;
+      }
       if (done) break;
     }
     if (buffer.trim()) onEvent(JSON.parse(buffer));

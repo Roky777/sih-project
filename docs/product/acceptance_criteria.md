@@ -462,3 +462,22 @@ Missing citation syntax triggers at most one tool-free correction; invented figu
 invalid citations remain withheld. First-call drafts remain provisional until final checks.
 The opt-in real Qwen smoke check must exercise model mode with unfamiliar wording and
 retrieve/cite synthetic fixture counts; phrase-route tests alone are insufficient evidence.
+
+## Assistant latency regressions — 20 October 2026
+
+Current and historical count/availability/downtime answers must retain their recorded values,
+cutoffs, citations and observed-series cards while completing with both inference and forecast
+functions forbidden. The standard dashboard summary must retain its default forecast contract.
+Self-introduction still exercises model inference without maintenance schemas; compound record
+questions and unclear follow-ups keep their permitted tools. With local inference occupied,
+a second model request returns a retry message, while direct guidance remains available; failure
+and cancellation must release the inference slot. Timing reports must exclude questions,
+answers, credentials and record data. Measure configured VM model load, prompt processing,
+generation and end-to-end latency separately before asserting any production speed target.
+
+For a valid final answer event followed by a deliberately open transport, the UI must display
+the checked final answer, stop its spinner and cancel the remaining stream. Retain malformed,
+truncated, cancelled and provisional-text protections. Release the request's authentication
+read transaction before starting a model stream and before synchronous inference. Validate TLS
+HTTP/2 negotiation, and check hi/hello without a model service; actual authenticated VM timing
+must still be measured separately.

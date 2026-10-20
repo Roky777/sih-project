@@ -1541,25 +1541,28 @@ def aircraft_detail(session: Session, aircraft_id: str, as_of: date | None) -> d
     }
 
 
-def summary(session: Session, as_of: date | None) -> dict[str, Any]:
+def summary(
+    session: Session, as_of: date | None, *, include_forecast: bool = True
+) -> dict[str, Any]:
     bundle, offset, items = advisories(session, as_of)
     current = overlay(session) if not _replaying(bundle, offset) else decisions.EMPTY_OVERLAY
     result = decisions.fleet_summary(bundle, offset, current, items)
-    projected = forecast(bundle, offset, current)
-    result["forecast_30d"] = {
-        k: projected[k]
-        for k in (
-            "availability_mean",
-            "availability_p10",
-            "availability_p50",
-            "availability_p90",
-            "aircraft_days_lost",
-            "by_cause",
-            "expected_failures",
-            "horizon_days",
-            "runs",
-        )
-    }
+    if include_forecast:
+        projected = forecast(bundle, offset, current)
+        result["forecast_30d"] = {
+            k: projected[k]
+            for k in (
+                "availability_mean",
+                "availability_p10",
+                "availability_p50",
+                "availability_p90",
+                "aircraft_days_lost",
+                "by_cause",
+                "expected_failures",
+                "horizon_days",
+                "runs",
+            )
+        }
     result["alerts_open"] = (
         sum(1 for alert in alerts(session) if not alert["acknowledged_by"])
         if not _replaying(bundle, offset)
@@ -1591,6 +1594,18 @@ def cannibalize_strategy(session: Session, as_of: date | None) -> dict[str, Any]
             previous = swaps
     result["days_with_blocked_aircraft"] = examples
     return result
+
+
+def recorded_availability_history(
+    session: Session, as_of: date | None, *, days: int = 180
+) -> list[dict[str, Any]]:
+    """Recorded history only; callers must request forecasts separately."""
+    if not 1 <= days <= 180:
+        raise ValueError("Recorded history window must be between 1 and 180 days")
+    bundle = active_bundle(session)
+    offset = offset_for(bundle, as_of)
+    current = overlay(session) if not _replaying(bundle, offset) else decisions.EMPTY_OVERLAY
+    return decisions.availability_history(bundle, days, bundle.replay_start_day + offset, current)
 
 
 def availability_trend(session: Session, as_of: date | None) -> dict[str, Any]:

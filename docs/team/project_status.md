@@ -717,3 +717,27 @@ overflow or page exceptions; public frontend entry matches the tested local prod
 The existing demo/Qwen overlays remain active. Model installation is confirmed, but actual AI
 responses and authenticated live role workflows have not been verified in this follow-up.
 Independent/operational release gates remain separate. See [GCE validation](../operations/gce_validation.md).
+
+## Ask AI latency correction — 20 October 2026
+
+Recorded count/availability/downtime answers no longer prepare unused Monte Carlo forecasts;
+explicit forecast requests and the dashboard API retain their forecasts. Bounded introductions
+omit unrelated tool definitions but still use the model. Local model turns are serialized per
+API process with an immediate retry response for contention; direct record/help answers stay
+available. Redacted Ollama timing logs and an operator diagnostics command distinguish loading,
+prompt processing and generation. Model/provider configuration and grounding checks are retained.
+
+Passed local checks: Ruff, mypy (187 files), 302 unit/verification and 78 integration tests; three
+opt-in real-model cases skipped. Six real copied-data queries, including replay, passed with both
+model and forecast calls forbidden. Warm local record queries took 18–43 ms after an initial
+844-ms bundle load. Introduction request characters decrease by 60%; no VM latency gain is
+claimed before deployment/measurement. Details: [copilot operations](../operations/ai_copilot.md).
+
+The owner clarified that hi/hello were slow too. Additional corrections complete validated
+answers at their final event instead of waiting for EOF, release authentication DB connections
+before generation/streaming and enable HTTP/2 on TLS proxies. All answer modes now log redacted
+compute timings. Final frontend checks passed lint/types/build, 31 unit tests and eight focused
+assistant browser cases. Both production images built and Nginx configs passed; TLS selected h2.
+Four real local HTTPS hi/hello requests completed in 197 ms initially and 8–12 ms thereafter
+with no model service; these are isolated local timings, not authenticated VM latency. API/web
+redeployment and hard refresh are needed before measuring the user's reported slowdown again.

@@ -81,12 +81,17 @@ def chat(
 
 @router.post("/chat/stream", response_class=StreamingResponse)
 def chat_stream(
-    body: AssistantChatRequest, actor: Actor = Depends(current_actor)
+    body: AssistantChatRequest, actor: Actor = Depends(current_actor),
+    session: Session = Depends(get_session),
 ) -> StreamingResponse:
     if not get_settings().assistant_enabled:
         raise HTTPException(404, "The assistant is turned off.")
     if body.messages[-1].role != "user":
         raise HTTPException(422, "The last message must be from the user.")
+
+    # Authentication has completed. Do not pin its DB connection for the entire model stream.
+    # The worker below owns a separate short-lived session for actual record tools.
+    session.rollback()
 
     def events() -> Iterator[str]:
         queue: Queue[dict[str, Any]] = Queue()

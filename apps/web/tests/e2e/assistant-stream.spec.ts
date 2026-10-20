@@ -123,3 +123,27 @@ test("completed conversation gives space to answers and keeps details collapsed 
   await expect(page.getByLabel("Ask the copilot", { exact: true })).toBeEnabled();
   expect(await page.locator(".o-ai-panel").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
 });
+
+
+test("validated final answer completes while the network response remains open", async ({ page }) => {
+  await page.addInitScript(response => {
+    const original = window.fetch.bind(window);
+    window.fetch = (input, init) => {
+      if (String(input).includes('/assistant/chat/stream')) {
+        return Promise.resolve(new Response(new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode(
+              JSON.stringify({ type: 'done', response }) + '\n',
+            ));
+            // An open HTTP connection must not keep an already validated answer pending.
+          },
+        }), { headers: { 'Content-Type': 'application/x-ndjson' } }));
+      }
+      return original(input, init);
+    };
+  }, answer);
+  await ask(page);
+  await expect(page.locator('.o-ai-msg.bot').last()).toContainText(answer.reply);
+  await expect(page.locator('.o-ai-typing')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Cancel', exact: true })).toHaveCount(0);
+});

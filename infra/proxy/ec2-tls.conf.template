@@ -13,6 +13,7 @@ resolver 127.0.0.11 valid=5s ipv6=off;
 
 server {
     listen 443 ssl;
+    http2 on;
     set $fleet_upstream http://api:8000;
     server_name ${DEPLOYMENT_DOMAIN};
     ssl_certificate /etc/letsencrypt/live/${DEPLOYMENT_DOMAIN}/fullchain.pem;

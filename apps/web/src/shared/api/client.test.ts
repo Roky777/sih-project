@@ -17,6 +17,19 @@ describe("authenticated answer streams", () => {
     expect(events).toEqual([{ type: "delta", text: "café" }, { type: "done" }]);
     expect(fetch.mock.calls[0][1]).toMatchObject({ credentials: "include", headers: { "X-CSRF-Token": "csrf-fixture" } });
   });
+  it("finishes and cancels an open transport when the consumer accepts a final event", async () => {
+    const cancel = vi.fn();
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('{"type":"done"}\n'));
+        // Deliberately keep the transport open after its final application event.
+      },
+      cancel,
+    });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(stream)));
+    await apiStream("/assistant/chat/stream", {}, () => false);
+    expect(cancel).toHaveBeenCalledOnce();
+  });
   it("fails on malformed events instead of accepting a partial answer", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response('{broken}\n')));
     await expect(apiStream("/assistant/chat/stream", {}, () => {})).rejects.toThrow();

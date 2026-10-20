@@ -675,3 +675,30 @@ or fighter-specific coverage is inferred. Missing selections prompt for a record
 missing spare records do not imply zero stock. Complete greetings use site guidance.
 Model interpretation/explanation stages appear in the chat while generation runs;
 failed, cancelled or truncated answers cannot leave a completed fabricated response.
+
+## Assistant latency and inference contention — 20 October 2026
+
+Current fleet-count/availability and recorded-downtime answers retrieve recorded state and a
+14-day observed history without preparing a Monte Carlo forecast. The dashboard summary API
+retains its existing forecast by default; forecast questions continue through the dedicated
+forecast tool. The internal fleet-summary tool now contains recorded fields only and directs
+forecast requests to `get_existing_forecast`. Snapshot, replay, role and evidence rules remain.
+
+Bounded self-introduction questions still use the configured model, with the full system rules
+and conversation history, but omit unrelated maintenance-tool definitions. Compound requests
+and ambiguous follow-ups retain the full permitted tools. One local inference turn per API
+process is admitted at a time; overlapping model questions receive a retry message rather than
+competing for CPU. Direct records and guidance remain usable during an inference turn. This
+process-local gate does not coordinate separate API processes or other model clients.
+
+Model-call timing logs contain counts/durations only, never prompts, generated replies, record
+identities, endpoints or credentials. Operator diagnostics can time read-only record questions
+and, explicitly with `--benchmark`, one synthetic model introduction. No model/provider change,
+output-budget reduction, automatic model download or inference-speed guarantee is introduced.
+
+Greeting transport refinement: a validated completed answer is terminal even if the connection
+remains open; release that transport promptly. Invalid final responses and incomplete streams
+retain explicit failures. Authentication read connections must be returned before long model
+streams/inference. TLS supports HTTP/2 to multiplex event streams and ordinary API calls.
+Timing logs for all answer modes contain computation metadata only; no greeting or other user
+text is copied into logs. Greeting service timings and end-to-end VM timings remain distinct.

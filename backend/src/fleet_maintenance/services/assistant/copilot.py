@@ -11,12 +11,14 @@ from __future__ import annotations
 
 import contextlib
 import json
+import logging
 import re
 import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from threading import Lock
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -33,6 +35,9 @@ from fleet_maintenance.services.assistant.tools import (
 )
 from fleet_maintenance.settings import get_settings
 
+# One API process must not submit competing inference turns to the same local CPU model.
+# Direct service/guidance replies run before this gate and do not wait for inference.
+_LOCAL_INFERENCE = Lock()
 MAX_CALLS_PER_STEP = 3
 MAX_HISTORY = 6
 MAX_TOOL_CHARS = 6000  # ~1.5k tokens per tool result keeps the turn inside the context window
@@ -151,9 +156,10 @@ class OllamaClient:
     ) -> None:
         self.base_url, self.model, self.timeout = base_url.rstrip("/"), model, timeout
         self.context_tokens = context_tokens
+        self.last_metrics: dict[str, int | float] = {}
 
     def _request(self, path: str, body: dict[str, Any] | None, timeout: float) -> Any:
-        data = json.dumps(body).encode() if body is not None else None
+        data = json.dumps(body, separators=(",", ":")).encode() if body is not None else None
         request = urllib.request.Request(
             f"{self.base_url}{path}",
             data=data,
@@ -174,6 +180,30 @@ class OllamaClient:
             return False, f"The model {self.model} is not installed on the model service."
         return True, "ready"
 
+    def _record_metrics(
+        self, payload: dict[str, Any], started: float, first_delta: float | None,
+        tool_count: int,
+    ) -> None:
+        metrics: dict[str, int | float] = {
+            "elapsed_ms": round((time.monotonic() - started) * 1000, 2),
+            "tool_definitions": tool_count,
+        }
+        if first_delta is not None:
+            metrics["first_delta_ms"] = round((first_delta - started) * 1000, 2)
+        for metric in ("load_duration", "prompt_eval_duration", "eval_duration"):
+            value = payload.get(metric)
+            if isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0:
+                metrics[metric.removesuffix("_duration") + "_ms"] = round(value / 1e6, 2)
+        for metric in ("prompt_eval_count", "eval_count", "prompt_eval_cached_count"):
+            value = payload.get(metric)
+            if type(value) is int and value >= 0:
+                metrics[metric] = value
+        self.last_metrics = metrics
+        # No question, response, tool result, record identity, endpoint or credential is logged.
+        logging.getLogger("fleet.assistant").info(
+            "assistant_model_timing %s", json.dumps(metrics, separators=(",", ":"))
+        )
+
     def chat(
         self,
         messages: list[dict[str, Any]],
@@ -181,6 +211,9 @@ class OllamaClient:
         timeout: float,
         on_delta: Callable[[str], None] | None = None,
     ) -> dict[str, Any]:
+        started = time.monotonic()
+        first_delta = None
+        self.last_metrics = {}
         body: dict[str, Any] = {
             "model": self.model,
             "messages": messages,
@@ -195,7 +228,7 @@ class OllamaClient:
             if on_delta:
                 request = urllib.request.Request(
                     f"{self.base_url}/api/chat",
-                    data=json.dumps(body).encode(),
+                    data=json.dumps(body, separators=(",", ":")).encode(),
                     headers={"Content-Type": "application/json"},
                     method="POST",
                 )
@@ -211,11 +244,14 @@ class OllamaClient:
                         content += delta
                         calls += part.get("tool_calls", [])
                         if delta:
+                            if first_delta is None:
+                                first_delta = time.monotonic()
                             on_delta(delta)
                         if chunk.get("done"):
                             done = True
                 if not done:
                     raise AssistantUnavailable("The model stream ended before completion.")
+                self._record_metrics(chunk, started, first_delta, len(tools or []))
                 return {"content": content, "tool_calls": calls}
             payload = self._request("/api/chat", body, timeout)
         except urllib.error.HTTPError as exc:
@@ -235,6 +271,7 @@ class OllamaClient:
         message = payload.get("message") if isinstance(payload, dict) else None
         if not isinstance(message, dict):
             raise AssistantUnavailable("The model service returned a malformed response.")
+        self._record_metrics(payload, started, first_delta, len(tools or []))
         return message
 
 
@@ -328,6 +365,16 @@ def _tool_content(payload: dict[str, Any]) -> str:
     )
 
 
+def _record_turn(turn: Turn, started: float) -> Turn:
+    logging.getLogger("fleet.assistant").info(
+        "assistant_answer_timing %s", json.dumps({
+            "answer_mode": turn.answer_mode,
+            "elapsed_ms": round((time.monotonic() - started) * 1000, 2),
+        }, separators=(",", ":")),
+    )
+    return turn
+
+
 def run_turn(
     session: Session,
     actor: Actor,
@@ -336,6 +383,7 @@ def run_turn(
     llm: OllamaClient | None = None,
     emit: Callable[[dict[str, Any]], None] | None = None,
 ) -> Turn:
+    started = time.monotonic()
     settings = get_settings()
     from fleet_maintenance.services.assistant.quick_answers import quick_answer
     from fleet_maintenance.services.assistant.site_guidance import site_answer
@@ -343,7 +391,7 @@ def run_turn(
     if history and history[-1]["role"] == "user":
         guidance = site_answer(history[-1]["content"])
         if guidance is not None:
-            return guidance
+            return _record_turn(guidance, started)
 
     try:
         direct = quick_answer(session, actor, ctx, history)
@@ -351,8 +399,43 @@ def run_turn(
         session.rollback()
         raise AssistantUnavailable(str(exc)) from exc
     if direct is not None:
-        return direct
-    llm = llm or client()
+        return _record_turn(direct, started)
+    # Release any authentication/read transaction before waiting for model generation.
+    if session is not None:
+        session.rollback()
+    # Reject an overlapping local model turn rather than making both users wait for CPU.
+    # External providers have their own concurrency/quota handling.
+    if settings.assistant_provider == "ollama":
+        if not _LOCAL_INFERENCE.acquire(blocking=False):
+            raise AssistantUnavailable(
+                "The local model is answering another question. Please retry shortly."
+            )
+        try:
+            result = _model_turn(session, actor, ctx, history, llm or client(), emit)
+            return _record_turn(result, started)
+        finally:
+            _LOCAL_INFERENCE.release()
+    return _record_turn(_model_turn(session, actor, ctx, history, llm or client(), emit), started)
+
+
+def conversation_only(history: list[dict[str, str]]) -> bool:
+    """Only bounded self-introductions omit tool schemas; record/follow-up queries keep them."""
+    if not history or history[-1]["role"] != "user":
+        return False
+    question = re.sub(r"\s+", " ", history[-1]["content"].lower()).strip(" .?!")
+    return bool(re.fullmatch(
+        r"(?:how should i (?:address|call) you(?: while we work together)?|"
+        r"what (?:is your name|should i call you)|what's your name|"
+        r"(?:please )?introduce yourself(?: briefly)?|"
+        r"tell me (?:a little )?about yourself)", question,
+    ))
+
+
+def _model_turn(
+    session: Session, actor: Actor, ctx: Context, history: list[dict[str, str]],
+    llm: OllamaClient, emit: Callable[[dict[str, Any]], None] | None,
+) -> Turn:
+    settings = get_settings()
     messages: list[dict[str, Any]] = [
         {"role": "system", "content": _system_prompt(ctx, actor.role)}
     ]
@@ -361,7 +444,7 @@ def run_turn(
         for i, m in enumerate(history)
         if i >= len(history) - MAX_HISTORY and m["role"] in ("user", "assistant")
     ]
-    schemas = tool_schemas(actor.role)
+    schemas = None if conversation_only(history) else tool_schemas(actor.role)
     turn = Turn(reply="")
     sources: list[Any] = []
     deadline = time.monotonic() + settings.assistant_timeout_seconds * 2

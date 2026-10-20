@@ -114,6 +114,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       } else if (event.type === "done") {
         if (!("response" in event) || !isChatResponse(event.response)) throw new Error("Invalid completed answer.");
         completed = event.response;
+        return false; // A validated final event completes the answer; do not wait for socket EOF.
       }
     }).then(() => {
       if (!completed) throw new Error("The answer stream ended before completion.");

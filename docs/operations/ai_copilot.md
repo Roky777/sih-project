@@ -194,3 +194,82 @@ user-entered usage and source requirements while keeping availability unknown an
 The synthetic fleet's scored date/model is not assigned to that registration. Simulation tools reject
 REG context. Historical work queries use historical records rather than today's open-work filter;
 completion dates after the cutoff are omitted.
+
+## CPU latency follow-up — 20 October 2026
+
+The recorded fleet-summary tool previously called summary/trend services that also prepared
+Monte Carlo projections. Recorded count, availability and downtime answers now request only
+recorded data and the observed history they display. Dashboard API responses still include their
+normal forecast; explicit forecast questions retain the existing calculation and labels.
+
+Bounded self-introductions keep genuine model inference but omit unrelated tool schemas. In the
+local payload measurement, this reduces the fixed introduction request from 7,224 to 2,890
+characters (60%). This is a character-count comparison, not a measured VM/token/latency gain.
+All other interpreted queries keep the full permitted tools. The existing answer/citation checks,
+output budget, model, privacy mode and conversation history remain unchanged.
+
+One local model turn per API process is admitted at a time. A competing turn receives an explicit
+retry message, while common records/guidance answers bypass inference. This prevents this API
+process from submitting competing CPU inference turns; it does not serialize multiple API
+processes or external Ollama clients. No inference failure permanently holds the gate.
+
+Run diagnostics inside the actual deployed API container:
+
+```bash
+sudo docker exec fleet-aws-demo-api-1 python -m \
+  fleet_maintenance.services.assistant.diagnostics --records --benchmark
+```
+
+The explicit benchmark generates one synthetic introduction using the current model; run it
+when no one else is asking a model question. It does not download a model, use hosted inference,
+change application records or export the generated answer. The report includes model residency,
+context settings, recorded-query timings and model load/prompt/generation/first-delta timings
+when Ollama supplies them. An unavailable local model is reported as such. Without `--benchmark`
+it makes no generation request. Without `--records` it reads no fleet records.
+
+Completed model calls also write `assistant_model_timing` metadata in API logs. The fields follow
+[Ollama's chat timing response](https://docs.ollama.com/api/chat); residency follows its
+[running-model endpoint](https://docs.ollama.com/api/ps). The
+[Ollama FAQ](https://docs.ollama.com/faq) documents CPU/GPU residency and context/keep-alive
+controls. These settings have not been silently changed on the VM. A 4B CPU model on two shared
+vCPUs still has finite generation throughput; its actual latency must be measured there.
+
+Executed local evidence: all 302 backend unit/verification tests and 78 integration checks
+passed; three opt-in real-model checks remain skipped. Six actual queries against copied audit
+data (latest and replay) passed with inference/forecast disabled. The first bundle load took
+about 844 ms; subsequent queries took 18–43 ms locally. This is not a VM throughput claim.
+Logs: `artifacts/assistant-latency-full-check-fixed.log`,
+`artifacts/assistant-latency-integration.log`, `artifacts/assistant-record-query-check.log`.
+The configured local model remains unavailable; actual Qwen latency validation requires the VM.
+
+### Greeting and transport follow-up
+
+The owner clarified that even hi/hello were slow. Those inputs already use service guidance,
+so model-only tuning cannot explain that symptom. The browser previously waited for transport
+EOF after validating the final answer event. It now accepts that event as terminal and cancels
+the remaining transport; malformed/truncated answers still fail their original checks.
+Authentication read transactions are released before streaming and before synchronous model
+inference, avoiding pinned DB connections during long turns. All successful answer modes log
+redacted `assistant_answer_timing` compute durations; model calls retain detailed timing logs.
+
+Both TLS proxy templates enable HTTP/2. The live site negotiated HTTP/1.1 before this update;
+HTTP/1 connection limits and long event streams can queue otherwise fast requests. This is a
+possible contributor, not a measured attribution of the owner's delay. See
+[Nginx HTTP/2](https://nginx.org/en/docs/http/ngx_http_v2_module.html) and
+[MDN event-stream connection limits](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events).
+
+Final local checks: 302 backend unit/verification, 78 integration, 31 frontend unit and eight
+focused assistant browser tests passed; three opt-in live-model tests remain skipped. Backend
+and frontend production images built. Both proxy templates passed Nginx syntax validation;
+actual TLS negotiation selected h2. Four real hi/hello POST requests through the isolated
+HTTPS/HTTP2 proxy and API (no model service and no production records) completed in about
+197 ms initially, then 8–12 ms. This excludes production authentication and WAN latency and
+is not a measured VM improvement. Artifacts: `assistant-latency-proxy/greeting-timings.json`,
+`assistant-latency-browser.log`, `assistant-latency-final-backend.log` and
+`assistant-latency-final-integration.log` under local `artifacts/`.
+
+Deploy this update by rebuilding/replacing API and web with the existing VM overlays; preserve
+PostgreSQL, RabbitMQ, Ollama, env files and volumes. Recreating web regenerates its mounted TLS
+template with HTTP/2. Hard-refresh the browser to load the changed answer-stream client. Then
+run diagnostics and check greetings through the authenticated browser before claiming the
+reported VM slowdown resolved. No schema migration or model/provider change is needed.

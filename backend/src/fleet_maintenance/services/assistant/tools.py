@@ -136,9 +136,8 @@ class ScenarioArgs(Strict):
 # Tools ------------------------------------------------------------------------------------
 def fleet_summary(session: Session, actor: Actor, ctx: Context, args: NoArgs) -> ToolResult:
     bundle, offset, replay = _date_label(session, ctx)
-    s = service.summary(session, ctx.as_of)
-    trend = service.availability_trend(session, ctx.as_of)
-    recent = trend["history"][-14:]
+    s = service.summary(session, ctx.as_of, include_forecast=False)
+    recent = service.recorded_availability_history(session, ctx.as_of, days=14)
     causes = ("scheduled_maintenance", "unscheduled_repair", "awaiting_spares", "awaiting_agency")
     data = {
         "as_of": s["as_of"],
@@ -158,11 +157,8 @@ def fleet_summary(session: Session, actor: Actor, ctx: Context, args: NoArgs) ->
             }
             for p in recent
         ],
-        "forecast_30d": {
-            k: _r(v) if not isinstance(v, dict) else v for k, v in s["forecast_30d"].items()
-        },
-        "notes": "availability values are fractions of the fleet; forecast is Monte Carlo "
-        "(P10/P50/P90) from the existing engine",
+        "notes": "Recorded availability values are fractions of the fleet. "
+        "Use get_existing_forecast for separately labelled Monte Carlo projections.",
     }
     chart = {
         "type": "series",
