@@ -103,3 +103,26 @@ their volumes and reports remain available. The main application continues on lo
 
 Changes are uncommitted. No public deployment, operational acceptance, aircraft clearance or
 new scientific accuracy claim follows from these local engineering checks.
+
+## VM follow-up: restrictive checkout permissions — 20 October 2026
+
+The owner-provided VM log after upgrading to `812645a` shows successful explicit migrations
+but API startup fails with `PermissionError` reading `/app/src/fleet_maintenance/artifacts/storage.py`.
+The update shell used `umask 077`: new/changed checked-out source can be mode 0600, and Docker
+COPY preserves restrictive permissions under root ownership. The runtime user is UID 10001.
+This is a packaging failure; API readiness/public HTTPS for the updated release is not established.
+
+The runtime Dockerfile now explicitly grants read/traversal access to packaged source,
+migrations and Alembic configuration before switching to the unprivileged user. Dependencies,
+host secret files and model/data volumes are outside this permission change. Regression
+verification builds an image from a source context whose files are mode 0600 and directories
+0700, then checks module imports and migration discovery as UID 10001 with a read-only root.
+Executed result: the restrictive-context image built successfully, and UID 10001 read all
+207 packaged files, imported API and worker, discovered migration head `066582695f5c` and
+passed the heartbeat check on a read-only root. Evidence is retained under
+`artifacts/runtime-permission-regression/`.
+
+Apply the fix by rebuilding the API/worker/outbox images and replacing only application
+containers. Keep the existing VM Compose overlays, database, broker, Ollama and backups.
+VM readiness and public HTTPS must be rechecked after replacement; local packaging validation
+alone does not establish that recovery has happened on the VM.

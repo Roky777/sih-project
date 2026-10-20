@@ -694,3 +694,13 @@ All 36 distinct selected browser cases have passing evidence: 32 in the combined
 then four corrected fixture cases in a focused rerun. Original failed complete runs remain
 retained. See [integration evidence](collaborator_integration_2026-10-20.md). Earlier local
 source archives predate this merge; use the merged Git revision for the next deployment.
+
+## VM startup permission correction — 20 October 2026
+
+The VM owner reported that the update to `812645a` migrated successfully but the API restarted
+with permission denied reading packaged Python source. The update was pulled under `umask 077`;
+root-owned mode-0600 source copied into the image was unreadable by runtime UID 10001. Runtime
+packaging now normalizes read/traversal permissions only for source, migrations and Alembic
+configuration. Secret files and persistent data are unaffected. The restrictive-context image
+regression is recorded in [GCE validation](../operations/gce_validation.md). VM application
+recovery still requires pulling the fix, rebuilding the backend services and verifying readiness.

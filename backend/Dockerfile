@@ -15,7 +15,11 @@ COPY alembic.ini ./
 COPY migrations ./migrations
 # Dependencies are read-only at runtime. Chown only writable artifacts; recursively
 # changing /app duplicates the full scientific environment in every rebuild layer.
-RUN useradd --uid 10001 --create-home fleet && \
+# Git checkouts made with umask 077 can contain root-owned 0600 source files.
+# Normalize only packaged application inputs before dropping root privileges.
+RUN chmod -R a+rX /app/src /app/migrations && \
+    chmod a+r /app/alembic.ini && \
+    useradd --uid 10001 --create-home fleet && \
     mkdir -p /var/lib/fleet-maintenance/artifacts && \
     chown -R fleet:fleet /var/lib/fleet-maintenance
 USER fleet
