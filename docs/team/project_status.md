@@ -704,3 +704,16 @@ packaging now normalizes read/traversal permissions only for source, migrations 
 configuration. Secret files and persistent data are unaffected. The restrictive-context image
 regression is recorded in [GCE validation](../operations/gce_validation.md). VM application
 recovery still requires pulling the fix, rebuilding the backend services and verifying readiness.
+
+## GCE deployment recovery verified — 20 October 2026
+
+Owner-executed VM output confirms deployment of `91684fe`, successful backend rebuild/migration,
+all six services healthy and HTTPS readiness 200 after the source-permission fix. Existing
+PostgreSQL/RabbitMQ containers and custom Qwen setup were preserved. Independent public checks
+passed trusted HTTPS, API readiness, nine frontend assets, HTTP redirect, authentication boundary
+and security headers. Chrome sign-in checks passed at desktop/mobile widths without horizontal
+overflow or page exceptions; public frontend entry matches the tested local production build.
+
+The existing demo/Qwen overlays remain active. Model installation is confirmed, but actual AI
+responses and authenticated live role workflows have not been verified in this follow-up.
+Independent/operational release gates remain separate. See [GCE validation](../operations/gce_validation.md).

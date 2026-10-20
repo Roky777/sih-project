@@ -1,6 +1,9 @@
 # GCE deployment preparation validation — 20 October 2026
 
-Status: **repository release candidate prepared and locally verified; not deployed to GCE**.
+Current status: **the owner deployed the updated application on the GCE VM and supplied
+successful recovery output; independent public HTTPS and sign-in checks passed**. The original
+preparation evidence below is historical. Authenticated VM journeys, actual model responses
+and the remaining operational/independent acceptance gates are not established by these checks.
 Use [the aerocare-server runbook](gce_deployment.md) for the exact remaining host, SSH,
 firewall, private HTTPS, domain, DNS, certificate, backup and deployment commands.
 
@@ -126,3 +129,29 @@ Apply the fix by rebuilding the API/worker/outbox images and replacing only appl
 containers. Keep the existing VM Compose overlays, database, broker, Ollama and backups.
 VM readiness and public HTTPS must be rechecked after replacement; local packaging validation
 alone does not establish that recovery has happened on the VM.
+
+## VM recovery and independent public verification — 20 October 2026
+
+Owner-provided VM output confirms pull of `91684fe`, successful backend image rebuild and
+explicit Alembic command, all six Compose services healthy, valid Nginx configuration and
+public HTTPS readiness 200. Existing PostgreSQL and RabbitMQ containers remained running;
+application containers were replaced. The custom Qwen overlay and Ollama container were
+retained. This is owner-executed deployment evidence; the agent did not obtain a VM shell.
+
+Independent read-only checks against `https://sih-34-56-39-7.sslip.io` passed: homepage and all
+nine referenced JS/CSS assets returned 200; API readiness reported ready/database ok; HTTP
+redirected with 308 to HTTPS; an unauthenticated session request returned 401. System curl
+verified TLS without an insecure override. CSP, HSTS, nosniff and frame-denial headers were
+present. A separate Python installation lacked issuer roots; system curl and Chrome succeeded.
+
+Public Chrome checks at widths 1440 and 390 confirmed the sign-in page, no horizontal overflow
+and no page exceptions. Public entry `/assets/index-B-3ijWiY.js` matches the tested local
+production build. Evidence and screenshots: `artifacts/gce-live-verification/`.
+
+The deployed profile still includes the existing `compose.aws-demo.yaml` and custom
+`compose.qwen.yaml` overlays. Its name does not change the fact that the host is Google Cloud;
+it also does not prove strict production-mode acceptance. The VM has a `qwen3:4b-instruct`
+model installed, distinct from the unavailable local `qwen3:8b` configuration. Installation
+alone does not establish API-to-model reachability or a successful grounded model answer.
+Authenticated live role workflows, actual AI responses, VM recovery/monitoring/renewal and
+independent security/accessibility/operational acceptance still require their own evidence.

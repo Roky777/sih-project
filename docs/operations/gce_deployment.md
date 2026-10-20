@@ -1,8 +1,10 @@
 # Google Compute Engine deployment: aerocare-server
 
-Prepared 20 October 2026. Repository preparation is separate from deployment: **no connection
-to the VM, remote installation, DNS change or public deployment has been performed**. Local
-verification and remaining gates are recorded in [deployment validation](gce_validation.md).
+Prepared 20 October 2026. The owner subsequently executed the VM deployment and permission
+recovery; public HTTPS and sign-in verification passed. The agent has not obtained a VM shell.
+Historical preparation evidence, current results and remaining acceptance gates are recorded in
+[deployment validation](gce_validation.md). This fresh-install runbook is separate from the
+existing VM's preserved demo/Qwen overlays; do not reinitialize its secrets or volumes.
 
 Target supplied by the owner: existing `aerocare-server`, region `us-central1` (Iowa),
 `e2-standard-2` (2 vCPU, 8 GB RAM), Ubuntu 24.04 LTS x86/64, 50 GB balanced persistent boot
