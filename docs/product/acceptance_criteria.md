@@ -438,3 +438,27 @@ a page exception or a write request. Reset sample must clear the error and resto
 Delay the aircraft register response while opening a detail page: browsing must stay disabled
 and position/count must remain unknown. Releasing the response restores the actual position
 and navigation without changing the selected aircraft.
+
+## Copilot common-question routing — 2026-10-20
+
+Verify greetings, natural current-availability wording, polite prefixes and aircraft
+synonyms avoid model initialization. Retrieve each count from the current authorized
+snapshot, retaining dates and evidence. Verify findings, stock, selected-aircraft,
+work, sensor and forecast variants map to their existing routes. Compound requests,
+future dates, explicit other record IDs and hypothetical conditions must not become
+unqualified current answers. Verify ambiguous flights/fights/fighters and missing
+record selections produce clarification; unknown parts produce missing-record states.
+Verify streamed model status, final replacement, cancellation, timeout, malformed and
+truncated responses in the browser. CPU model throughput and public deployment latency
+must be measured separately; a fast direct answer does not prove fast arbitrary AI.
+
+
+## General copilot conversation regression — 2026-10-20
+
+Unmatched conversational questions reach the model with history and selected context
+without loading fleet data. Product instructions have a shared reference and a typed
+help tool. Operational answers retain fresh tool retrieval and existing role/cutoff rules.
+Missing citation syntax triggers at most one tool-free correction; invented figures or
+invalid citations remain withheld. First-call drafts remain provisional until final checks.
+The opt-in real Qwen smoke check must exercise model mode with unfamiliar wording and
+retrieve/cite synthetic fixture counts; phrase-route tests alone are insufficient evidence.

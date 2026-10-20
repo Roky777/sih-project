@@ -14,6 +14,67 @@ if TYPE_CHECKING:
     from fleet_maintenance.services.assistant.copilot import Turn
 
 
+def normalize_question(content: str) -> str:
+    """Normalize bounded conversational wrappers, preserving dates and instructions."""
+    question = re.sub(r"\s+", " ", content.lower().replace("’", "'")).strip(" .?!")
+    question = re.sub(r"^(?:hello|hi|hey)[,! ]+", "", question)
+    for _ in range(3):
+        question = re.sub(r"^(?:please |can you |could you |tell me |show me )", "", question)
+    # Full matches are intentional: extra dates, conditions and actions need interpretation.
+    fleet = r"(?:aircraft|aircrafts|planes|aeroplanes|airplanes|jets)"
+    if re.fullmatch(
+        rf"how many {fleet} (?:are (?:currently )?available|are available (?:now|today)|"
+        rf"do we have available|are operational|are ready)(?: in (?:the|our) fleet)?", question
+    ):
+        return "how many aircraft are available"
+    if re.fullmatch(
+        rf"(?:how many {fleet} (?:are there|do we have|are in (?:the|our) fleet)|"
+        rf"(?:total|number of) {fleet}|(?:our |the )?fleet size)", question
+    ):
+        return "how many aircraft are in the fleet"
+    if re.fullmatch(
+        r"(?:(?:what is|what's|show) (?:the |our )?)?(?:current |today's )?"
+        r"(?:fleet )?availability(?: (?:now|today))?", question
+    ):
+        return "what is the current availability"
+    groups = {
+        "which findings need attention first": (
+            r"(?:what|which) (?:findings|alerts|warnings) (?:need attention|are urgent|"
+            r"are open|should i review)(?: first)?|(?:show |list )?(?:urgent|open) "
+            r"(?:findings|alerts|warnings)"
+        ),
+        "which spare shortages affect the current plan": (
+            r"(?:what|which) (?:parts|spares) (?:are short|are missing|are low|"
+            r"are at risk)|(?:show |list )?(?:parts|spare|spares) shortages"
+        ),
+        "what maintenance is open for this aircraft": (
+            r"(?:what|which) (?:maintenance|work|work orders) (?:is|are) "
+            r"(?:open|pending) (?:for|on) (?:this|the selected) aircraft|"
+            r"(?:show |list )?(?:open|pending) maintenance (?:for|on) this aircraft"
+        ),
+        "summarise this aircraft": (
+            r"(?:summarise|summarize|show|describe) (?:this|the selected) aircraft|"
+            r"(?:what is|what's) (?:the status|the condition) of (?:this|the selected) aircraft"
+        ),
+        "show the 30-day availability forecast": (
+            r"(?:show |what is |what's )?(?:the )?(?:30[- ]day )?(?:fleet )?"
+            r"availability forecast"
+        ),
+        "show the recent sensor trends behind this alert": (
+            r"(?:show |list )?(?:the )?(?:recent )?sensor (?:trends|history)"
+            r"(?: (?:for|behind) (?:this|the selected) (?:component|alert|finding))?"
+        ),
+        "explain this finding with evidence": (
+            r"(?:explain|show evidence for) (?:this|the selected) (?:finding|alert|warning)"
+            r"(?: with evidence)?"
+        ),
+    }
+    for canonical, pattern in groups.items():
+        if re.fullmatch(pattern, question):
+            return canonical
+    return question
+
+
 def quick_answer(
     session: Session,
     actor: Actor,
@@ -24,8 +85,20 @@ def quick_answer(
 
     if not history or history[-1]["role"] != "user":
         return None
-    question = re.sub(r"\s+", " ", history[-1]["content"].lower()).strip(" .?!")
-    question = re.sub(r"^(?:please |can you |could you )", "", question)
+    question = normalize_question(history[-1]["content"])
+    if re.fullmatch(
+        r"how many (?:flights|fights|fighters) (?:are (?:currently )?available|"
+        r"are available (?:now|today)|do we have)", question
+    ):
+        return Turn(
+            answer_mode="guidance",
+            reply=(
+                "Do you mean available aircraft in the demonstration fleet? "
+                "Ask ‘How many aircraft are available?’ for the recorded count. "
+                "AeroCare does not track available flights or flight bookings, and its "
+                "fleet availability is not flight clearance."
+            ),
+        )
     aliases = {
         "why was this component flagged": "explain this finding with evidence",
         "why is this component flagged": "explain this finding with evidence",
@@ -119,7 +192,16 @@ def quick_answer(
             ),
         )
     if question == "what maintenance is open for this aircraft" and not ctx.aircraft_id:
-        return Turn(reply="Select an aircraft first so I can retrieve its maintenance records.")
+        return Turn(
+            answer_mode="guidance",
+            reply="Select an aircraft first so I can retrieve its maintenance records.",
+        )
+    if question in {"what is the stock level", "how many are in stock"} and not ctx.part_number:
+        return Turn(
+            answer_mode="guidance",
+            reply=("Select a part or include its part number, for example: "
+                   "What is the stock level for PRP-230?"),
+        )
 
     if question in {
         "which findings need attention first, and why",
@@ -351,6 +433,16 @@ def quick_answer(
     if part:
         result = call_tool(session, actor, ctx, "get_spare_availability", {"part_number": part})
         session.rollback()
+        if not result.data["parts"]:
+            return Turn(
+                answer_mode="records",
+                reply=(f"No matching spare record was returned for {part}. "
+                       "Check the part number; missing records do not mean zero stock."),
+                tool_calls=[
+                    {"name": "get_spare_availability",
+                     "arguments": {"part_number": part}, "ok": True}
+                ],
+            )
         row = result.data["parts"][0]
         cite = result.citations[0]["id"] if result.citations else None
         reply = (

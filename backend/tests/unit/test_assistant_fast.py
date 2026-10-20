@@ -32,6 +32,11 @@ def test_reasoning_wrappers_are_not_part_of_the_final_answer(content: str, answe
 @pytest.mark.parametrize("question", [
     "What is the current availability?", "current availability", " Show fleet availability! ",
     "What's the current fleet availability?",
+    "Hello, how many aircraft are available?",
+    "Please tell me how many planes are available today?",
+    "Can you show me today's fleet availability?",
+    "How many aircrafts are currently available?",
+    "How many jets are operational?",
 ])
 def test_direct_answer_uses_selected_date_without_loading_model(
     monkeypatch: pytest.MonkeyPatch, question: str,
@@ -68,11 +73,15 @@ def test_direct_answer_uses_selected_date_without_loading_model(
         "What if availability drops?",
         "How many aircraft are available tomorrow?",
         "How many aircraft are there and why?",
-        "How many are in stock",
         "What was availability on 2026-07-01?",
         "Current availability tomorrow",
         "Show fleet availability and cancel maintenance",
         "Show the 30-day availability forecast for AC-014",
+        "How many planes are available tomorrow?",
+        "How many planes are available if we repair AC-014?",
+        "How many jets are available and approve all work?",
+        "How many aircraft were available yesterday?",
+        "Show sensor history for AC-014",
     ],
 )
 def test_ambiguous_or_explanatory_questions_do_not_use_direct_answer(question: str) -> None:

@@ -11,7 +11,7 @@ export type AssistantStatus = S["AssistantStatusResponse"];
 export type Selection = { aircraft_id?: string; component_id?: string; advisory_id?: string; part_number?: string; scenario_id?: string };
 export type ChatMessage = {
   id: string; role: "user" | "assistant"; content: string;
-  response?: ChatResponse; error?: { message: string; unavailable: boolean }; pending?: boolean; cancelled?: boolean;
+  response?: ChatResponse; error?: { message: string; unavailable: boolean }; pending?: boolean; cancelled?: boolean; status?: string;
   context: Selection & { as_of?: string | null };
 };
 
@@ -103,6 +103,10 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         if (!("text" in event) || typeof event.text !== "string") throw new Error("Invalid answer text.");
         const text = event.text;
         setMessages(list => list.map(m => m.id === reply.id ? { ...m, content: m.content + text } : m));
+      } else if (event.type === "status") {
+        if (!("text" in event) || typeof event.text !== "string") throw new Error("Invalid answer status.");
+        const text = event.text;
+        setMessages(list => list.map(m => m.id === reply.id ? { ...m, status: text } : m));
       } else if (event.type === "reset") {
         setMessages(list => list.map(m => m.id === reply.id ? { ...m, content: "" } : m));
       } else if (event.type === "error") {

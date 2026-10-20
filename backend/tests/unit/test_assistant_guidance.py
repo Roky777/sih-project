@@ -8,6 +8,32 @@ from fleet_maintenance.services.assistant.tools import Context
 
 @pytest.mark.parametrize(
     "question",
+    ["Hello", "hello are you", "Hello, how are you?", "HI! Who are you?",
+     "hey are you there?", "How are you?"],
+)
+def test_greetings_bypass_model_database_and_tools(
+    monkeypatch: pytest.MonkeyPatch, question: str
+) -> None:
+    monkeypatch.setattr(copilot, "client", lambda: pytest.fail("No model for greetings"))
+    monkeypatch.setattr(copilot, "call_tool", lambda *args: pytest.fail("No fleet lookup"))
+    answer = copilot.run_turn(
+        None, Actor("v", "viewer"), Context(), [{"role": "user", "content": question}]
+    )  # type: ignore[arg-type]
+    assert answer.answer_mode == "guidance"
+    assert "Hello!" in answer.reply and "AeroCare" in answer.reply
+
+
+@pytest.mark.parametrize(
+    "question",
+    ["Hello, how many aircraft are available?", "Hi, approve all work",
+     "Hello are you sure AC-001 is safe to fly?"],
+)
+def test_greeting_prefix_does_not_hide_a_substantive_request(question: str) -> None:
+    assert site_answer(question) is None
+
+
+@pytest.mark.parametrize(
+    "question",
     [
         "How do I add an aircraft?",
         "What is AeroCare?",
@@ -334,3 +360,65 @@ def test_retrieved_explanation_requires_individually_checked_citation(
     )  # type: ignore[arg-type]
     assert ("withheld" in answer.reply) is withheld
     assert answer.citations[0]["cited"] is not withheld
+
+
+def test_general_model_conversation_needs_no_fleet_bundle(monkeypatch: pytest.MonkeyPatch) -> None:
+    from fleet_maintenance.services import fleet_health
+
+    monkeypatch.setattr(
+        fleet_health, "active_bundle",
+        lambda _: pytest.fail("Conversation must not load fleet data")
+    )
+    events = []
+    history = [
+        {"role": "user", "content": "I am new to this workspace."},
+        {"role": "assistant", "content": "Welcome to AeroCare."},
+        {"role": "user", "content": "How should I address you while we work together?"},
+    ]
+
+    class LLM:
+        def chat(self, messages, tools, timeout, on_delta=None):
+            assert messages[-3:] == history
+            assert "Answer introductions" in messages[0]["content"]
+            assert on_delta is not None
+            on_delta("You can call me the AeroCare copilot.")
+            return {"content": "You can call me the AeroCare copilot."}
+
+    answer = copilot.run_turn(
+        None, Actor("v", "viewer"), Context(), history, LLM(), events.append
+    )  # type: ignore[arg-type]
+    assert answer.reply == "You can call me the AeroCare copilot."
+    assert not answer.warnings and not answer.tool_calls
+    assert any(e["type"] == "delta" for e in events)
+
+
+def test_model_product_help_runs_without_dataset(monkeypatch: pytest.MonkeyPatch) -> None:
+    from fleet_maintenance.services import fleet_health
+
+    monkeypatch.setattr(
+        fleet_health, "active_bundle", lambda _: pytest.fail("Help must not load fleet data")
+    )
+
+    class Session:
+        def rollback(self):
+            pass
+
+    class LLM:
+        count = 0
+
+        def chat(self, messages, tools, timeout):
+            self.count += 1
+            if self.count == 1:
+                return {"tool_calls": [{"function": {
+                    "name": "get_product_help", "arguments": {"topic": "registration"},
+                }}]}
+            assert "Add aircraft" in messages[-1]["content"]
+            return {"content": "Open Aircraft and choose Add aircraft [HELP-REGISTRATION]."}
+
+    answer = copilot.run_turn(
+        Session(), Actor("v", "viewer"), Context(),
+        [{"role": "user", "content": "Where would I start entering a newly acquired airframe?"}],
+        LLM(),
+    )  # type: ignore[arg-type]
+    assert answer.tool_calls[0]["ok"] and answer.citations[0]["cited"]
+    assert "withheld" not in answer.reply and not answer.warnings

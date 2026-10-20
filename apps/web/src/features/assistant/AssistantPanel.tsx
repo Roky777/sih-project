@@ -87,7 +87,7 @@ export function AssistantPanel() {
 function Message({ message }: { message: ChatMessage }) {
   const a = useAssistant();
   if (message.role === "user") return <div className="o-ai-msg user"><p>{message.content}</p></div>;
-  if (message.pending) return <div className="o-ai-msg bot" role="status">{message.content && <p>{message.content}</p>}<span className="o-ai-typing"><i/><i/><i/></span><span className="o-ai-muted">{message.content ? "Draft answer — checking references…" : "Checking AeroCare records…"}</span></div>;
+  if (message.pending) return <div className="o-ai-msg bot" role="status">{message.content && <p>{message.content}</p>}<span className="o-ai-typing"><i/><i/><i/></span><span className="o-ai-muted">{message.content ? "Draft answer — checking references…" : message.status ?? "Checking AeroCare records…"}</span></div>;
   if (message.cancelled) return <div className="o-ai-msg bot"><p className="o-ai-muted">Cancelled.</p><button type="button" className="o-link" onClick={a.retry}>Ask again</button></div>;
   if (message.error) return <div className="o-ai-msg bot error" role="alert"><p><strong>{message.error.unavailable ? "The assistant is unavailable." : "The request failed."}</strong> {message.error.message}</p><p className="o-ai-muted">No answer was generated; nothing is shown in its place.</p><button type="button" className="o-btn sm ghost" onClick={a.retry}><Icon name="refresh" size={13}/>Retry</button></div>;
   const response = message.response!;
