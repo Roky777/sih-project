@@ -1,6 +1,7 @@
 import {test,expect} from './workspaceTest';
 
 test('disabled trial installation gives guidance without retrying a forbidden action',async({page})=>{
+ await page.route(/^https?:\/\/[^/]+\/api\//,route=>route.fulfill({json: new URL(route.request().url()).pathname === '/api/fleet-health/engine' ? {ready:true,runs:[]} : []}));
  await page.route('**/api/access/session',route=>route.fulfill({json:{id:'test-supervisor',role:'supervisor',authentication:'demonstration header',csrf_token:null}}));
  await page.route('**/api/demo/catalog',route=>route.fulfill({status:403,json:{detail:'Customer trials are available only in a configured demonstrator.'}}));
  await page.goto('/demo');

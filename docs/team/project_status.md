@@ -682,3 +682,15 @@ No GCE connection or deployment occurred. Follow the [GCE commands](../operation
 and [validation/blocker record](../operations/gce_validation.md). Prior audit evidence and failed
 runs remain retained; external security, accessibility, workload/data and operational acceptance
 are still required. Changes remain uncommitted.
+
+## Collaborator integration — 20 October 2026
+
+Merged remote copilot commits `78f89e5` and `211a952` with local audit/GCE work through a
+normal merge retaining both histories. Documentation conflicts preserve both additions;
+the collaborator's non-overlapping source files remain byte-identical. Combined checks
+passed 287 backend unit/verification, 78 integration and 30 frontend unit tests, plus lint,
+types and production build. Three opt-in real-model integration cases remain skipped.
+All 36 distinct selected browser cases have passing evidence: 32 in the combined selection,
+then four corrected fixture cases in a focused rerun. Original failed complete runs remain
+retained. See [integration evidence](collaborator_integration_2026-10-20.md). Earlier local
+source archives predate this merge; use the merged Git revision for the next deployment.

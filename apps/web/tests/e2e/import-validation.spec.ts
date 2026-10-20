@@ -1,6 +1,17 @@
 import { expect, test } from './workspaceTest';
 
 test.beforeEach(async ({ page }) => {
+  // These form regressions must not depend on a live backend session.
+  await page.route(/^https?:\/\/[^/]+\/api\//, route => {
+    const path = new URL(route.request().url()).pathname;
+    if (path === '/api/fleet-health/engine') return route.fulfill({ json: { ready: true, runs: [] } });
+    if (path === '/api/access/session') {
+      return route.fulfill({ json: {
+        id: 'demo', role: 'engineer', authentication: 'demonstration header', csrf_token: null,
+      } });
+    }
+    return route.fulfill({ json: [] });
+  });
   await page.route('**/api/aircraft-registry/REG-AUDIT', route => route.fulfill({ json: {
     id: 'REG-AUDIT', tail_number: 'AUDIT-001', serial_number: 'SERIAL-AUDIT',
     aircraft_type: 'Synthetic audit fixture', base: 'Test base', fleet_entry_date: '2026-10-01',
