@@ -485,11 +485,13 @@ Change workspace returns to the cards and clears password fields. Login submits 
 for existing server authorization and opens the authenticated role's home. Protected record
 bookmarks and ordinary refresh inside a signed-in workspace retain their existing behavior.
 
-Enabled public signup still creates viewer accounts and no session. It retains the normalized
-account ID, clears passwords and returns to the selected workspace's login. Fleet manager
-supports viewer access; other teams explain that an administrator must assign staff access
-before signing in there. Choosing a card never grants staff permissions. Disabled signup,
-password mismatch, duplicate IDs, rate limits and backend errors retain their recovery paths.
+Signup retains the normalized account ID, clears passwords and returns to the selected
+workspace's login without creating a session. In the explicitly configured isolated public
+demo, new accounts support all four workspaces and login applies the chosen session role.
+Previously registered viewer accounts can use their existing password in any chosen demo
+workspace too. Normal production signup remains viewer-only; staff access still requires
+assignment there. Disabled signup, password mismatch, duplicate IDs, rate limits and backend
+errors retain their recovery paths. The demo policy cannot be enabled in production.
 
 This section supersedes account-first public entry. Local header-demo entry is unchanged.
 

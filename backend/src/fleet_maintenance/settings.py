@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     auto_seed_demo: bool = True
     authentication_mode: str = "demo"
     allow_signup: bool = False
+    demo_workspace_accounts: bool = False
     session_hours: int = Field(default=8, ge=1, le=24)
     secure_cookies: bool = False
     cookie_samesite: Literal["strict", "none"] = "strict"
@@ -49,6 +50,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_release(self) -> "Settings":
+        if self.demo_workspace_accounts and self.environment != "tunnel_demo":
+            raise ValueError("Self-service workspace accounts require the isolated tunnel demo")
         if self.assistant_enabled and self.assistant_local_only:
             if self.assistant_provider != "ollama":
                 raise ValueError("Private copilot mode requires the Ollama provider")

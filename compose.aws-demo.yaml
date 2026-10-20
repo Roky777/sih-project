@@ -15,6 +15,7 @@ services:
       FLEET_ENVIRONMENT: tunnel_demo
       FLEET_COOKIE_SAMESITE: strict
       FLEET_ALLOW_SIGNUP: "true"
+      FLEET_DEMO_WORKSPACE_ACCOUNTS: "true"
       # Opt in after supplying a hosted provider and its server-side key.
       FLEET_ASSISTANT_ENABLED: ${FLEET_ASSISTANT_ENABLED:-false}
   worker:

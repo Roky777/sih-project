@@ -115,3 +115,61 @@ def test_demo_header_mode_cannot_register(signup_client, monkeypatch):
     assert signup_client.post(
         "/api/access/registration", json=PAYLOAD, headers={"Origin": ORIGIN}
     ).status_code == 404
+
+
+@pytest.mark.parametrize("workspace", ["engineer", "supervisor", "logistics", "fleet_manager"])
+@pytest.mark.parametrize("existing_viewer", [False, True])
+def test_demo_signup_and_existing_accounts_can_sign_in_to_each_workspace(
+    signup_client, isolated_session, monkeypatch, workspace, existing_viewer,
+):
+    settings = get_settings()
+    monkeypatch.setattr(settings, "environment", "tunnel_demo")
+    monkeypatch.setattr(settings, "demo_workspace_accounts", not existing_viewer)
+    created = signup_client.post(
+        "/api/access/registration", json=PAYLOAD, headers={"Origin": ORIGIN},
+    )
+    assert created.status_code == 201
+    assert created.json()["role"] == ("viewer" if existing_viewer else "supervisor")
+    monkeypatch.setattr(settings, "demo_workspace_accounts", True)
+    credentials = {"user_id": PAYLOAD["user_id"], "password": PAYLOAD["password"],
+                   "workspace": workspace}
+    rejected = signup_client.post(
+        "/api/access/session", json=credentials | {"password": "wrong-password"},
+        headers={"Origin": ORIGIN},
+    )
+    assert rejected.status_code == 401 and "set-cookie" not in rejected.headers
+    response = signup_client.post(
+        "/api/access/session", json=credentials, headers={"Origin": ORIGIN},
+    )
+    assert response.status_code == 200 and response.json()["role"] == workspace
+    assert signup_client.get("/api/access/session").json()["role"] == workspace
+    assert isolated_session.get(User, PAYLOAD["user_id"]).role == (
+        "viewer" if existing_viewer else "supervisor"
+    )
+    if existing_viewer and workspace != "fleet_manager":
+        monkeypatch.setattr(settings, "demo_workspace_accounts", False)
+        assert signup_client.get("/api/access/session").status_code == 401
+
+
+def test_normal_signup_still_rejects_staff_workspace(signup_client, monkeypatch):
+    # A flag alone cannot enable demo permissions outside the isolated demo environment.
+    monkeypatch.setattr(get_settings(), "demo_workspace_accounts", True)
+    created = signup_client.post(
+        "/api/access/registration", json=PAYLOAD, headers={"Origin": ORIGIN},
+    )
+    assert created.json()["role"] == "viewer"
+    rejected = signup_client.post(
+        "/api/access/session", json={"user_id": PAYLOAD["user_id"],
+        "password": PAYLOAD["password"], "workspace": "supervisor"},
+        headers={"Origin": ORIGIN},
+    )
+    assert rejected.status_code == 403 and "set-cookie" not in rejected.headers
+
+
+def test_workspace_self_service_cannot_be_enabled_in_production():
+    from pydantic import ValidationError
+
+    from fleet_maintenance.settings import Settings
+
+    with pytest.raises(ValidationError, match="isolated tunnel demo"):
+        Settings(environment="production", demo_workspace_accounts=True)

@@ -30,7 +30,7 @@ with a letter or digit. Display names are trimmed and passwords require 14–256
 characters. Duplicate account IDs return 409 and never reset an existing account.
 Passwords are Argon2 hashes; registration is audited without credentials.
 
-Every self-registered account has the **viewer** role. Role input is rejected.
+By default, every self-registered account has the **viewer** role. Role input is rejected.
 Registration does not create a session: the user signs in after success. An
 administrator provisions additional roles separately. Viewers can read the
 shared synthetic workspace; no record/tenant isolation or email verification is
@@ -60,10 +60,17 @@ Login/signup links preserve `workspace`; invalid or missing choices return to th
 The login API still validates workspace authorization after checking credentials. Signed-in
 record bookmarks and refresh within a workspace continue normally.
 
-Public registration remains viewer-only and never grants the selected staff role. Signup
-retains the chosen workspace and returns to its login; staff selections explain administrator
-assignment and the Fleet manager read-only alternative. Registration permissions, password
-policy, rate limits, lockout and cookie/CSRF protections remain unchanged. This supersedes
+Public signup in the deployed synthetic demo supports all four selected workspaces. The
+explicit `FLEET_DEMO_WORKSPACE_ACCOUNTS=true` policy is enabled by `compose.aws-demo.yaml`
+and is valid only in `tunnel_demo`, whose settings require the isolated demo database. New
+accounts have the demo supervisor capability; each login's selected workspace narrows its
+session role. Previously created viewer accounts can also enter any of the four workspaces
+with their existing password under this policy, without rewriting their stored role. Turning
+the policy off invalidates viewer sessions that no longer qualify for their workspace.
+
+Outside that explicit demo policy signup remains viewer-only and staff access requires
+administrator assignment. Production settings reject enabling the demo policy. Account role
+input remains rejected; passwords, lockout, allowed origins and CSRF checks still apply. This supersedes
 the previous account-first anonymous entry.
 
 ## Workspace-first sign-in — 18 October 2026 (historical anonymous entry)

@@ -363,11 +363,14 @@ workspace confirmation. Root also shows cards with a restored server session; co
 workspace ends that session with CSRF before displaying its login. Verify all four workspace
 URLs, phone layout and server-validated role homes. Signed-in record refresh stays usable.
 
-Signup and login retain the selected workspace across refresh and mode changes. Verify viewer
-signup followed by Fleet manager login, staff signup explaining administrator assignment,
-normalized account IDs, cleared passwords and Change workspace. Preserve password mismatch,
-duplicate-ID, cooldown, disabled-registration, retry and offline tests. No public selection
-or signup may elevate account permissions. Browser fixtures establish UI behavior, not actual
+Signup and login retain the selected workspace across refresh and mode changes. In the
+explicit isolated-demo policy, verify real account creation then login for each of the four
+roles, effective session role after refresh, and the same flow with existing viewer accounts.
+Wrong passwords must fail before workspace access; turning the policy off must reject viewer
+sessions whose requested workspace is no longer allowed. Normal signup remains viewer-only,
+rejects staff workspace login and cannot enable the demo policy in production. Verify normalized
+account IDs, cleared passwords, Change workspace, mismatch, duplicate-ID, cooldown,
+disabled-registration, retry and offline states. Browser fixtures establish UI behavior, not actual
 production authentication or deployed registration persistence.
 
 ## Role workspace entry — 2026-10-16 (historical server entry)

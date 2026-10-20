@@ -29,6 +29,29 @@ async function fillSignup(page: Page) {
   await page.getByLabel('Confirm password', { exact: true }).fill('private-test-password');
 }
 
+for (const [workspace, home] of [
+  ['engineer', '/advisories?status=proposed'], ['supervisor', '/maintenance'],
+  ['logistics', '/spares?view=requests'], ['fleet_manager', '/dashboard'],
+]) {
+  test(`demo account creation opens the selected ${workspace} workspace after login`, async ({ page }) => {
+    const { posts } = await accessFixture(page, true, workspace);
+    await page.route('**/api/access/registration', route => route.fulfill({
+      json: route.request().method() === 'POST'
+        ? { id: 'new.viewer', role: 'supervisor', display_name: 'New Viewer' }
+        : { enabled: true },
+    }));
+    await page.goto(`/signup?workspace=${workspace}`);
+    await fillSignup(page);
+    await page.getByRole('button', { name: 'Create account', exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/login\\?workspace=${workspace}$`));
+    await expect(page.getByRole('status')).toContainText('Account created. Sign in below');
+    await page.getByLabel('Password', { exact: true }).fill('private-test-password');
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+    await expect(page).toHaveURL(url => url.pathname + url.search === home);
+    expect(posts.at(-1)?.body.workspace).toBe(workspace);
+  });
+}
+
 test('staff signup keeps the chosen team and explains that staff access needs assignment', async ({ page }) => {
   const { posts } = await accessFixture(page);
   await page.goto('/login?workspace=engineer');

@@ -88,11 +88,13 @@ export function SessionGate({ children }: { children: ReactNode }) {
         }),
       }, (value): value is { id: string; role: string } => typeof value === "object" &&
         value !== null && "id" in value && typeof value.id === "string" &&
-        "role" in value && value.role === "viewer");
+        "role" in value && (value.role === "viewer" || value.role === "supervisor"));
       setUser(account.id); setPassword(""); setConfirmPassword("");
       navigate(`/login?workspace=${workspace.id}`, { replace: true });
       setShowPassword(false);
-      setNotice(workspace?.id === "fleet_manager"
+      setNotice(account.role === "supervisor"
+        ? `Account created. Sign in below to open the ${workspace.label.toLowerCase()} workspace.`
+        : workspace.id === "fleet_manager"
         ? "Account created with viewer access. Sign in below to open your fleet dashboard."
         : "Account created with viewer access. Ask your administrator to assign access to this team before signing in here, or choose the Fleet manager workspace for read-only access.");
     } catch (cause) {
@@ -140,12 +142,12 @@ export function SessionGate({ children }: { children: ReactNode }) {
 fleet readiness." description="Sign in to connect aircraft health evidence with the people, parts and maintenance decisions that keep your team moving." eyebrow="YOUR FLEET WORKSPACE">
     <span className="entry-step">{workspace?.label} · {creatingAccount ? "NEW ACCOUNT" : "SIGN IN"}</span>
     <h2>{creatingAccount ? "Create your AeroCare account" : "Sign in to AeroCare"}</h2>
-    <p>{creatingAccount ? "Explore the shared demonstration fleet with a viewer account." : workspace ? `Sign in to the ${workspace.label.toLowerCase()} workspace.` : "Use your account ID and password. We’ll open the workspace assigned to your account."}</p>
+    <p>{creatingAccount ? `Create an account for the ${workspace?.label.toLowerCase()} workspace.` : workspace ? `Sign in to the ${workspace.label.toLowerCase()} workspace.` : "Use your account ID and password. We’ll open the workspace assigned to your account."}</p>
     {workspace && <button type="button" className="account-switch-button" disabled={busy} onClick={() => { navigate("/"); setPassword(""); setConfirmPassword(""); setError(""); setNotice(""); }}>Change workspace</button>}
     {pagesDeployment && fullAppUrl && <p><a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open complete demo</a><small>Use this when your browser blocks cross-site sign-in.</small></p>}
     {notice && <p role="status" className="form-success">{notice}</p>}
     {expired && <p role="status" className="signup-access-note">Your session ended. Sign in again to continue.</p>}
-    {creatingAccount && <aside className="access-permissions"><strong>Start with viewer access</strong><p>Browse the shared synthetic fleet and its evidence. Creating an account does not grant planning, editing or approval permissions. Your installation administrator assigns staff access.</p></aside>}
+    {creatingAccount && <aside className="access-permissions"><strong>Your workspace access</strong><p>Your account follows this installation’s access policy. Workspace permissions are verified when you sign in. Demonstration records are shared and synthetic.</p></aside>}
     {creatingAccount && registration.isPending && <p role="status">Checking account creation availability…</p>}
     {registration.isError && <p role="alert" className="form-error">We couldn’t check account creation availability. <button type="button" className="account-switch-button" onClick={() => void registration.refetch()}>Retry</button></p>}
     {creatingAccount && registration.data?.enabled === false && <p role="status">Account creation is closed for this installation. Ask its administrator to create an account, or sign in with an existing account.</p>}

@@ -782,3 +782,21 @@ The corrected local web image is running. The deployment target remains the exis
 fleet-aws-demo web service with the production/aws-demo/ec2/qwen overlays. Only web needs
 replacement for this frontend change. Direct SSH still rejects the available identity with
 `Permission denied (publickey)`; public deployment requires the owner's existing VM terminal.
+
+## Demo signup-to-workspace correction — 20 October 2026
+
+The prior entry change retained viewer-only signup while asking users to log into the chosen
+staff workspace, causing a valid new account to receive 403. The isolated AWS-demo overlay
+now explicitly enables workspace-capable demo accounts. New demo accounts can log into all
+four workspaces; the selected workspace determines their session role. Existing self-registered
+viewer accounts use the same password and gain only their chosen demo session role, without
+rewriting the stored account. Production rejects this policy; default signup stays read-only.
+
+Passed frontend lint/types/production build, backend Ruff/mypy (187 files), 23 account/entry
+browser tests, 24 signup/security API tests and 303 unit/verification tests. The API tests cover account creation,
+all four workspace logins, existing viewer recovery, incorrect passwords, session revalidation
+after disabling the demo policy and the production prohibition. An initial combined unit/API
+process passed 325 checks but failed two log-capture assertions after app logging configuration;
+the canonical separate-process unit run passed all 303. API and web both require replacement
+for this update; no database migration or account recreation is needed. Direct VM access remains
+unavailable, so the owner must apply the pushed update through the existing VM terminal.

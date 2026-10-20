@@ -27,13 +27,14 @@ def token_hash(token: str) -> str:
 
 
 def register(session: Session, user_id: str, display_name: str, password: str) -> User:
-    """Self-registration never assigns mutation or approval permissions."""
+    """Register read-only accounts, or explicit isolated-demo workspace accounts."""
     if session.get(User, user_id) is not None:
         raise HTTPException(409, "Account ID is already in use. Choose another or sign in.")
+    role = "supervisor" if demo_workspace_accounts() else "viewer"
     user = User(
         id=user_id,
         display_name=display_name,
-        role="viewer",
+        role=role,
         password_hash=passwords.hash(password),
     )
     session.add(user)
@@ -42,7 +43,7 @@ def register(session: Session, user_id: str, display_name: str, password: str) -
             actor=user_id,
             action="account.registered",
             subject_id=user_id,
-            details={"role": "viewer"},
+            details={"role": role},
         )
     )
     try:
@@ -55,8 +56,13 @@ def register(session: Session, user_id: str, display_name: str, password: str) -
     return user
 
 
+def demo_workspace_accounts() -> bool:
+    settings = get_settings()
+    return settings.environment == "tunnel_demo" and settings.demo_workspace_accounts
+
+
 def allowed_workspaces(role: str) -> set[str]:
-    if role == "supervisor":
+    if role == "supervisor" or role == "viewer" and demo_workspace_accounts():
         return {"engineer", "supervisor", "logistics", "fleet_manager"}
     mapped = {"viewer": "fleet_manager", "planner": "supervisor", "administrator": "supervisor"}
     return {mapped.get(role, role)}
@@ -65,9 +71,11 @@ def allowed_workspaces(role: str) -> set[str]:
 def effective_session_role(user: User, record: LoginSession) -> str:
     if record.workspace and record.workspace not in allowed_workspaces(user.role):
         raise HTTPException(401, "Workspace access has changed. Sign in again.")
-    # Supervisor workspaces narrow the session's permissions to the chosen team.
-    # Other account types retain their original server permissions.
-    if user.role == "supervisor" and record.workspace:
+    # Supervisor workspaces narrow permissions to the chosen team. The explicit isolated
+    # demo policy also supports previously self-registered viewer accounts per session.
+    if record.workspace and (
+        user.role == "supervisor" or user.role == "viewer" and demo_workspace_accounts()
+    ):
         return record.workspace
     return user.role
 

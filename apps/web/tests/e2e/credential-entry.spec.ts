@@ -24,7 +24,7 @@ test('visitors choose a workspace before sign in and signup without protected re
   await expect(page.getByRole('heading', { name: 'Create your AeroCare account' })).toBeVisible();
   await page.reload();
   await expect(page.getByLabel('Display name')).toBeVisible();
-  await expect(page.getByText('Start with viewer access')).toBeVisible();
+  await expect(page.getByText('Your workspace access', { exact: true })).toBeVisible();
   expect(protectedRequests).toBe(0);
 });
 
