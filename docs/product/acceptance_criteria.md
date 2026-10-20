@@ -478,6 +478,7 @@ generation and end-to-end latency separately before asserting any production spe
 For a valid final answer event followed by a deliberately open transport, the UI must display
 the checked final answer, stop its spinner and cancel the remaining stream. Retain malformed,
 truncated, cancelled and provisional-text protections. Release the request's authentication
-read transaction before starting a model stream and before synchronous inference. Validate TLS
-HTTP/2 negotiation, and check hi/hello without a model service; actual authenticated VM timing
+read transaction before starting a model stream, synchronous inference or a model-status probe.
+Verify an unavailable model probe starts only after the authentication connection is released.
+Validate TLS HTTP/2 negotiation, and check hi/hello without a model service; actual authenticated VM timing
 must still be measured separately.

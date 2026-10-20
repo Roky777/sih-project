@@ -741,3 +741,23 @@ assistant browser cases. Both production images built and Nginx configs passed; 
 Four real local HTTPS hi/hello requests completed in 197 ms initially and 8–12 ms thereafter
 with no model service; these are isolated local timings, not authenticated VM latency. API/web
 redeployment and hard refresh are needed before measuring the user's reported slowdown again.
+
+## Ask AI local runtime activation — 20 October 2026
+
+Rebuilt and replaced the stale local API and web containers with the latency corrections.
+Also released authentication read connections before model-status probes; the regression
+checks the connection is released even when the model is unavailable. Ruff and 16 latency
+tests passed after that change; 108 focused assistant, 31 frontend unit and eight browser
+tests passed earlier in this session. Real authenticated Chrome requests through the local
+proxy completed hi/hello in 268 ms initially and 32–89 ms subsequently, and fleet count in
+96 ms. Temporary test account/session records were removed. No VM update was performed:
+this workspace has neither SSH configuration nor gcloud. See the copilot operations record.
+
+## Ask AI VM update confirmed — 20 October 2026
+
+Owner VM output confirms deployment of `4ed2818`: API/web rebuilt and healthy, Nginx validation
+passed. Independent public readiness GET returned 200 over HTTP/2. The additional local status
+probe fix remains outside that deployed commit. The supplied output omits the final model
+benchmark JSON. Independent authenticated timing could not proceed because the documented
+shared demo credentials returned 401; no repeated sign-in attempts were made. Actual live
+greeting/model latency remains unverified pending the owner's signed-in check or diagnostics.

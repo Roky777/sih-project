@@ -699,6 +699,7 @@ output-budget reduction, automatic model download or inference-speed guarantee i
 Greeting transport refinement: a validated completed answer is terminal even if the connection
 remains open; release that transport promptly. Invalid final responses and incomplete streams
 retain explicit failures. Authentication read connections must be returned before long model
-streams/inference. TLS supports HTTP/2 to multiplex event streams and ordinary API calls.
+streams/inference and model-availability probes. TLS supports HTTP/2 to multiplex event streams
+and ordinary API calls.
 Timing logs for all answer modes contain computation metadata only; no greeting or other user
 text is copied into logs. Greeting service timings and end-to-end VM timings remain distinct.

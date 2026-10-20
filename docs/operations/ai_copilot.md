@@ -273,3 +273,41 @@ PostgreSQL, RabbitMQ, Ollama, env files and volumes. Recreating web regenerates 
 template with HTTP/2. Hard-refresh the browser to load the changed answer-stream client. Then
 run diagnostics and check greetings through the authenticated browser before claiming the
 reported VM slowdown resolved. No schema migration or model/provider change is needed.
+
+### Local runtime activation and status probe — 20 October 2026
+
+The resumed session found the running local API predating the latency fixes. API and web were
+rebuilt and replaced in the existing local Compose project. The status endpoint now also
+releases its authentication transaction before probing model availability, preventing slow
+status probes from retaining database pool connections needed by chat and other requests.
+
+Executed checks: 108 focused assistant regressions, 31 frontend unit tests and eight browser
+streaming tests passed. After the additional status fix, Ruff and all 16 latency regressions
+passed. The first browser-test attempt could not bind its server inside the sandbox; the
+rerun with local server/browser access passed. A documented public demo credential did not
+authenticate locally; the subsequent real check used a temporary viewer and removed it and
+its sessions afterwards without changing existing account credentials.
+
+Chrome fetches through `http://localhost:8080` with a real server session completed hi/hello
+in 268 ms initially and 32–89 ms subsequently; fleet count completed in 96 ms. These requests
+used the actual proxy, API, authentication and saved synthetic fleet, without mocked replies.
+Evidence: `artifacts/assistant-resume-timings.json` and
+`artifacts/verify-assistant-resume.mjs`. This is local evidence only. No SSH configuration or
+gcloud executable is available in this workspace, so no VM update or live-model measurement
+was performed in this resumed session.
+
+### VM latency update applied — 20 October 2026
+
+Owner-supplied VM output confirms a fast-forward from `91684fe` to `4ed2818`, successful API/web
+builds, healthy replacement containers, passing Nginx configuration and ready database/API.
+Independent GET verification of `https://sih-34-56-39-7.sslip.io/api/health/ready` returned
+HTTP 200 over HTTP/2. The status-probe follow-up in the local working tree is additional and
+was not part of this deployed commit.
+
+The supplied output ends before the diagnostics command prints its model benchmark JSON.
+An attempted independent Chrome timing check could not authenticate with the documented shared
+synthetic demo credentials (401); no further credential attempts were made and no live latency
+claim is supported by that attempt. Authenticated greetings and actual model timings still
+require the owner's signed-in check or the remaining diagnostic output. Direct SSH to the
+known VM user/IP was denied with `Permission denied (publickey)`; the owner applied the update
+through their existing VM terminal.

@@ -26,7 +26,9 @@ router = APIRouter(prefix="/assistant", tags=["assistant"])
 
 
 @router.get("/status", response_model=AssistantStatusResponse)
-def status(actor: Actor = Depends(current_actor)) -> dict[str, Any]:
+def status(
+    actor: Actor = Depends(current_actor), session: Session = Depends(get_session),
+) -> dict[str, Any]:
     settings = get_settings()
     if not settings.assistant_enabled:
         return {
@@ -36,6 +38,8 @@ def status(actor: Actor = Depends(current_actor)) -> dict[str, Any]:
             "detail": "The assistant is turned off.",
             "can_run_scenarios": False,
         }
+    # A slow/offline model probe must not retain an authentication pool connection.
+    session.rollback()
     available, detail = copilot.client().available()
     return {
         "enabled": True,

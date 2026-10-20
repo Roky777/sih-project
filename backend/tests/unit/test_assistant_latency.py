@@ -201,3 +201,27 @@ def test_answer_stream_releases_authentication_connection_before_starting_worker
         Actor("fixture", "viewer"), session,
     )
     assert session.released and response.media_type == "application/x-ndjson"
+
+
+def test_status_releases_authentication_connection_before_model_probe(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from fleet_maintenance.api.routes import assistant
+
+    class Session:
+        released = False
+
+        def rollback(self):
+            self.released = True
+
+    session = Session()
+
+    class Model:
+        def available(self):
+            assert session.released
+            return False, "The model service is not reachable."
+
+    monkeypatch.setattr(assistant, "get_settings", lambda: SimpleNamespace(assistant_enabled=True))
+    monkeypatch.setattr(copilot, "client", Model)
+    result = assistant.status(Actor("fixture", "viewer"), session)  # type: ignore[arg-type]
+    assert result["enabled"] and not result["available"]
