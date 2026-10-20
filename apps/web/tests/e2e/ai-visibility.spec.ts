@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./workspaceTest";
 
 async function records(page: Page, mismatch = false) {
   await page.route(url => url.pathname.startsWith('/api/'), route => {
@@ -26,6 +26,8 @@ test('AI role is visible and selection retains authoritative estimate and unavai
   await page.screenshot({ path: testInfo.outputPath('ai-desktop-fixture.png'), fullPage: true });
   await page.getByLabel('Component record').selectOption('withheld');
   await expect(page).toHaveURL(/component=withheld/);
+  await expect(page).toHaveURL(/dataset=research/);
+  await expect(page).toHaveURL(/view=models/);
   await expect(page.locator('.assessment-summary')).toContainText('Data unavailable');
   await expect(page.locator('.assessment-summary')).not.toContainText('42.0');
   await expect(page.getByText('Fixture history is too short.', { exact: true })).toBeVisible();
@@ -41,14 +43,13 @@ test('AI page rejects component identity mismatches', async ({ page }) => {
   await expect(page.locator('.assessment-summary')).toHaveCount(0);
 });
 
-test('Fleet explains the AI and opens evidence for the selected component', async ({ page }) => {
+test('spatial research opens evidence for the selected component', async ({ page }) => {
   await records(page);
+  await page.route('**/api/components/withheld/maintenance', route => route.fulfill({ json: { component_id:'withheld', slot_duration_hours:8, tasks:[] } }));
   await page.goto('/fleet?aircraft=aircraft&component=withheld');
-  await expect(page.getByRole('heading', { name: 'Spot engine deterioration. Plan what to do next.' })).toBeVisible();
-  await page.getByRole('link', { name: 'See how the AI helps' }).click();
-  await expect(page).toHaveURL(/\/ai\?component=withheld/);
-  await expect(page.getByLabel('Component record')).toHaveValue('withheld');
-  await expect(page.locator('.assessment-summary')).toContainText('Data unavailable');
+  await expect(page.getByRole('heading', { name: 'Aircraft inspection', exact:true })).toBeVisible();
+  await expect(page.locator('.inspection-evidence h2')).toHaveText('ENGINE-withheld');
+  await expect(page.getByRole('link', { name: 'Inspect history & evidence' })).toHaveAttribute('href','/components/withheld');
 });
 
 test('mismatched assessment versions cannot display an AI estimate', async ({ page }) => {
@@ -76,7 +77,7 @@ test('AI navigation and evidence fit a mobile viewport', async ({ page }, testIn
   await page.goto('/ai');
   await expect(page.locator('.assessment-summary')).toBeVisible();
   await page.getByRole('button', { name: 'Open navigation' }).click();
-  await expect(page.getByRole('dialog').getByRole('link', { name: 'AI & evidence' })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('link', { name: 'Engine comparisons' })).toBeVisible();
   await page.keyboard.press('Escape');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('ai-mobile-fixture.png'), fullPage: true });

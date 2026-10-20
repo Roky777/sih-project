@@ -238,6 +238,13 @@
 :root[data-theme="dark"] .o-shell .o-btn:not(.ghost,.secondary,.danger,.critical) { color: #10271c; }
 :root[data-theme="dark"] .o-shell .legacy-surface .button { color: #10271c; }
 .o-shell .o-page-head p, .o-shell .case-detail-screen :is(p,dd,h3), .o-shell .case-record-grid article { overflow-wrap: anywhere; }
+.o-shell .legacy-surface .page-title > div { min-width: 0; max-width: 100%; }
+.o-shell .legacy-surface .page-title :is(h1,p) { overflow-wrap: anywhere; }
+.o-shell .legacy-surface .inspection-evidence :is(h2,p) { overflow-wrap: anywhere; }
+.o-shell .scene-components > button { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.o-shell .case-context-heading { min-width: 0; flex-wrap: wrap; }
+.o-shell .case-context-heading > span { max-width: 100%; overflow-wrap: anywhere; }
+.o-shell .case-title { overflow-wrap: anywhere; }
 .o-shell .case-detail-screen .case-context { background: color-mix(in srgb,var(--o-accent-soft) 30%,var(--o-surface)); }
 .o-shell .case-detail-screen .case-context[data-tone="critical"] { background: color-mix(in srgb,var(--o-critical-soft) 40%,var(--o-surface)); }
 .o-shell .case-detail-screen .case-context[data-tone="watch"] { background: color-mix(in srgb,var(--o-watch-soft) 40%,var(--o-surface)); }
@@ -254,7 +261,7 @@
   .o-shell .o-header .o-ask-ai > span { display: none; }
   .o-shell .o-header-tools { gap: 4px; }
   .o-shell .o-header .o-avatar { width: 34px; height: 34px; }
-  .o-shell .o-profile summary { padding: 0; }
+  .o-shell .o-profile > summary { padding: 0; }
 }
 @media(max-width:360px) {
   .o-shell .o-header { margin-inline: 12px; gap: 4px; }

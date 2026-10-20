@@ -1,0 +1,14 @@
+[Unit]
+Description=Read-only fleet maintenance deployment checks
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/fleet-maintenance
+ExecStart=/usr/bin/bash scripts/release_check.sh /opt/fleet-maintenance/.env.production aerocare-production /opt/fleet-maintenance/.env.images
+TimeoutStartSec=180
+UMask=0077
+StandardOutput=journal
+StandardError=journal
+# An operator must connect nonzero exits to the approved alerting destination.

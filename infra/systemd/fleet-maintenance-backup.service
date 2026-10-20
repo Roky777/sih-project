@@ -1,0 +1,13 @@
+[Unit]
+Description=Coordinated fleet database and artifact backup (maintenance window)
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/fleet-maintenance
+ExecStart=/usr/bin/python3 scripts/backup_local.py --env-file /opt/fleet-maintenance/.env.production --env-file /opt/fleet-maintenance/.env.images --project-name aerocare-production --compose compose.yaml --compose compose.production.yaml --compose compose.gce.yaml --compose compose.release.yaml --output-root /var/backups/fleet-maintenance
+TimeoutStartSec=30min
+UMask=0077
+StandardOutput=journal
+StandardError=journal

@@ -1,4 +1,4 @@
-import {expect,test} from "@playwright/test";
+import {expect,test} from "./workspaceTest";
 test("live replay validates frames, runs shared assessments and retains mapped evidence",async({page,request},info)=>{
  test.skip(!process.env.FLEET_E2E_BASE_URL,"Select the local demo explicitly.");test.setTimeout(120000);
  const post=(url:string,data:object)=>request.post(url,{data,headers:{"X-Demo-Role":"engineer"}});
@@ -24,4 +24,16 @@ test("live replay validates frames, runs shared assessments and retains mapped e
  await page.waitForTimeout(16000);await expect(page.getByText('completed · stale',{exact:true})).toBeVisible({timeout:8000});
  await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBe(0);await page.screenshot({path:info.outputPath('live-replay-mobile.png'),fullPage:true});
  await page.getByRole('link',{name:'Open component evidence & review',exact:true}).click();await expect(page).toHaveURL(new RegExp('/components/'+final.component_id));
+});
+
+test('saved telemetry selector fits a narrow phone', async ({page}) => {
+ await page.route('**/api/access/session',route=>route.fulfill({json:{id:'layout-reviewer',role:'supervisor',authentication:'demonstration header',csrf_token:null}}));
+ await page.route('**/api/telemetry',route=>route.fulfill({json:[]}));
+ await page.setViewportSize({width:320,height:844});
+ await page.goto('/telemetry');
+ await expect(page.getByLabel('Saved stream')).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ const select=await page.getByLabel('Saved stream').boundingBox();
+ const card=await page.getByRole('region',{name:'Replay connection',exact:true}).boundingBox();
+ expect(select!.x+select!.width).toBeLessThanOrEqual(card!.x+card!.width);
 });

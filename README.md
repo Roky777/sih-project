@@ -108,3 +108,10 @@ Open **http://localhost:8080/demo** after local startup. **Try demo** connects a
 Open **http://localhost:8080/demo** after `docker compose up -d --build`. Enter a case, calculate AI evidence, calculate the schedule, **Compare this saved plan**, record receipt/replan where needed, then approve/start/complete work. Original aircraft exploration remains available; initial case entry defers its 3D code until requested. Models use public simulated FD001 data and synthetic logistics.
 
 [Current implementation/verification ledger](docs/team/release_acceptance.md), [scientific evaluation](docs/research/release_evaluation.md), [backup/restore](docs/operations/backup_and_restore.md), and [intended-user study](docs/design/user_study_protocol.md) describe the current boundary. Legacy active work without crew/bay booking requires explicit reconciliation or completion/cancellation before ordinary fleet replanning; preserve its history. Dedicated new customer trials remain usable. The original release and operational customer acceptance remain incomplete.
+
+## Google Cloud deployment
+
+For the existing `aerocare-server` Ubuntu 24.04 / e2-standard-2 VM, follow the
+[GCE deployment runbook](docs/operations/gce_deployment.md). The
+[validation record](docs/operations/gce_validation.md) distinguishes the locally verified
+release candidate from remaining VM deployment, AI availability and external acceptance gates.

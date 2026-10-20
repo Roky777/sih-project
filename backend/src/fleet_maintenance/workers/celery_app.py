@@ -1,9 +1,19 @@
 from celery import Celery  # type: ignore[import-untyped]
+from celery.signals import heartbeat_sent  # type: ignore[import-untyped]
 
 from fleet_maintenance.logging_config import configure_logging
 from fleet_maintenance.settings import get_settings
+from fleet_maintenance.workers.health import record_heartbeat
 
 configure_logging()
+
+
+def worker_heartbeat(**kwargs: object) -> None:
+    record_heartbeat("worker")
+
+
+heartbeat_sent.connect(worker_heartbeat, weak=False)
+
 settings = get_settings()
 app = Celery(
     "fleet_maintenance",

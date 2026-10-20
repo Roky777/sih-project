@@ -74,9 +74,22 @@ def test_changing_test_labels_cannot_change_trained_model_or_predictions(tmp_pat
                      for engine in range(1, count + 1) for cycle in range(1, length + 1))
     (raw / "train_FD003.txt").write_text(table(20, 40))
     (raw / "test_FD003.txt").write_text(table(3, 32))
-    config = json.loads(Path("configs/multidataset_benchmark.json").read_text())
-    config["hist_gradient_boosting"]["max_iter"] = 3
-    config["nominal_interval_coverage"] = .5
+    # A synthetic unit fixture must run from the installed test image as well as
+    # the repository root; it does not depend on a research run's external config.
+    config = {
+        "version": "synthetic-label-isolation-test",
+        "split_seed": 26251, "model_seed": 26251,
+        "minimum_history_cycles": 30, "feature_window_cycles": 30,
+        "target_cap_cycles": 125, "regime_clusters": {"FD003": 1},
+        "hist_gradient_boosting": {
+            "max_iter": 3, "learning_rate": .06, "max_leaf_nodes": 15,
+            "l2_regularization": 1., "early_stopping": False,
+        },
+        "nominal_interval_coverage": .5,
+        "review_policy_cycles": {"critical_at_or_below": 20, "review_at_or_below": 45},
+        "protocol": "Synthetic unit fixture: hold model inputs fixed while changing test labels.",
+        "limits": "Not an evaluation or an operational prediction.",
+    }
     reports = []
     for i, labels in enumerate(("3\n7\n11\n", "30\n70\n110\n")):
         (raw / "RUL_FD003.txt").write_text(labels)

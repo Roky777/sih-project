@@ -16,3 +16,10 @@ backend/artifacts
 
 # Local account credentials
 LOCAL_LOGIN_CREDENTIALS.json
+**/.env
+**/.env.*
+.aws
+.codex
+.agents
+**/*.pem
+**/*.key

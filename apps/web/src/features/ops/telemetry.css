@@ -1,7 +1,7 @@
 .telemetry-page { min-width: 0; }
 .telemetry-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
 .telemetry-controls label { display: grid; gap: 8px; font-size: 12px; color: var(--o-text-2); min-width: 0; max-width: 100%; }
-.telemetry-controls select { min-height: 42px; max-width: 100%; width: 320px; padding: 8px; background: var(--o-surface); color: var(--o-text); border: 1px solid var(--o-border); border-radius: 8px; }
+.telemetry-controls select { min-height: 42px; min-width: 0; max-width: 100%; width: min(320px,100%); box-sizing: border-box; padding: 8px; background: var(--o-surface); color: var(--o-text); border: 1px solid var(--o-border); border-radius: 8px; }
 .telemetry-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }
 .telemetry-metrics > div { display: grid; gap: 10px; background: var(--o-glass-strong); border: 1px solid var(--o-border); border-radius: 12px; padding: 18px; min-width: 0; }
 .telemetry-metrics span,.telemetry-metrics small { font-size: 11px; color: var(--o-text-3); }

@@ -1,6 +1,28 @@
 # Release readiness — 2026-10-04
 
+Google Cloud preparation, 20 October: [deployment runbook](gce_deployment.md) and
+[executed validation](gce_validation.md). The GCE profile, private HTTPS, immutable image pins,
+explicit migrations, worker health, bounded resources/logs, monitoring and coordinated recovery
+are implemented. Local checks passed 243 backend unit/verification, 78 integration, 30 frontend
+unit and 34 selected CI browser tests, plus real HTTPS/job/replacement/backup/restore checks.
+No VM deployment or native amd64 acceptance is claimed; the configured AI service remains
+unavailable and the external gates below remain open.
+
+Latest local follow-up: [the two-pass audit of 20 October](../team/product_audit_two_pass_2026-10-20.md)
+completed exactly two iterations. The corrected compiled suite passed 155/155, and the live
+matrices retained 336 page inspections with 40/40 interaction groups passing. Import validation,
+upload races, malformed ingestion and the aircraft loading counter were corrected. The local
+qwen3:8b model service remains unreachable; the user explicitly chose to retain its configuration
+and report that blocker. Record-based copilot answers and its live UI/stream passed. These
+checks do not close the external production acceptance gates below.
+
 Latest implementation evidence: [release-v2 acceptance ledger](../team/release_acceptance.md). The historical runs below are retained separately; original full release/customer/public-deployment acceptance remains incomplete.
+
+The [20 October product audit](../team/product_audit_2026-10-20.md) records the latest repeated
+page/control checks, responsive fixes, compiled-browser retests and isolated workflow evidence.
+Concurrent local builds/browser activity triggered temporary backend-offline states; successful
+quiet retests establish recovery, not production capacity or latency acceptance. This audit does
+not close the operational, scientific, independent security or deployment release gates below.
 
 
 Latest source audit and AI presentation follow-up: [project status](../team/project_status.md). That report separates checks run on checkout `b73bbef` plus its current changes from the historical live-service/scientific evidence below and lists eight remaining release workstreams. The AI presentation update does not close the scientific or deployment acceptance gaps.

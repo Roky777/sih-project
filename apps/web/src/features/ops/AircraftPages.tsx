@@ -73,7 +73,7 @@ function FleetAircraftList() {
     </div>
     {filter !== "onboarding" && <Query query={list} rows={8}>{() => rows.length === 0 ? <EmptyState title="No aircraft match these filters" icon="search"/> :
       view === "table" ? <div className="o-table-wrap"><table className="o-table"><thead><tr><th>Aircraft</th><th>Condition</th><th>Availability</th><th>Family · base</th><th>Open findings</th><th>Evidence</th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><button className="o-link" onClick={() => openAircraft(row.id)}>{row.id}</button></td><td><StateBadge state={row.state} compact/></td><td>{availabilityLabel[row.availability_state]}</td><td>{airframeOf(row).title} · {row.base}</td><td>{row.open_advisories}</td><td>HI {num(row.health_index)}/100 · {num(row.total_flight_hours)} FH</td></tr>)}</tbody></table></div> : <div className="o-aircraft-grid">{rows.map((row, index) => <button type="button" key={row.id} className={`o-aircraft-card state-${row.state}`} style={{ animationDelay: `${Math.min(index, 20) * 18}ms` }} onClick={() => openAircraft(row.id)}>
-        <div className="o-aircraft-card-top"><div><strong>{row.id}</strong><small>{airframeOf(row).title} · {row.base.replace("BASE-", "Base ")} · {num(row.total_flight_hours)} FH</small></div><Ring value={row.health_index} size={58} tone={hiTone(row.health_index)} label={`Health index ${row.health_index.toFixed(0)}`}/></div>
+        <div className="o-aircraft-card-top"><div><strong>{row.id}</strong><small>{airframeOf(row).title} · {row.base.replace("BASE-", "Base ")} · {num(row.total_flight_hours)} FH</small></div><Ring value={row.health_index} size={46} tone={hiTone(row.health_index)} label={`Health index ${row.health_index.toFixed(0)}`}/></div>
         <div className="o-aircraft-card-mid"><StateBadge state={row.state} compact/><Pill tone={row.availability_state === "available" ? "healthy" : "maint"}>{availabilityLabel[row.availability_state]}</Pill></div>
         <div className="o-aircraft-card-foot">{row.driver ? <span>Driver: {row.driver.replace(`${row.id}-`, "")}</span> : <span className="o-muted">No findings</span>}{row.top_priority && <span className="o-adv-count"><PriorityBadge level={row.top_priority}/>{row.open_advisories}</span>}</div>
       </button>)}</div>}
@@ -102,10 +102,12 @@ function FleetAircraftDetail() {
   const [scrollTarget, setScrollTarget] = useState<string | null>(null);
   useEffect(() => {
     if (!scrollTarget) return;
-    document.getElementById(scrollTarget)?.scrollIntoView({ block: "start", behavior: "instant" });
+    const target = document.getElementById(scrollTarget);
+    if (!target) return; // The router may still be committing the requested tab.
+    target.scrollIntoView({ block: "start", behavior: "instant" });
     setScrollTarget(null);
   }, [currentTab, scrollTarget]);
-  const chooseTab = (value: string, target = "aircraft-workspace") => {
+  const chooseTab = (value: string, target = value === "visual" ? "aircraft-blueprint-placeholder" : "aircraft-workspace") => {
     setParams(previous => { const next = new URLSearchParams(previous); next.set("tab", value); return next; });
     setScrollTarget(target);
   };
@@ -147,6 +149,7 @@ function TwinTab({ data }: { data: AircraftDetail }) {
     <Card title="System and component records" subtitle={`${data.systems.length} systems · ${data.systems.reduce((count, system) => count + system.components.length, 0)} components. Expand a system for health, risk and remaining life.`}>
       <p className="aircraft-table-hint">Swipe the table to view health, remaining life and evidence.</p>
       <div className="o-table-wrap"><table className="o-table o-tree">
+        <colgroup><col className="aircraft-col-name"/><col className="aircraft-col-hi"/><col className="aircraft-col-state"/><col className="aircraft-col-risk"/><col className="aircraft-col-rul"/><col className="aircraft-col-advisory"/><col className="aircraft-col-evidence"/></colgroup>
         <thead><tr><th>System / component</th><th className="num">HI</th><th>State</th><th className="num">Risk 14d</th><th className="num">RUL</th><th>Advisory</th><th/></tr></thead>
         <tbody>{ordered.flatMap(system => {
           const isOpen = expanded.includes(system.code);

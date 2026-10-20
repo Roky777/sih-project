@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 
 test("aircraft register stays lightweight, selected aircraft shows a live model and Explore opens blueprint", async ({ page }, info) => {
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
@@ -17,13 +17,14 @@ test("aircraft register stays lightweight, selected aircraft shows a live model 
   await page.getByRole("button", { name: "Open visual inspection", exact: true }).click();
   await expect(page).toHaveURL(/tab=visual/);
   await expect(page.getByRole("heading", { name: "Aircraft blueprint", exact: true })).toBeInViewport();
-  await expect(page.locator(".twin-scene canvas")).toHaveCount(0);
+  await expect(page.locator(".twin-scene canvas")).toHaveCount(1);
   await expect(page.locator(".bp-register-item").first()).toBeVisible();
   expect(scripts.some(url => /AircraftBlueprint/.test(url))).toBe(true);
   await info.attach("loaded-scripts", { body: JSON.stringify(scripts, null, 2), contentType: "application/json" });
 });
 
-test("model and text responses are compressed without weakening security headers", async ({ request }) => {
+test("model and text responses are compressed without weakening security headers", async ({ request, baseURL }) => {
+  test.skip(baseURL?.includes(":517") && process.env.FLEET_E2E_PRODUCTION_PROXY !== "true", "Compression/security headers belong to the production proxy, not the Vite test server.");
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
   for (const path of ["/models/helicopter-visual.glb", "/api/fleet-health/advisories"]) {
     const response = await request.get(path, { headers: { "Accept-Encoding": "gzip" } });

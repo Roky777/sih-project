@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./workspaceTest";
 
 test("live blueprint matches selected component records and opens 3D structures from drawn assemblies and the register", async ({ page, request }, info) => {
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Read-only live deployment selected explicitly.");
@@ -6,7 +6,8 @@ test("live blueprint matches selected component records and opens 3D structures 
   await page.setViewportSize({ width: 1440, height: 900 });
   const response = await request.get("/api/fleet-health/aircraft/AC-033"); expect(response.ok()).toBe(true);
   const data = await response.json();
-  await page.goto("/aircraft/AC-033");
+  await page.goto("/aircraft/AC-033?tab=visual");
+  await page.locator("#aircraft-blueprint-placeholder").scrollIntoViewIfNeeded();
   const bp = page.getByRole("region", { name: "Aircraft component blueprint" });
   await expect(bp.getByRole("heading", { name: "Aircraft blueprint", exact: true })).toBeVisible();
   const stage = await page.getByRole("region", { name: "Aircraft digital twin showcase" }).boundingBox(), bounds = await bp.boundingBox();
@@ -71,6 +72,8 @@ async function fixtures(page: Page) {
       "/api/access/session": { id: "fixture-viewer", role: "viewer", authentication: "fixture", csrf_token: null },
       "/api/health/ready": { status: "ready", database: "ok" }, "/api/fleet-health/engine": { ready: true, runs: [] },
       "/api/fleet-health/alerts": [], "/api/fleet-health/advisories": [],
+      "/api/cases": { items: [], total: 0, offset: 0, limit: 25 },
+      "/api/fleet-health/work-orders": { as_of: "2026-09-30", recorded: [], planned: [], kpis: {} },
       "/api/fleet-health/aircraft": ["AC-001", "AC-002"].map(id => ({ id, base: "BASE-A", state: "failed", availability_state: "available", health_index: 78, open_advisories: 0, total_flight_hours: 8000 })),
       "/api/fleet-health/aircraft/AC-001": detail("AC-001"), "/api/fleet-health/aircraft/AC-002": detail("AC-002"),
     };
@@ -79,7 +82,7 @@ async function fixtures(page: Page) {
 }
 test("mobile blueprint supports unknown types, maintenance separation, keyboard selection and aircraft reconciliation", async ({ page }, info) => {
   await fixtures(page); await page.emulateMedia({ reducedMotion: "reduce" }); await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/aircraft/AC-001"); const bp = page.getByRole("region", { name: "Aircraft component blueprint" });
+  await page.goto("/aircraft/AC-001?tab=visual"); await page.locator("#aircraft-blueprint-placeholder").scrollIntoViewIfNeeded(); const bp = page.getByRole("region", { name: "Aircraft component blueprint" });
   await expect(bp.locator(".bp-register-item")).toHaveCount(3); await expect(bp.locator(".bp-assembly")).toHaveCount(2);
   expect(await bp.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   await expect(bp.locator('.bp-register-item[data-component-id="AC-001-M"]')).toHaveAttribute("data-attention", "false");
@@ -92,7 +95,7 @@ test("mobile blueprint supports unknown types, maintenance separation, keyboard 
   await dialog.getByRole("button", { name: "Exploded", exact: true }).click(); await page.waitForTimeout(300); await dialog.screenshot({ path: info.outputPath("blueprint-inspection-mobile.png") });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.keyboard.press("Escape"); await bp.scrollIntoViewIfNeeded(); await bp.screenshot({ path: info.outputPath("blueprint-mobile.png") });
-  await page.getByLabel("Select aircraft twin").selectOption("AC-002"); await expect(page).toHaveURL(/AC-002$/);
+  await page.getByLabel("Select aircraft twin").selectOption("AC-002"); await expect(page).toHaveURL(/AC-002\?/);
   await expect(bp.locator('.bp-register-item[data-component-id^="AC-001"]')).toHaveCount(0);
   await bp.getByRole("button", { name: /Turbine.*Failed/ }).first().click(); await expect(page.getByRole("dialog")).toContainText("AC-002");
   await page.getByRole("dialog").getByRole("link", { name: "Open condition evidence" }).click(); await expect(page).toHaveURL(/\/health\/AC-002-T/);
@@ -105,7 +108,7 @@ test("no WebGL retains blueprint, selected condition and evidence", async ({ pag
       return original.call(this, kind as "2d", ...options);
     } as typeof original;
   });
-  await page.goto("/aircraft/AC-001"); const bp = page.getByRole("region", { name: "Aircraft component blueprint" });
+  await page.goto("/aircraft/AC-001?tab=visual"); await page.locator("#aircraft-blueprint-placeholder").scrollIntoViewIfNeeded(); const bp = page.getByRole("region", { name: "Aircraft component blueprint" });
   await bp.getByRole("button", { name: "Inspect Turbine: Failed" }).click();
   const dialog = page.getByRole("dialog", { name: "Turbine", exact: true });
   await expect(dialog.getByText(/3D view unavailable/)).toBeVisible();
@@ -117,7 +120,7 @@ test("no WebGL retains blueprint, selected condition and evidence", async ({ pag
 test("empty records stay unavailable rather than becoming a healthy blueprint", async ({ page }) => {
   await fixtures(page);
   await page.route("**/api/fleet-health/aircraft/AC-001", route => route.fulfill({ json: { ...detail("AC-001"), systems: [] } }));
-  await page.goto("/aircraft/AC-001"); const bp = page.getByRole("region", { name: "Aircraft component blueprint" });
+  await page.goto("/aircraft/AC-001?tab=visual"); await page.locator("#aircraft-blueprint-placeholder").scrollIntoViewIfNeeded(); const bp = page.getByRole("region", { name: "Aircraft component blueprint" });
   await expect(bp.getByText("Component records unavailable", { exact: true })).toBeVisible();
   await expect(bp.locator(".bp-register-item,.bp-assembly")).toHaveCount(0);
   await expect(bp.getByText("No condition findings", { exact: true })).toHaveCount(0);
@@ -129,7 +132,7 @@ test("aircraft inspection sections share one workspace and keep the showroom and
   await page.goto("/aircraft/AC-001");
   const workspace = page.getByRole("region", { name: "Aircraft inspection workspace" });
   const stage = page.getByRole("region", { name: "Aircraft digital twin showcase" });
-  await expect(workspace.getByRole("heading", { name: "Inspection workspace", exact: true })).toBeVisible();
+  await expect(workspace.getByRole("heading", { name: /AC-001/, exact: false })).toBeVisible();
   await expect(workspace.locator(".aircraft-workspace-head")).toContainText("AC-001");
   await expect(page.getByRole("heading", { name: "System map", exact: true })).toHaveCount(0);
   await workspace.getByRole("tab", { name: "Components", exact: true }).click();
@@ -141,17 +144,21 @@ test("aircraft inspection sections share one workspace and keep the showroom and
   await workspace.screenshot({ path: info.outputPath("integrated-components.png") });
   await workspace.getByRole("tab", { name: "History", exact: true }).click();
   await expect(workspace.getByText("No timeline events recorded in this snapshot.")).toBeVisible();
-  await expect(stage.getByRole("heading", { level: 1 })).toContainText("AC-001");
-  await workspace.getByRole("tab", { name: "Advisories (0)", exact: true }).click();
-  await expect(workspace.getByText("No advisories for this aircraft", { exact: true })).toBeVisible();
+  await expect(workspace.locator(".aircraft-record-identity h1")).toContainText("AC-001");
+  await workspace.getByRole("tab", { name: "Maintenance", exact: true }).click();
+  await expect(workspace.getByText("No separate findings or decisions awaiting action.", { exact: true })).toBeVisible();
   await stage.getByRole("button", { name: "Explore blueprint", exact: true }).click();
-  await expect(workspace.getByRole("tab", { name: "Blueprint", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(workspace.getByRole("tab", { name: "Visual inspection", exact: true })).toHaveAttribute("aria-selected", "true");
   await expect(workspace.getByRole("heading", { name: "Aircraft blueprint", exact: true })).toBeInViewport();
   await workspace.screenshot({ path: info.outputPath("integrated-blueprint.png") });
   await page.setViewportSize({ width: 390, height: 844 });
   await workspace.getByRole("tab", { name: "Components", exact: true }).click();
-  expect(await workspace.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
-  await expect(workspace.getByRole("tab", { name: "Advisories (0)", exact: true })).toBeInViewport();
+  // The reference table extends to the viewport edges; its columns scroll internally.
+  const tableBounds = (await workspace.locator(".o-table-wrap").boundingBox())!;
+  expect(tableBounds.x).toBeGreaterThanOrEqual(0);
+  expect(tableBounds.x + tableBounds.width).toBeLessThanOrEqual(390);
+  await expect(workspace.locator(".o-table-wrap")).toHaveCSS("overflow-x","auto");
+  await expect(workspace.getByRole("tab", { name: "Components", exact: true })).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await workspace.screenshot({ path: info.outputPath("integrated-components-mobile.png") });
 });

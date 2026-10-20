@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./workspaceTest";
 
 test.beforeEach(async ({ page }) => {
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Local backend selected explicitly.");

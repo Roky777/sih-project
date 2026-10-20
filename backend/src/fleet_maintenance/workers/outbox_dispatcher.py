@@ -13,6 +13,7 @@ from fleet_maintenance.persistence.models import OutboxEvent
 from fleet_maintenance.services.jobs import recover_expired
 from fleet_maintenance.settings import get_settings
 from fleet_maintenance.workers.celery_app import app
+from fleet_maintenance.workers.health import record_heartbeat
 
 Publisher = Callable[[OutboxEvent], None]
 SessionFactory = Callable[[], Session]
@@ -67,6 +68,7 @@ def main() -> None:
             )
             time.sleep(min(30, settings.outbox_poll_seconds * 10))
             continue
+        record_heartbeat("outbox")
         if dispatched == 0:
             time.sleep(settings.outbox_poll_seconds)
 

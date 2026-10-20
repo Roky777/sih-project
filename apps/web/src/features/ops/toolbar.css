@@ -6,7 +6,7 @@
 .o-shell .o-header .o-topnav { gap: 2px; padding: 4px; }
 .o-shell .o-header .o-topnav > a, .o-shell .o-header .o-navmenu > summary { display: inline-flex; align-items: center; height: var(--o-control-height); min-height: var(--o-control-height); padding: 0 12px; font: 600 var(--o-control-font-size)/1.4 Inter, sans-serif; }
 .o-shell .o-header .o-header-tools { gap: 8px; }
-.o-shell .o-header :is(.o-round-btn,.o-ask-ai,.o-profile summary) { height: var(--o-control-height); min-height: var(--o-control-height); box-sizing: border-box; font-size: var(--o-control-font-size); }
+.o-shell .o-header :is(.o-round-btn,.o-ask-ai,.o-profile > summary) { height: var(--o-control-height); min-height: var(--o-control-height); box-sizing: border-box; font-size: var(--o-control-font-size); }
 .o-shell .o-header .o-round-btn { width: var(--o-control-height); }
 .o-shell .o-header .o-avatar { width: 34px; height: 34px; }
 .o-shell .o-content .o-segmented { padding: 4px; }
@@ -21,7 +21,7 @@
   .o-shell .o-header .o-header-brand { min-width: 0; }
   .o-shell .o-header .aerocare-logo { width: 96px; }
   .o-shell .o-header .o-header-tools { gap: 4px; }
-  .o-shell .o-header :is(.o-round-btn,.o-ask-ai,.o-profile summary) { width: 34px; height: 36px; min-height: 36px; }
+  .o-shell .o-header :is(.o-round-btn,.o-ask-ai,.o-profile > summary) { width: 34px; height: 36px; min-height: 36px; }
   .o-shell .o-header .o-avatar { width: 34px; height: 34px; }
   .o-shell .o-content .o-segmented { max-width: 100%; flex-wrap: wrap; }
   .o-shell .o-content .o-segmented button { height: auto; white-space: normal; padding: 8px 12px; }
@@ -29,6 +29,24 @@
 @media (max-width: 360px) {
   .o-shell .o-header { margin-inline: 12px; gap: 4px; }
   .o-shell .o-header .aerocare-logo { width: 64px; }
-  .o-shell .o-header :is(.o-round-btn,.o-ask-ai,.o-profile summary) { width: 30px; }
+  .o-shell .o-header :is(.o-round-btn,.o-ask-ai,.o-profile > summary) { width: 30px; }
   .o-shell .o-header .o-avatar { width: 30px; height: 30px; }
+}
+
+/* Shared header proportions and frosted surface from the approved reference. */
+@media (min-width: 1241px) {
+  .o-shell .o-header { height: 72px; padding-inline: 24px; border-radius: 18px; column-gap: 24px; border-color: rgb(255 255 255 / 38%); box-shadow: 0 12px 35px #213d5d12, inset 0 1px 0 #ffffff80; }
+  .o-shell .o-header::before { background: #edf3f8a8; -webkit-backdrop-filter: blur(26px) saturate(1.15); backdrop-filter: blur(26px) saturate(1.15); }
+  [data-theme="dark"] .o-shell .o-header::before { background: #152336bd; }
+  .o-shell .o-header .o-header-brand { min-width: 184px; }
+  .o-shell .o-header .aerocare-logo { width: 184px; }
+  .o-shell .o-header .o-topnav > a { height: 40px; min-height: 40px; padding-inline: 12px; font-size: 13px; font-weight: 500; }
+  .o-shell .o-header .o-topnav > a.active { font-weight: 600; }
+  .o-shell .o-header :is(.o-round-btn,.o-ask-ai,.o-profile > summary) { height: 42px; min-height: 42px; font-size: 13px; }
+  .o-shell .o-header .o-round-btn { width: 42px; }
+  .o-shell .o-header .o-avatar { width: 36px; height: 36px; }
+  .o-shell .o-header-backdrop { height: 104px; }
+}
+@media (min-width: 1241px) and (max-width: 1400px) {
+  .o-shell .o-header { column-gap: 16px; }
 }

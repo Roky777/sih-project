@@ -67,13 +67,13 @@ function IngestCard() {
     setError("");
     let body: { source?: string; readings?: unknown[] };
     try { body = JSON.parse(text); } catch { setError("Body is not valid JSON."); return; }
-    if (!Array.isArray(body.readings)) { setError("Expected an object with a \"readings\" array."); return; }
+    if (!body || typeof body !== "object" || !Array.isArray(body.readings)) { setError("Expected an object with a \"readings\" array."); return; }
     ingest.mutate({ source: body.source ?? "health_monitoring", readings: body.readings }, { onSuccess: data => { setResult(data); toast({ tone: data.rejected ? "info" : "success", title: `${data.accepted} accepted, ${data.rejected} rejected` }); }, onError: err => setError(err.message) });
   };
   return <Card title="Ingestion API tester" subtitle={`POST /api/fleet-health/ingest/sensor-readings — stands in for a post-flight health-monitoring download. Accepted window ends ${longDate(engine.data?.replay_to)}.`}>
     <label className="o-field"><span className="sr-only">Request body</span><textarea value={text} spellCheck={false} onChange={event => setText(event.target.value)} rows={12}/></label>
-    {error && <p className="o-warn-line"><Icon name="warning" size={14}/>{error}</p>}
-    <div className="o-form-actions" style={{ justifyContent: "space-between" }}><button type="button" className="o-link" onClick={() => { setText(sample); setResult(null); }}>Reset sample</button><button type="button" className="o-btn" disabled={!allowed || ingest.isPending} onClick={submit}><Icon name="database" size={15}/>{ingest.isPending ? "Validating…" : "Validate & ingest"}</button></div>
+    {error && <p className="o-warn-line" role="alert"><Icon name="warning" size={14}/>{error}</p>}
+    <div className="o-form-actions" style={{ justifyContent: "space-between" }}><button type="button" className="o-link" onClick={() => { setText(sample); setResult(null); setError(""); }}>Reset sample</button><button type="button" className="o-btn" disabled={!allowed || ingest.isPending} onClick={submit}><Icon name="database" size={15}/>{ingest.isPending ? "Validating…" : "Validate & ingest"}</button></div>
     {result && <div className="o-ingest-result">
       <div><Pill tone="ok">{result.accepted} accepted</Pill> <Pill tone={result.rejected ? "short" : "neutral"}>{result.rejected} rejected</Pill> <span className="o-mono o-small">{result.id}</span></div>
       {result.errors.length > 0 && <table className="o-table o-table-mini"><thead><tr><th>Row</th><th>Field</th><th>Problem</th></tr></thead><tbody>{(result.errors as { row: number; field: string; message: string }[]).map((err, index) => <tr key={index}><td className="num">{err.row}</td><td className="o-mono">{err.field}</td><td>{err.message}</td></tr>)}</tbody></table>}

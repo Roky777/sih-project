@@ -1,0 +1,10 @@
+[Unit]
+Description=Back up fleet maintenance during the approved maintenance window
+
+[Timer]
+OnCalendar=*-*-* 02:00:00 UTC
+Persistent=true
+Unit=fleet-maintenance-backup.service
+
+[Install]
+WantedBy=timers.target

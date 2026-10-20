@@ -1,0 +1,114 @@
+map $request_method $login_key {
+    default "";
+    POST $binary_remote_addr;
+}
+limit_req_zone $login_key zone=login:10m rate=30r/m;
+limit_req_zone $login_key zone=signup:10m rate=5r/m;
+map $status $access_retry_after {
+    default "";
+    429 30;
+}
+
+# Local tunnel verification must not set HSTS for unrelated localhost applications.
+map $host $fleet_hsts {
+    default "max-age=31536000";
+    localhost "";
+}
+
+resolver 127.0.0.11 valid=5s ipv6=off;
+
+server {
+    listen 443 ssl;
+    set $fleet_upstream http://api:8000;
+    server_name ${DEPLOYMENT_DOMAIN};
+    ssl_certificate /etc/letsencrypt/live/${DEPLOYMENT_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DEPLOYMENT_DOMAIN}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    add_header Strict-Transport-Security $fleet_hsts always;
+    root /usr/share/nginx/html;
+    index index.html;
+    client_max_body_size 8m;
+    server_tokens off;
+    gzip on;
+    gzip_vary on;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_types application/javascript text/css application/json image/svg+xml application/octet-stream model/gltf-binary;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy same-origin always;
+    add_header X-Frame-Options DENY always;
+    add_header Retry-After $access_retry_after always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'" always;
+
+    location = /api/access/registration {
+        limit_req zone=signup burst=3 nodelay;
+        limit_req_status 429;
+        error_page 429 = @access_rate_limited;
+        proxy_pass $fleet_upstream;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+    }
+
+    location = /api/access/session {
+        limit_req zone=login burst=5 nodelay;
+        limit_req_status 429;
+        error_page 429 = @access_rate_limited;
+        proxy_pass $fleet_upstream;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+    }
+
+    location @access_rate_limited {
+        default_type application/json;
+        return 429 '{"detail":"Too many attempts. Please wait 30 seconds before trying again."}';
+    }
+
+    location /api/events {
+        proxy_pass $fleet_upstream;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_cache off;
+    }
+
+    location /api/assistant/chat {
+        proxy_pass $fleet_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;
+        proxy_buffering off;
+        proxy_cache off;
+    }
+
+    location /api/ {
+        proxy_pass $fleet_upstream;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+    }
+
+    location /assets/ {
+        try_files $uri =404;
+        expires 1y;
+    }
+
+    location / {
+        try_files $uri /index.html;
+        expires -1;
+    }
+}
+
+server {
+    listen 80;
+    server_name ${DEPLOYMENT_DOMAIN};
+    location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+    location / { return 308 https://${DEPLOYMENT_DOMAIN}$request_uri; }
+}
+
+# Container-local liveness only; never published by Compose.
+server {
+    listen 127.0.0.1:8081;
+    server_name localhost;
+    access_log off;
+    location = /health { return 200 "ok\n"; }
+    location / { return 404; }
+}

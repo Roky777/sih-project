@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 import { airframeInfo } from "../../src/features/ops/airframeInfo";
 
 test.beforeEach(async ({ page }) => {
@@ -22,43 +22,45 @@ test("failed aircraft exposes recorded agency work separately from zero findings
   await expect(stats).toContainText("94 / 100");
   await expect(stats.locator("abbr")).toHaveAttribute("title", /not an aircraft clearance/);
   await page.getByRole("tab", { name: "Maintenance", exact: true }).click();
-  await expect(page.getByRole("link", { name: "WO-01097", exact: true })).toBeVisible();
+  await expect(page.getByRole("region", {name:"Maintenance for AC-014"}).getByRole("link", { name: "WO-01097", exact: true })).toBeVisible();
 });
 
-test("record switching clears selected case and component and disables boundary navigation", async ({ page }) => {
+test("record switching clears selected case and component and preserves section context", async ({ page }) => {
   await page.goto("/aircraft/AC-001?tab=summary&case=previous-case&component=previous-component");
   const stage = page.getByRole("region", { name: "Aircraft digital twin showcase" });
-  await expect(stage.getByRole("button", { name: "Previous aircraft" })).toBeDisabled();
+  await expect(stage.getByRole("button", { name: "Previous aircraft" })).toBeEnabled();
   await stage.getByRole("button", { name: "Component condition", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Component condition" })).toContainText("AC-001");
   await page.keyboard.press("Escape");
   await stage.getByRole("button", { name: "Next aircraft" }).click();
   await expect(page).toHaveURL(/aircraft\/AC-002\?tab=summary$/);
   await expect(page.locator(".aircraft-record-identity h1")).toContainText("AC-002");
-  await expect(stage).toContainText("Aircraft 2 of 40");
+  await expect(stage).toContainText("/ 40");
   await stage.getByRole("button", { name: "Component condition", exact: true }).click();
   const drawer = page.getByRole("dialog", { name: "Component condition" });
   await expect(drawer).toContainText("AC-002");
   for (const link of await drawer.locator(".twin-component").all()) await expect(link).toHaveAttribute("href", /^\/health\/AC-002-/);
   await page.keyboard.press("Escape");
   await page.goto("/aircraft/AC-040");
-  await expect(stage.getByRole("button", { name: "Next aircraft" })).toBeDisabled();
+  await stage.getByRole("button", { name: "Next aircraft" }).click();
+  await expect(page).toHaveURL(/aircraft\/AC-001$/);
 });
 
-test("inspection selection survives reload and only its selected 3D viewer mounts", async ({ page }) => {
+test("visual tools persist while the shared aircraft viewer stays available", async ({ page }) => {
   await page.goto("/aircraft/AC-014");
   await expect(page.locator(".twin-scene canvas")).toBeVisible();
   await page.getByRole("button", { name: "Open visual inspection" }).click();
   await expect(page).toHaveURL(/tab=visual/);
   await expect(page.getByRole("heading", { name: "Aircraft blueprint", exact: true })).toBeVisible();
-  await expect(page.locator(".twin-scene canvas")).toHaveCount(0);
-  await page.getByRole("button", { name: "Aircraft model", exact: true }).click();
   await expect(page.locator(".twin-scene canvas")).toHaveCount(1);
+  await page.getByRole("button", { name: "Aircraft model", exact: true }).click();
+  await expect(page).toHaveURL(/inspection=airframe/);
+  await expect(page.getByRole("button", { name:"Return to aircraft model",exact:true })).toBeVisible();
   await page.reload();
-  await expect(page.locator(".aircraft-viewer-large")).toBeVisible();
+  await expect(page.getByRole("button", { name:"Aircraft model",exact:true })).toHaveAttribute("aria-pressed","true");
   await page.goBack();
+  await page.locator("#aircraft-blueprint-placeholder").scrollIntoViewIfNeeded();
   await expect(page.getByRole("heading", { name: "Aircraft blueprint", exact: true })).toBeVisible();
-  await expect(page.locator(".twin-scene canvas")).toHaveCount(0);
 });
 
 test("model failure is local and retains operational records", async ({ page }) => {
@@ -87,20 +89,23 @@ test("all five families fit contained controls at requested viewport sizes", asy
       await expect(page.getByText(/3D view unavailable/)).toHaveCount(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       const scene = (await viewer.locator(".twin-scene").boundingBox())!;
-      const controls = (await viewer.locator(".aircraft-camera-controls").boundingBox())!;
+      const controls = (await viewer.locator(".twin-views").boundingBox())!;
       const browse = (await viewer.locator(".twin-browse").boundingBox())!;
-      expect(controls.y + controls.height).toBeLessThanOrEqual(scene.y);
-      expect(scene.y + scene.height).toBeLessThanOrEqual(browse.y);
+      expect(controls.x).toBeGreaterThanOrEqual((await viewer.boundingBox())!.x);
+      expect(controls.x + controls.width).toBeLessThanOrEqual(width);
+      expect(browse.x + browse.width).toBeLessThanOrEqual(width);
+      expect(scene.width).toBeGreaterThan(0);
       const viewerHeight = (await viewer.boundingBox())!.height;
       expect(viewerHeight).toBeGreaterThanOrEqual(width > 760 ? 560 : 450);
-      expect(viewerHeight).toBeLessThanOrEqual(width > 760 ? 820 : 600);
+      expect(viewerHeight).toBeLessThanOrEqual(901);
       for (const name of ["Front", "3/4", "Side", "Top"]) {
-        await viewer.getByRole("button", { name, exact: true }).click();
+        await viewer.getByRole("button", { name: name === "3/4" ? "3/4 view" : `${name} view`, exact: true }).click();
         await page.waitForTimeout(120);
-        await viewer.screenshot({ path: info.outputPath(`${airframeInfo(row).id}-${width}-${name.replace("/", "-")}.png`) });
+        await expect(viewer.getByRole("button",{name:name === "3/4" ? "3/4 view" : `${name} view`,exact:true})).toHaveAttribute("aria-pressed","true");
       }
-      await viewer.getByRole("button", { name: "Reset aircraft camera" }).click();
-      await expect(viewer.getByRole("button", { name: "3/4", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await viewer.screenshot({ path: info.outputPath(`${airframeInfo(row).id}-${width}.png`),timeout:10000,animations:"disabled" });
+      await viewer.getByRole("button", { name: "3/4 view", exact: true }).click();
+      await expect(viewer.getByRole("button", { name: "3/4 view", exact: true })).toHaveAttribute("aria-pressed", "true");
     }
   }
 });

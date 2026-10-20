@@ -5,3 +5,7 @@ __pycache__
 .ruff_cache
 *.db
 *.sqlite
+.env
+.env.*
+.aws
+.git

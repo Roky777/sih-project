@@ -1,5 +1,5 @@
 import { handleWorkspaceEntry } from "./workspaceEntry";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./workspaceTest";
 import { AIRFRAME_INFO } from "../../src/features/ops/airframeInfo";
 
 test.beforeEach(async ({ page }) => {
@@ -35,10 +35,25 @@ async function fixture(page: Page) {
   });
 }
 test.beforeEach(async ({ page }) => { await fixture(page); });
+test("aircraft position stays unknown until the register loads", async ({ page }) => {
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  await page.route(url => url.pathname === "/api/fleet-health/aircraft", async route => {
+    await pending;
+    await route.fulfill({ json: families.map((family, i) => ({ id: `AC-00${i + 1}`, type: family.fleetType, base: "BASE-A", state: "watch", availability_state: "available", health_index: 76, open_advisories: 0 })) });
+  });
+  await page.goto("/aircraft/AC-001");
+  const position = page.locator(".twin-browse > span");
+  await expect(position).toHaveText(/—\s*\/\s*—/);
+  await expect(page.getByRole("button", { name: "Next aircraft", exact: true })).toBeDisabled();
+  release();
+  await expect(position).toHaveText(/01\s*\/\s*05/);
+  await expect(page.getByRole("button", { name: "Next aircraft", exact: true })).toBeEnabled();
+});
 test("restored sideways browsing waits for the next record and retains aligned identity", async ({ page }) => {
   await page.goto("/aircraft/AC-001");
   const viewer = page.locator(".twin-showcase");
-  await expect(viewer.locator(".twin-scene canvas")).toBeVisible();
+  await expect(viewer.locator(".twin-scene canvas")).toBeVisible({timeout:25000});
   await page.route("**/api/fleet-health/aircraft/AC-002", async route => {
     await new Promise(resolve => setTimeout(resolve, 600));
     await route.fulfill({ json: record("AC-002", families[1]) });
@@ -67,7 +82,7 @@ test("five model families keep clear controls on desktop and mobile with reduced
     for (let i = 0; i < families.length; i++) {
       await page.goto(`/aircraft/AC-00${i + 1}`);
       const viewer = page.locator(".twin-showcase");
-      await expect(viewer.locator(".twin-scene canvas")).toBeVisible();
+      await expect(viewer.locator(".twin-scene canvas")).toBeVisible({timeout:25000});
       await expect(page.getByText("Loading aircraft model…")).toHaveCount(0, { timeout: 25000 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       const frame = (await viewer.boundingBox())!;

@@ -1,0 +1,27 @@
+/* Operational supply presentation; research inventory retains its own layout. */
+.supply-reference { font-family: Inter,sans-serif; gap: 20px; }
+/* The reference begins with workflow; retain the page heading for assistive navigation. */
+.supply-reference > .o-screen-head { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.supply-reference .o-card { padding: 22px; border-radius: 22px; }
+.supply-reference .o-card-head { margin-bottom: 16px; }
+.o-shell .supply-reference .o-card-head h2 { font: 500 17px/1.4 Inter,sans-serif; letter-spacing: -.2px; }
+.o-shell .supply-reference .o-card-head p { margin-top: 6px; font: 400 13px/1.6 Inter,sans-serif; }
+.supply-reference .o-note { padding: 13px 16px; border-radius: 14px; font: 400 13px/1.6 Inter,sans-serif; }
+.supply-reference .o-state-box.empty { min-height: 86px; padding: 18px; gap: 14px; }
+.supply-reference .o-state-box.empty strong { font: 600 14px/1.5 Inter,sans-serif; }
+.supply-reference .o-state-box.empty p { margin-top: 5px; font: 400 13px/1.6 Inter,sans-serif; }
+.supply-reference .o-shortfalls { gap: 8px; }
+.supply-reference .o-shortfalls li { gap: 12px; padding: 10px 12px; min-width: 0; border-radius: 4px; }
+.supply-reference .o-shortfalls li > div { min-width: 0; overflow-wrap: anywhere; }
+.supply-reference .o-shortfalls strong { font: 600 13px/1.5 Inter,sans-serif; }
+.supply-reference .o-shortfalls p { margin-top: 5px; font: 400 14px/1.6 Inter,sans-serif; }
+.supply-reference .o-shortfalls .o-pill { flex-shrink: 0; font: 500 10px/1.5 Inter,sans-serif; }
+.supply-reference .o-table th { font: 400 13px/1.5 Inter,sans-serif; }
+.supply-reference .o-table td { font-size: 12px; line-height: 1.6; }
+.o-shell .supply-reference .o-flow-strip.compact { gap: 0; }
+.o-shell .supply-reference .o-flow-strip.compact .o-flow-step { min-height: 70px; }
+.o-shell .supply-reference .o-flow-strip.compact .outcome .o-availability-value[data-active="true"] { min-width: 52px; padding: 6px; border-color: transparent; border-radius: 0; background: transparent; color: var(--o-accent-ink); font: 600 18px/1.2 Inter,sans-serif; letter-spacing: -.5px; }
+@media(max-width:760px) {
+  .supply-reference .o-card { padding: 18px; border-radius: 18px; }
+  .supply-reference .o-shortfalls p { font-size: 13px; }
+}

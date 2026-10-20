@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 test("acknowledgement records review without changing the recorded alert state", async ({ page }) => {
   await page.goto("/alerts");
   const alert=page.locator('.attention-card').first();

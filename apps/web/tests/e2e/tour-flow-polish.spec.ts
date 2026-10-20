@@ -5,6 +5,7 @@ for (const role of ['engineer','supervisor','logistics','fleet_manager']) {
     await page.addInitScript(role=>{sessionStorage.setItem('fleet:workspace-entry','local-demo');localStorage.setItem('ops:role',role);},role);
     for(const width of [1280,390]){
       await page.setViewportSize({width,height:900});
+      if (page.url() !== 'about:blank') await page.evaluate(()=>{ for(const key of Object.keys(localStorage)) if(key.startsWith('aerocare:overview-seen:')) localStorage.removeItem(key); });
       await page.goto('/advisories?status=proposed');
       await page.getByRole('button',{name:'Start overview',exact:true}).click();
       for(let i=0;i<6;i++){
@@ -32,9 +33,11 @@ for (const role of ['engineer','supervisor','logistics','fleet_manager']) {
 }
 
 test('workflow uses the reference single-row bar and unchanged live forecast',async({page,request})=>{
+  test.setTimeout(90000);
   await page.addInitScript(()=>{sessionStorage.setItem('fleet:workspace-entry','local-demo');localStorage.setItem('ops:role','engineer');});
   const summary=await(await request.get('/api/fleet-health/summary')).json();
   for(const path of ['/advisories?status=proposed','/maintenance','/spares?view=requests']){
+    if (page.url() !== 'about:blank') await page.evaluate(()=>{ for(const key of Object.keys(localStorage)) if(key.startsWith('aerocare:overview-seen:')) localStorage.removeItem(key); });
     await page.goto(path);await page.getByRole('button',{name:'Skip',exact:true}).click();
     const flow=page.getByRole('navigation',{name:'Maintenance decision flow',exact:true});
     await expect(flow.getByRole('link')).toHaveCount(5);

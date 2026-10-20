@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 
 test.beforeEach(() => { test.skip(!process.env.FLEET_E2E_BASE_URL, "Use the explicitly selected local stack."); });
 test("register aircraft, install component and validate immutable source records", async ({ page }, info) => {

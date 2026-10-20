@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import time
 import urllib.request
@@ -10,12 +11,24 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 
+def file_sha256(path: Path) -> str:
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--backup", type=Path, required=True)
     parser.add_argument("--project", default="fleet-release-restored")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--api-port", type=int, default=18000)
+    parser.add_argument("--web-port", type=int, default=18080)
     args = parser.parse_args()
+    if (
+        not 1024 <= args.api_port <= 65535 or not 1024 <= args.web_port <= 65535
+        or args.api_port == args.web_port
+    ):
+        parser.error("Choose distinct unprivileged verification ports")
     if (
         not args.project.startswith("fleet-release-restored")
         or not args.project.replace("-", "").isalnum()
@@ -28,13 +41,18 @@ def main() -> None:
         path = (backup / name).resolve()
         if (
             not path.is_relative_to(backup)
-            or hashlib.sha256(path.read_bytes()).hexdigest() != digest
+            or file_sha256(path) != digest
         ):
             raise ValueError("Backup bytes do not match the retained manifest")
     cmd = ["docker", "compose", "-p", args.project, "-f", "compose.verify.yaml"]
 
+    compose_env = {
+        **os.environ, "FLEET_VERIFY_API_PORT": str(args.api_port),
+        "FLEET_VERIFY_WEB_PORT": str(args.web_port),
+    }
+
     def compose(*parts: str) -> str:
-        return subprocess.check_output([*cmd, *parts], text=True).strip()
+        return subprocess.check_output([*cmd, *parts], text=True, env=compose_env).strip()
 
     compose("up", "-d", "--wait", "postgres", "rabbitmq")
     pg = compose("ps", "-q", "postgres")
@@ -119,7 +137,9 @@ def main() -> None:
         "m.artifact_directory),m.hashes) for m in models]; "
         "print('all registered artifacts verified')",
     )
-    with urllib.request.urlopen("http://127.0.0.1:18000/api/health/ready", timeout=10) as response:
+    with urllib.request.urlopen(
+        f"http://127.0.0.1:{args.api_port}/api/health/ready", timeout=10
+    ) as response:
         assert response.status == 200
     age = (datetime.now(UTC) - datetime.fromisoformat(manifest["created_at"])).total_seconds()
     result = {
@@ -130,7 +150,7 @@ def main() -> None:
         "backup_age_seconds": age,
         "observed_restore_seconds": time.monotonic() - started,
         "RPO_RTO": "not customer agreed; observations only",
-        "journey": "Run customer-trial.spec.ts against http://localhost:18080",
+        "journey": f"Run customer-trial.spec.ts against http://localhost:{args.web_port}",
         "reconciliation": "Dispatcher recovers expired jobs; attempt fencing and "
         "normal stock/resource invariants remain active",
     }

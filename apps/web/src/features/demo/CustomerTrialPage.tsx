@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { lazy, Suspense, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PlanComparison } from '../planning/PlanComparison';
-import { api, arrayOf, isComponentDetail, isJob, isPartArrival, isPlan, isPlanCommitment, isSimulationRun, type Job } from '../../shared/api/client';
+import { api, ApiError, arrayOf, isComponentDetail, isJob, isPartArrival, isPlan, isPlanCommitment, isSimulationRun, type Job } from '../../shared/api/client';
 import { AsyncState } from '../../shared/ui/AsyncState';
 const AircraftScene = lazy(() => import('../inspection/AircraftScene').then(module => ({ default: module.AircraftScene })));
 import { AssessmentSummary } from '../health/AssessmentSummary';
@@ -98,6 +98,11 @@ export function CustomerTrialPage() {
     const a = document.createElement('a'); a.href = url; a.download = 'aerocare-simulated-fd001-history.json'; a.click(); URL.revokeObjectURL(url);
   };
   const selectedStep = step;
+  if (catalog.error instanceof ApiError && catalog.error.status === 403) return <section className="customer-trial">
+    <div className="trial-heading"><div><span className="eyebrow">GUIDED DEMONSTRATION</span><h1>Guided trials are unavailable in this installation</h1><p>This installation does not enable the isolated customer-trial workspace. Fleet records and the workflow guide remain available.</p></div></div>
+    <Link className="button" to="/welcome">Open workflow guidance</Link>
+    <Link className="button-secondary" to="/dashboard">Return to fleet overview</Link>
+  </section>;
   return <section className="customer-trial">
     {(!canPlan || !canAssess || !canApprove) && <p className="quality-finding">Your role can inspect saved trial evidence. Creating and planning require a planner or supervisor; assessment requires an engineer or supervisor; approval and work verification require a supervisor.</p>}
     <div className="trial-heading"><div><span className="eyebrow">INTERACTIVE CUSTOMER TRIAL</span><h1>From engine data to a maintenance decision.</h1><p>Bring a case. Change the assumptions. See what the evidence and constraints allow.</p></div>{t && <button className="button-secondary" onClick={newTrial} disabled={busy}>Try another case</button>}</div>

@@ -60,7 +60,7 @@ export const router = createRouter([{ path:"/", element:<SessionGate><RoleProvid
   { path:"review", element:<RouteAlias to="/advisories" defaults={{ status: "proposed" }}/> },
   { path:"plan", element:<RouteAlias to="/maintenance" defaults={{ view: "work" }}/> },
   { path:"parts", element:<RouteAlias to="/spares" defaults={{ view: "requests" }}/> },
-  { path:"status", element:<RouteAlias to="/dashboard#grounded"/> },
+  { path:"status", element:<RouteAlias to="/aircraft" defaults={{ filter: "grounded" }}/> },
   { path:"dashboard", element:page(<FleetDashboard/>) },
   { path:"aircraft-detail", element:page(<FocusRedirect kind="aircraft"/>) },
   { path:"component-health", element:page(<FocusRedirect kind="component"/>) },

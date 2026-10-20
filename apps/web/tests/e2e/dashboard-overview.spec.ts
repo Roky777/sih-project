@@ -7,7 +7,7 @@ async function enter(page: Page, role: string) {
   await page.getByRole('button',{name:'Select workspace',exact:true}).click();
 }
 
-test('visual entry chooses the actual demo role, then overview repeats on refresh without repeating sign-in', async ({ page }) => {
+test('visual entry chooses the actual demo role, then overview stays dismissed on refresh without repeating sign-in', async ({ page }) => {
   await page.goto('/dashboard');
   await expect(page.getByRole('combobox')).toHaveCount(0);
   await enter(page,'Fleet manager');
@@ -18,7 +18,7 @@ test('visual entry chooses the actual demo role, then overview repeats on refres
   await page.getByRole('navigation',{name:'Primary',exact:true}).getByRole('link',{name:'Aircraft',exact:true}).click();
   await expect(invitation).toHaveCount(0);
   await page.reload();
-  await expect(invitation).toBeVisible();
+  await expect(invitation).toHaveCount(0);
   await expect(page.getByRole('group',{name:'Choose your workspace role'})).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(invitation).toHaveCount(0);
@@ -29,7 +29,8 @@ test('engineer overview retains bookmarked aircraft and uses the chosen workspac
   const before=await(await request.get('/api/fleet-health/aircraft/AC-026')).json();
   await enter(page,'Maintenance engineer');
   await page.getByRole('button',{name:'Start overview',exact:true}).click();
-  const titles=['Inspect the aircraft and component','Review the AI evidence','Hand a reviewed finding to maintenance','Ask for help in context'];
+  const assistant = await (await request.get('/api/assistant/status')).json() as {enabled: boolean};
+  const titles=['Inspect the aircraft and component','Review the AI evidence','Hand a reviewed finding to maintenance',...(assistant.enabled ? ['Ask for help in context'] : [])];
   for(let i=0;i<titles.length;i++){
     await expect(page.getByRole('dialog',{name:titles[i],exact:true})).toBeVisible();
     await expect(page.locator('.dashboard-overview-highlight')).toBeVisible();
@@ -68,18 +69,16 @@ test('mobile role cards, layered canvas and overview fit the screen',async({page
   await page.keyboard.press('Escape');
 });
 
-test('server-assigned role cannot be elevated through workspace cards',async({page})=>{
+test('server-assigned role cannot be elevated through browser role storage',async({page})=>{
   await page.route('**/api/access/session',route=>route.fulfill({json:{id:'engineer-fixture',role:'engineer',authentication:'server session',csrf_token:'fixture'}}));
   await page.goto('/dashboard');
-  await expect(page.getByText('Your assigned workspace',{exact:true})).toBeVisible();
-  await expect(page.locator('.entry-role-card:disabled')).toHaveCount(3);
-  await page.locator('.entry-role-card:disabled').first().hover();
-  await page.waitForTimeout(2200);
-  await expect(page.locator('.entry-role-card.is-filling')).toHaveCount(0);
-  await expect(page.locator('.entry-role-card.selected')).toContainText('Maintenance engineer');
-  await page.getByRole('button',{name:'Select workspace',exact:true}).click();
-  await expect(page.getByRole('dialog')).toContainText('Maintenance engineer');
-  expect(await page.evaluate(()=>localStorage.getItem('ops:role'))).toBeNull();
+  await page.getByRole('button',{name:'Skip',exact:true}).click();
+  await expect(page.locator('.entry-role-card')).toHaveCount(0);
+  await page.evaluate(()=>localStorage.setItem('ops:role','supervisor'));
+  await page.reload();
+  await expect(page.locator('.o-profile > summary')).toHaveAttribute('aria-label','Account: Maintenance engineer');
+  await page.goto('/account');
+  await expect(page.getByRole('combobox',{name:'Current role'})).toHaveValue('engineer');
 });
 
 test('real account sign-in retains validation and opens only the authenticated role',async({page})=>{
@@ -215,11 +214,13 @@ test('hidden workspaces release their live stream and reconnect on return',async
   await page.goto('/login');await enter(page,'Fleet manager');
   await page.getByRole('button',{name:'Skip',exact:true}).click();
   const counts=()=>page.evaluate(()=>(window as unknown as {eventStreamCounts:{opened:number;closed:number}}).eventStreamCounts);
-  await expect.poll(async()=>(await counts()).opened).toBe(1);
+  await expect.poll(async()=>{const c=await counts();return c.opened-c.closed;}).toBe(1);
+  const before=await counts();
   await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
-  await expect.poll(async()=>(await counts()).closed).toBe(1);
+  await expect.poll(async()=>{const c=await counts();return c.opened-c.closed;}).toBe(0);
   await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:false});document.dispatchEvent(new Event('visibilitychange'));});
-  await expect.poll(async()=>(await counts()).opened).toBe(2);
+  await expect.poll(async()=>{const c=await counts();return c.opened-c.closed;}).toBe(1);
+  expect((await counts()).opened).toBeGreaterThan(before.opened);
 });
 
 test('workspace confirmation stays in view before and after role selection',async({page})=>{

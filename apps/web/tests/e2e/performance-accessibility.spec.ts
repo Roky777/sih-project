@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './workspaceTest';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 test('case entry defers the 3D download and preserves labelled keyboard controls', async ({ page }) => {

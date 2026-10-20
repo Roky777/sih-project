@@ -1,16 +1,34 @@
 # Use with compose.yaml behind an HTTPS reverse proxy; no service is published publicly here.
+x-release-logging: &release_logging
+  driver: local
+  options: {max-size: "10m", max-file: "5"}
 services:
   postgres:
+    mem_limit: 1g
+    logging: *release_logging
+    stop_grace_period: 60s
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: ${FLEET_POSTGRES_PASSWORD:?Set a unique PostgreSQL password}
     ports: !reset []
   rabbitmq:
+    hostname: rabbitmq
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    mem_limit: 512m
+    logging: *release_logging
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_PASS: ${FLEET_RABBITMQ_PASSWORD:?Set a unique broker password}
     ports: !reset []
   api:
+    # Apply migrations explicitly after a verified backup, never implicitly on restart.
+    command: [uvicorn, "fleet_maintenance.main:app", --host, "0.0.0.0", --port, "8000"]
+    mem_limit: 1536m
+    logging: *release_logging
+    stop_grace_period: 30s
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=128m"]
     restart: unless-stopped
     environment: &release_environment
       FLEET_ENVIRONMENT: production
@@ -22,19 +40,57 @@ services:
       FLEET_DATABASE_URL: ${FLEET_RELEASE_DATABASE_URL:?Set the PostgreSQL connection URL}
       FLEET_BROKER_URL: ${FLEET_RELEASE_BROKER_URL:?Set the RabbitMQ connection URL}
       FLEET_ARTIFACT_ROOT: /var/lib/fleet-maintenance/artifacts
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
     ports: !reset []
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
   worker:
+    mem_limit: 2g
+    logging: *release_logging
+    stop_grace_period: 320s
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=128m"]
+    command: [celery, -A, "fleet_maintenance.workers.celery_app:app", worker, --loglevel=INFO, --concurrency, "${FLEET_WORKER_CONCURRENCY:-1}", --without-mingle, --without-gossip]
+    healthcheck:
+      test: [CMD, python, -m, fleet_maintenance.workers.health, worker]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
     restart: unless-stopped
     environment: *release_environment
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
   outbox:
+    mem_limit: 256m
+    logging: *release_logging
+    stop_grace_period: 30s
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=128m"]
+    healthcheck:
+      test: [CMD, python, -m, fleet_maintenance.workers.health, outbox]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
     restart: unless-stopped
     environment: *release_environment
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
   web:
+    mem_limit: 128m
+    logging: *release_logging
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, "http://127.0.0.1:8081/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
     ports: !reset []
+
+volumes:
+  rabbitmq-data:

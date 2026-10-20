@@ -1,0 +1,14 @@
+# Image-only release selection. Use with production + EC2 overlays, --no-build and --pull never.
+services:
+  postgres:
+    image: ${FLEET_POSTGRES_IMAGE:?Set a reviewed immutable PostgreSQL image}
+  rabbitmq:
+    image: ${FLEET_RABBITMQ_IMAGE:?Set a reviewed immutable RabbitMQ image}
+  api:
+    image: ${FLEET_API_IMAGE:?Set a reviewed immutable application image}
+  worker:
+    image: ${FLEET_API_IMAGE:?Set a reviewed immutable application image}
+  outbox:
+    image: ${FLEET_API_IMAGE:?Set a reviewed immutable application image}
+  web:
+    image: ${FLEET_WEB_IMAGE:?Set a reviewed immutable frontend image}

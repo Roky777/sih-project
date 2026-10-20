@@ -421,3 +421,264 @@ liquid interaction, assigned-role restrictions and contained tour highlights. An
 caught role-content overlap; corrected the spacing before the successful final run. Logs:
 `artifacts/entry-viewport-{web,docker,lint,browser}.log`, `artifacts/entry-fit-browser.log`.
 Final screenshots: `artifacts/demo-verification/workspace-fit-{1366,390,320}.png`. Local changes only.
+
+## Overview reference layout — 20 October 2026
+
+Adjusted only `fleet-dashboard.css` application styling to match the supplied images 6–9: five KPI
+cards in one desktop row, availability/downtime panels at 7:5, health/actions at 5:7, with the existing
+two-by-two priority cases and a bounded two-column health matrix. Smaller screens retain stacking.
+All selectors are scoped to `.fleet-overview`; data, routes, authentication and other pages unchanged.
+
+Verified frontend Docker production build/typecheck and local web restart. Browser measurements at
+1280, 1440 and 1920 pixels confirmed the desktop rows; 390 pixels fitted without horizontal overflow.
+Confirmed all 280 health cells, four priority cases, and both risk/tail sort controls. Screenshots:
+`artifacts/demo-verification/overview-reference-{desktop,mobile}.png`. No backend or science suites
+rerun for this presentation-only change. No push/deployment performed.
+
+### Overview sizing polish — 20 October 2026
+
+Refined only Overview styling: common KPI label/value/support rows align all metric values, with
+consistent padding, type scale and radii. Chart panels have equal 390px desktop heights and aligned
+heading separators; health/actions panels share their lower edge. Priority cards use tighter spacing
+and consistent action placement. Mobile charts expand to 420px for wrapped headings/legends. Existing
+five-metric layout, 7:5 and 5:7 panel order, values, controls, links and API behavior are preserved.
+
+Verified Docker frontend build/typecheck and local restart; browser checks at 1280, 1440, 1920, 768
+and 390 pixels passed for no horizontal overflow/clipped metrics, aligned desktop values/equal panel
+heights, and plot areas over 180px. All 280 health cells, four priority cases and both sort controls
+remain available. Inspected desktop/mobile screenshots at
+`artifacts/demo-verification/overview-polish-{1440,390}.png`. No backend/science changes or tests;
+no push or public deployment.
+
+### Overview header proportions — 20 October 2026
+
+Matched the second supplied header comparison with Overview-only desktop sizing: 80px bar,
+216px logo, 44px navigation/actions and 14px labels. Narrow desktop spacing avoids collisions;
+mobile retains its existing 62px header. Other pages retain their existing 72px desktop header.
+Verified production build/typecheck and local frontend restart, then measured 1280/1440/1600px
+and 390px layouts with no navigation overlap or page overflow. Screenshot:
+`artifacts/demo-verification/overview-header-reference.png`. No data or navigation behavior changed.
+
+### Compact Overview KPIs — 20 October 2026
+
+Reduced only the KPI geometry to match the smaller supplied first image: desktop cards now measure
+152px instead of 176px, with shorter label rows, 34px values and tighter vertical padding/gaps.
+Colours, content, five-column arrangement, charts and header are unchanged by this refinement.
+Verified production frontend build/typecheck and restart; browser checks at 1280/1440/1920/390px
+found no clipped metrics, label/value overlap or horizontal overflow. Mobile retains extra space for
+wrapped labels (172px). Capture: `artifacts/demo-verification/overview-compact-kpis.png`.
+
+## First-login-only overview tour — 20 October 2026
+
+Supersedes refresh-triggered guidance. The invitation is remembered when first presented, per
+server-account ID in this browser's local storage (separate identities for demo roles). Refresh,
+navigation, new tabs and later logins no longer reopen it; another account gets its own invitation.
+Skip/Finish and role-specific steps remain. Clearing site data/another browser resets the preference;
+storage denial falls back to memory, not cross-device persistence. No account permissions/data change.
+
+Verified lint/typecheck/build and all 30 frontend unit tests. Docker web rebuilt/restarted. Live-browser
+checks with two real local accounts passed: refresh during invitation, same-account sign-in, a new tab,
+different-account first invitation, and refresh after Skip. Existing tour layout fixtures now explicitly
+reset only tour preferences when testing fresh visits at multiple sizes. No backend/science tests run.
+
+### Health-card reference interior — 20 October 2026
+
+Changed only the desktop health-card interior: removed its heading divider, placed sorting and all
+four legend items on one row, restored square health swatches/circular maintenance swatch, and
+adjusted column/row labels, rectangular cell sizing and gaps to the supplied first reference.
+Kept measured outer dimensions: 569.5×512 at 1440px, 502.83×546 at 1280px, 669.5×512 at 1920px;
+mobile remains 358×572 at 390px with its existing wrapping behavior. Fixed desktop panel heights
+preserve these bounds while the internal matrix scrolls. All 280 cells and aircraft sorting verified.
+Frontend production build/typecheck and local restart passed. No records, other cards or navigation
+changed. Capture: `artifacts/demo-verification/health-card-interior.png`.
+
+### Priority actions reference sizing — 20 October 2026
+
+Scoped Priority actions styling now follows the second supplied reference: no heading divider,
+regular-weight heading, compact two-by-two boxes, consistent case/status/title/owner typography,
+smaller review buttons and reduced empty space before the actions. Other cards retain their styles.
+Measured desktop boxes are equally sized at approximately 192px high; panel approximately 506px.
+Verified frontend production build/typecheck and local restart. Live checks at 1280/1440/1920/390px
+confirmed four unclipped cases, no page overflow, divider removal and retained case links. Clicked
+the first Review evidence action and verified it opened its original case. All 280 health cells
+remain. Capture: `artifacts/demo-verification/priority-actions-reference.png`. No records changed.
+
+### Latest header reference supersedes larger variant — 20 October 2026
+
+Adjusted only Overview header styling to the latest supplied reference: 72px bar, 184px logo,
+40px navigation, 42px actions, 13px labels (500 weight, 600 selected). Pale translucent surface
+uses rgba(237,243,248,.66), 26px blur and 1.15 saturation, with subtle edge/shadow and retained dark
+variant. Previous 80px/216px header is superseded. Dashboard cards and other routes unchanged.
+Verified production build/typecheck, local web restart and live computed styles at 1280/1440/1920
+and 390px, with no overlap/overflow. Screenshot: `artifacts/demo-verification/header-latest-reference.png`.
+
+## Aircraft register reference presentation — 20 October 2026
+
+Updated only the Aircraft register presentation to the supplied references: compact five-column
+cards (156px measured height, 14px padding, 18px tail labels, 46px health rings), matched condition/
+availability badges and driver/priority footer. Existing All aircraft/Available/Grounded/Findings/
+Active maintenance/Onboarding filters and search remain visible, with Cards/Table and Risk/Health/
+Tail controls beside them on desktop; removed the forced separate sort row. Responsive layout wraps
+controls and reduces columns on tablets/phones. No aircraft records, filter logic or permissions changed.
+
+Production frontend build/typecheck and local web restart passed. Browser layout checks at 1280,
+1440, 1920, 768 and 390px found no horizontal overflow; desktop widths retain five columns. Verified
+40 records, Available 26/Grounded 14, search/reset, Table/Cards, Tail sorting and original record
+navigation. An initial rapid interaction capture raced URL updates; the sequential settled rerun
+passed without changing query logic. Captures:
+`artifacts/demo-verification/aircraft-register-{reference,card}.png`. Overview unchanged this step.
+
+## Aircraft component expansion layout — 20 October 2026
+
+Fixed automatic table-column resizing when system rows expand using a scoped fixed-layout colgroup.
+Removed the inherited generic blue selected-row styling in favor of the existing green palette;
+component rows have consistent readable surfaces, wrapped serial details and retained evidence links.
+Small screens scroll within the table container, without widening the page. No health/risk/RUL or
+component data changes. Frontend production build/typecheck and local web restart passed. Live test
+expanded all seven AC-011 systems: headers stayed at identical horizontal positions and all 20
+components remained. Selected background computed green; 390px viewport contained the 960px table
+inside its scroll wrapper. Evidence link navigation passed. Capture:
+`artifacts/demo-verification/aircraft-components-expanded.png`.
+
+## Findings reference typography and availability reading — 20 October 2026
+
+Scoped changes to Findings: matched compact rounded filters, monospaced option/tail-search values,
+Inter labels/table/actions, 32px rows, 30px review/view buttons and 22px pills. Retained the existing
+workflow strip and live role ownership; forecast now uses green Inter text and a proportional slim
+track without a filled unselected badge. No counts/statuses/forecast values were fabricated to match
+screenshots; existing role-dependent Plan/Review/View behavior remains.
+
+Frontend production build/typecheck and local restart passed. Live browser checks at 1280/1440/1920
+and 390px confirmed no page overflow, transparent forecast badge and correct filter font. Verified
+forecast equals API summary, status filtering, tail search and review drawer. Initial checks ran before
+fleet queries completed; repeated after the real rows loaded and passed. Capture:
+`artifacts/demo-verification/findings-reference.png`. Other pages retain their prior styling.
+
+## Maintenance reference presentation — 20 October 2026
+
+Added scoped operational Maintenance styling for the supplied Work queue/History references:
+Inter headings/body text, 2.4:1 confirmed-findings/mandatory-tasks layout, compact finding evidence,
+68px minimum due-task boxes with monospaced due labels, reference pill/card spacing, and consistent
+Planned/Recorded work panels and empty states. Availability uses plain green Inter text and a slim
+track without an unselected badge fill. Research workspaces and other routes are excluded. No data,
+model outputs, scheduling permissions or work-order logic changed.
+
+Verified production frontend build/typecheck and local restart. Browser checks at 1280/1440/1920
+and 390px confirmed no overflow and transparent availability. One confirmed finding and four due
+tasks remain; fleet-manager account still sees Supervisor schedules. History planned/recorded
+panels, empty planned state and Open/Closed/Late selection passed. Captures:
+`artifacts/demo-verification/maintenance-reference-{work,history}.png`. No backend/science tests run.
+
+## Findings advisory drawer reference — 20 October 2026
+
+Matched the supplied advisory drawer presentation with a frosted panel and blurred backdrop,
+compact Inter typography, monospaced identifiers, action banner, rounded case card and four metric
+cells. Added optional Drawer styling hooks; only Findings uses these overrides. Existing evidence,
+case navigation, model details, spares/impact content and advisory data remain intact.
+
+Production frontend build/typecheck and local restart passed. Live AC-008 fuel-pump checks confirmed
+630px drawer width at 1280/1440px and viewport-constrained width at 390px, without body overflow.
+Four metric cells, model-details expansion and Escape close passed. The initial width assertion ran
+during the entrance animation; the check passed after waiting for its final position. Capture:
+`artifacts/demo-verification/findings-advisory-reference.png`. No backend/science tests run.
+
+## Spares reference presentation — 20 October 2026
+
+Added operational Supply styling matching the supplied Requests reference: workflow-first layout
+with an accessible page heading, Inter typography, rounded panels, compact empty requests state,
+neutral shortage rows and a transparent green availability reading/track. Research inventory and
+existing request, stock and permission logic are unchanged.
+
+Production frontend build/typecheck and local restart passed. Live browser checks at 1280/1440/1920
+and 390px confirmed no page overflow, 17px Inter panel headings, four existing shortage rows and a
+transparent forecast background. Requests/Inventory/Deliveries navigation and return to the empty
+requests state passed. The first browser attempt used a workspace display name instead of its ID;
+after correction, a fresh-session tour also needed dismissal before navigation. Final checks passed.
+Capture: `artifacts/demo-verification/supply-reference-requests.png`. No backend/science tests run.
+
+## Simulation comparison spacing — 20 October 2026
+
+The impact cards and assumptions panel were adjacent with no separating margin. Added a scoped
+comparison stack with 16px gaps and contained expanded assumption snapshots. No simulation data,
+formulas or result values changed. Production frontend build/typecheck and local restart passed.
+Live browser measurements at 1280/1440/1920 and 390px confirmed a 16px card-to-assumptions gap and
+no page overflow; assumption details expand successfully. Capture:
+`artifacts/demo-verification/comparison-spacing.png`. No backend/science tests run.
+
+## Account More/Research menu correction — 20 October 2026
+
+Nested More/Research disclosures inherited avatar glass and size rules through descendant-summary
+selectors. Scoped those rules to the avatar's direct summary. Added compact 40px disclosure rows,
+chevrons, visible keyboard focus and indented icon links within the existing scrolling panel.
+Destinations and permissions remain unchanged; the Analysis redesign preview was not implemented.
+
+Production frontend build/typecheck and local restart passed. Live desktop (1440px) and mobile
+(390px) checks verified keyboard expansion of all six More/seven Research links, no page overflow,
+Escape close and Technical sandbox navigation closing the account menu. Captures:
+`artifacts/demo-verification/account-menu-{1440,390}.png`. No backend/science tests run.
+
+## Product-wide audit — 20 October 2026
+
+The ten-round live route/control audit and isolated workflow tests are recorded in
+[the product audit](product_audit_2026-10-20.md). Corrections cover navigation context, disabled
+features, tour steps, mobile blueprint handoff, narrow telemetry, short-screen entry, consistent
+headers and model fallback. State-changing browser tests use a copied database and separate
+worker namespace; the existing signed-in demonstration was not reset. Backend checks passed
+231 unit/verification and 78 integration tests. Science checks passed 10 tests with the optional
+Torch sequence test skipped. Final browser outcomes and production checks are maintained in the
+dated report; this entry does not assert production or operational acceptance.
+
+Audit completion: two ten-round matrices retained 828 page inspections; the second passed all
+50 interaction groups. Cumulative browser evidence is 149 distinct passing tests, with the proxy
+check verified separately on authenticated Nginx. The final four remaining regressions passed
+on the compiled build, including all five airframes and both broad phone themes. Final lint,
+production typecheck/build, 30 quiet frontend unit tests and diff whitespace checks passed.
+Concurrent-run timeouts and their recovery evidence remain documented; production capacity and
+external release acceptance are still open.
+
+## Two-pass final product audit — 20 October 2026
+
+Completed exactly two additional audit iterations, separate from the earlier ten-round work.
+Pass 1: 149 browser tests passed and one production-proxy test skipped; focused checks retained
+three newly reproduced failures. Corrections bind onboarding validation to exact source/content,
+clear/fence file-upload state, handle JSON-null ingestion and Reset sample errors, and keep the
+aircraft browsing position/count unknown until the register loads. Five new browser regressions
+cover these behaviors. Pass 2: **155/155 passed**, with zero skips, retries or failures, including
+the actual Nginx proxy assertions.
+
+The two live matrices inspected **336 pages** across four real roles, desktop/phone widths and
+light/dark themes; all **40 interaction groups** passed with no recorded layout findings, page
+exceptions or API 5xx. Frontend lint/type/build and 30 unit tests passed; backend Ruff/mypy
+(184 files, standard optional-sequence exclusion) and 231 unit/verification plus 78 integration
+tests passed; 11 scientific reference tests passed including Torch. These are bounded tests,
+not a new serving-model accuracy experiment or operational acceptance.
+
+Live copilot record answers matched the API for every role; its real UI/NDJSON stream also
+passed. The configured qwen3:8b service is unreachable. The user chose to retain that configuration
+and report it as a blocker. Production readiness also retains the documented independent security,
+accessibility/intended-user, representative workload/data and deployment/recovery gates.
+
+The corrected frontend is running at http://localhost:8080, with matching compiled entry-point
+hash and a ready API. Temporary audit services were stopped; copied data/artifacts are retained.
+Details, coverage, failures and reproduction: [two-pass audit](product_audit_two_pass_2026-10-20.md).
+Changes remain uncommitted; no public deployment or aircraft qualification is claimed.
+
+## Google Cloud deployment preparation — 20 October 2026
+
+Prepared the existing aerocare-server target (us-central1, e2-standard-2, Ubuntu 24.04 amd64,
+50-GB balanced disk), with loopback-first HTTPS, explicit migrations, image pinning, production
+resource limits, worker/outbox health checks, bounded logs, read-only application roots and
+backup/monitor timers. Backup/restore supports source archives and isolated configurable ports.
+CI separates its integration database and fixture browser suite.
+
+Executed checks: 243 unit/verification, 78 integration and 30 frontend unit tests passed; lint,
+types and production Docker builds passed. All 34 selected CI browser tests passed without skips.
+The isolated production-profile stack passed secure HTTPS/session/CSRF checks, a real durable
+job, changed-IP API replacement without proxy restart and backup/fresh-project restore with
+matching table fingerprints/model hashes. Local ARM64 verification is explicitly distinguished
+from the required native amd64 VM checks. The runtime gate retains `assistant.unavailable`.
+
+No GCE connection or deployment occurred. Follow the [GCE commands](../operations/gce_deployment.md)
+and [validation/blocker record](../operations/gce_validation.md). Prior audit evidence and failed
+runs remain retained; external security, accessibility, workload/data and operational acceptance
+are still required. Changes remain uncommitted.

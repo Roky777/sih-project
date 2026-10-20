@@ -34,9 +34,9 @@
 
 /* Profile / role */
 .o-profile { position: relative; }
-.o-profile summary { list-style: none; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 6px 0 4px; border-radius: 4px; cursor: pointer; }
-.o-profile summary::-webkit-details-marker { display: none; }
-.o-profile summary:hover { background: var(--o-surface-3); }
+.o-profile > summary { list-style: none; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 6px 0 4px; border-radius: 4px; cursor: pointer; }
+.o-profile > summary::-webkit-details-marker { display: none; }
+.o-profile > summary:hover { background: var(--o-surface-3); }
 .o-avatar { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--o-accent); color: white; }
 .o-role-tag { font: 600 11px var(--o-mono); letter-spacing: .06em; color: var(--o-text); }
 .o-profile > div { position: absolute; right: 0; top: 40px; z-index: 50; width: 300px; padding: 10px; border: 1px solid var(--o-border); border-radius: 4px; background: var(--o-surface); box-shadow: var(--o-shadow-lg); display: flex; flex-direction: column; gap: 2px; animation: o-pop .15s var(--o-ease); }
@@ -272,6 +272,11 @@ button.o-kpi-block:hover { border-color: var(--o-border-strong); background: var
 
 /* Screen 7 · Scenario Simulator */
 .o-sim-grid { align-items: start; }
+.o-scenario-comparison { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.o-scenario-comparison > * { min-width: 0; }
+.o-scenario-comparison > .o-impact-strip { margin-top: 0; }
+.o-scenario-comparison > .o-note > div { min-width: 0; overflow-wrap: anywhere; }
+.o-scenario-comparison > .o-note pre { max-width: 100%; overflow-x: auto; }
 .o-sim-grid .o-builder { position: sticky; top: 60px; background: var(--o-surface); }
 .o-builder .o-big-btn { width: 100%; min-height: 52px; font-size: 12px; }
 .o-impact-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }

@@ -41,7 +41,7 @@
 /* Reserve real space between controls; avoid independently positioned stacks. */
 .twin-stats dd { line-height: 1.1; }.twin-stats dt { line-height: 1.4; }.twin-details { border-radius: 0; }
 .twin-showcase .twin-details:is(:hover,:active,:focus-visible) { background: transparent; box-shadow: none; }
-.twin-controls { position: absolute; z-index: 5; top: 210px; right: 30px; width: 175px; display: grid; gap: 18px; }
+.twin-controls { position: absolute; z-index: 5; top: 210px; right: 30px; width: 175px; display: grid; grid-template-columns: minmax(0,1fr); gap: 18px; }
 .twin-controls .twin-views,.twin-controls .twin-evidence { position: static; width: 100%; }
 .twin-controls .twin-evidence.is-open { position: absolute; top: 0; right: 0; width: 300px; max-height: 330px; }
 .twin-heading { top: 88px; }
@@ -52,8 +52,8 @@
   .twin-controls .twin-evidence.is-open { top: 165px; right: 16px; width: calc(100% - 32px); max-height: 305px; }
 }
 
-.twin-views button { display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; min-height: 44px; line-height: 18px; }
-.twin-evidence-toggle { padding: 12px; min-height: 44px; border: 1px solid #b8c8d1; border-radius: 8px; background: #fff; color: #23343b; line-height: 18px; }
+.twin-views button { display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; min-width: 0; min-height: 44px; line-height: 18px; white-space: normal; }
+.twin-evidence-toggle { padding: 12px; min-width: 0; min-height: 44px; border: 1px solid #b8c8d1; border-radius: 8px; background: #fff; color: #23343b; line-height: 18px; white-space: normal; }
 .twin-evidence-toggle:hover { background: #eaf0f3; border-color: #617b8a; }.twin-evidence-toggle:focus-visible { outline: 2px solid #286c85; outline-offset: 3px; }
 .twin-panel-overlay { backdrop-filter: blur(8px); background: #14233438; }
 .twin-component-panel { width: min(440px, 100vw); background: #fff; backdrop-filter: none; border-radius: 0; color: #23343b; }
@@ -63,6 +63,15 @@
 .twin-panel-body { overflow-y: auto; flex: 1; min-height: 0; padding: 24px; }.twin-panel-body .twin-component { padding: 16px; }.twin-panel-body .twin-component strong { font-size: 13px; }.twin-panel-body .twin-component-values b { font-size: 13px; }.twin-panel-body .twin-evidence-link { min-height: 28px; font-size: 12px; }
 .twin-panel-footer { padding: 16px 24px; border-top: 1px solid #e1e7eb; }.twin-panel-footer button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; border: 0; border-radius: 8px; padding: 10px 14px; color: #fff; background: #23343b; cursor: pointer; font-size: 12px; }
 .twin-component-panel :is(a,button,summary):focus-visible { outline: 2px solid #286c85; outline-offset: 3px; }
+/* This dialog is portalled outside the shell, so its theme must be explicit. */
+:root[data-theme="dark"] .twin-component-panel { background: var(--o-surface); color: var(--o-text); }
+:root[data-theme="dark"] .twin-component-panel :is(.twin-panel-head,.twin-panel-footer,.twin-component,.twin-panel-head button) { border-color: var(--o-border); }
+:root[data-theme="dark"] .twin-component-panel :is(.twin-component,.twin-panel-head button) { background: var(--o-surface); color: var(--o-text); }
+:root[data-theme="dark"] .twin-component-panel .twin-component:hover { background: var(--o-surface-2); }
+:root[data-theme="dark"] .twin-component-panel :is(.twin-panel-head p,.twin-component p,.twin-component-values > span) { color: var(--o-text-3); }
+:root[data-theme="dark"] .twin-component-panel .twin-component-values b { color: var(--o-text); }
+:root[data-theme="dark"] .twin-component-panel .twin-evidence-link { color: var(--o-accent-ink); }
+:root[data-theme="dark"] .twin-component-panel :is(a,button,summary):focus-visible { outline-color: var(--o-accent); }
 
 @media (max-width: 760px) { .twin-controls .twin-views button { min-height: 40px; padding: 7px 5px; font-size: 10px; }.twin-controls .twin-evidence { top: 414px; width: 146px; }.twin-evidence-toggle { font-size: 10px; padding: 10px; }.twin-panel-head,.twin-panel-body { padding: 20px; } }
 

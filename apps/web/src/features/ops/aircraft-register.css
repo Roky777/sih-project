@@ -1,34 +1,37 @@
-/* Spacious aircraft register based on the five-column reference. */
-.o-shell.aircraft-register-shell .o-content { padding: 26px 30px 32px; }
-.aircraft-register { display: flex; flex-direction: column; gap: 26px; min-width: 0; }
+/* Aircraft register reference: compact five-column cards and a single desktop filter row. */
+.o-shell.aircraft-register-shell .o-content { padding: 26px 24px 32px; }
+.aircraft-register { display: flex; flex-direction: column; gap: 30px; min-width: 0; }
 .aircraft-register .o-page-head { margin: 0; }
-.aircraft-register .o-page-head h1 { font-size: 36px; }
-.aircraft-register .o-page-head p { font-size: 15px; }
-.aircraft-register .o-page-head .o-btn { min-height: 48px; padding-inline: 20px; border-radius: 12px; font-size: 14px; }
-.aircraft-register .o-filters { gap: 12px; margin: 0; }
-.aircraft-register .o-chip { min-height: 36px; font-size: 13px; padding-inline: 14px; }
-.aircraft-register .o-chip-count { font-size: 12px; }
-.aircraft-register .o-searchbox { min-width: 240px; }
-.aircraft-register .o-searchbox input { width: 240px; }
-.aircraft-register-sort { flex: 0 0 100%; margin-top: 4px; }
-.aircraft-register .o-aircraft-grid { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 16px; }
-.aircraft-register .o-aircraft-card { padding: 18px; min-height: 190px; gap: 12px; border-radius: 18px; }
+.aircraft-register .o-page-head h1 { font-size: 30px; line-height: 1.2; }
+.aircraft-register .o-page-head p { font-size: 14px; line-height: 1.6; }
+.aircraft-register .o-page-head .o-btn { min-height: 40px; padding-inline: 16px; border-radius: 10px; font-size: 13px; }
+.aircraft-register .o-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
+.o-shell .aircraft-register .o-filters .o-chip { min-height: 32px; height: 32px; font-size: 11px; padding: 0 11px; gap: 6px; white-space: nowrap; }
+.aircraft-register .o-chip-count { font-size: 10px; padding: 2px 5px; border-radius: 5px; }
+.aircraft-register .o-searchbox { min-width: 180px; width: 230px; height: 32px; flex: 1 1 180px; max-width: 260px; }
+.aircraft-register .o-searchbox input { width: 100%; min-width: 0; font-size: 12px; }
+.aircraft-register-sort { flex: 0 0 auto; margin: 0; }
+.o-shell .aircraft-register .o-filters .o-segmented { flex-shrink: 0; padding: 3px; }
+.o-shell .aircraft-register .o-filters .o-segmented button { height: 32px; min-height: 32px; padding: 0 12px; font-size: 11px; }
+.aircraft-register .o-aircraft-grid { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; }
+.aircraft-register .o-aircraft-card { padding: 14px; min-height: 156px; gap: 10px; border-radius: 16px; box-shadow: none; }
 .aircraft-register .o-aircraft-card::before { width: 4px; }
-.aircraft-register .o-aircraft-card-top { gap: 12px; }
-.aircraft-register .o-aircraft-card-top strong { font-size: 21px; font-weight: 600; }
-.aircraft-register .o-aircraft-card-top small { display: block; font-size: 13px; line-height: 1.65; }
+.aircraft-register .o-aircraft-card-top { gap: 10px; }
+.aircraft-register .o-aircraft-card-top > div:first-child { min-width: 0; }
+.aircraft-register .o-aircraft-card-top strong { font-size: 18px; font-weight: 600; line-height: 1.3; }
+.aircraft-register .o-aircraft-card-top small { display: block; font-size: 12px; line-height: 1.6; }
 .aircraft-register .o-aircraft-card-top .o-ring { flex-shrink: 0; }
-.aircraft-register .o-aircraft-card-mid { gap: 7px; }
-.aircraft-register .o-aircraft-card-foot { margin-top: auto; font-size: 13px; }
-.aircraft-register .o-aircraft-card :is(.o-state,.o-pill) { font-size: 11px; }
-@media (max-width: 1400px) { .aircraft-register .o-aircraft-grid { grid-template-columns: repeat(4,minmax(0,1fr)); } }
-@media (max-width: 1100px) { .aircraft-register .o-aircraft-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+.aircraft-register .o-aircraft-card-mid { gap: 6px; }
+.aircraft-register .o-aircraft-card-foot { margin-top: auto; font-size: 11px; }
+.aircraft-register .o-aircraft-card :is(.o-state,.o-pill) { font-size: 10px; }
+@media (max-width: 1240px) { .aircraft-register .o-aircraft-grid { grid-template-columns: repeat(4,minmax(0,1fr)); } }
+@media (max-width: 1000px) { .aircraft-register .o-aircraft-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 @media (max-width: 760px) {
   .o-shell.aircraft-register-shell .o-content { padding: 20px 16px; }
   .aircraft-register { gap: 20px; }
   .aircraft-register .o-page-head h1 { font-size: 28px; }
   .aircraft-register .o-aircraft-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
-  .aircraft-register .o-searchbox { width: 100%; min-width: 0; }
-  .aircraft-register .o-searchbox input { width: 100%; }
+  .aircraft-register .o-searchbox { width: 100%; min-width: 0; max-width: none; flex-basis: 100%; }
+  .aircraft-register .o-filters > .o-spacer { display: none; }
 }
-@media (max-width: 500px) { .aircraft-register .o-aircraft-grid { grid-template-columns: minmax(0,1fr); }.aircraft-register .o-aircraft-card { min-height: 180px; } }
+@media (max-width: 500px) { .aircraft-register .o-aircraft-grid { grid-template-columns: minmax(0,1fr); } }

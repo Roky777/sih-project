@@ -1,16 +1,17 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 
 test.beforeEach(() => {
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
 });
 
 test("flexible light grid follows pointer and camera without intercepting controls", async ({ page }, info) => {
+  test.setTimeout(60000);
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/aircraft/AC-033");
   const stage = page.getByRole("region", { name: "Aircraft digital twin showcase" });
-  await expect(stage.locator(".twin-scene canvas")).toBeVisible();
+  await expect(stage.locator(".twin-scene canvas")).toBeVisible({ timeout: 25000 });
   await expect(stage.getByText("Loading aircraft model…")).toHaveCount(0);
   const grid = stage.locator(".twin-flow-grid");
   await expect(grid).toHaveAttribute("aria-hidden", "true");

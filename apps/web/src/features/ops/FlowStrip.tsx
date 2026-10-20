@@ -12,11 +12,20 @@ export function FlowStrip({ compact = false }: { compact?: boolean }) {
   const { role } = useRole();
   const counts = stageCounts(advisories.data);
   const forecast = summary.data?.forecast_30d.availability_mean as number | undefined;
+  const scoped = (destination: string) => {
+    const next = new URL(destination, window.location.origin);
+    const current = new URLSearchParams(location.search);
+    for (const key of ["aircraft", "component", "case", "as_of"]) {
+      const value = current.get(key);
+      if (value) next.searchParams.set(key, value);
+    }
+    return `${next.pathname}${next.search}${next.hash}`;
+  };
   return <nav className={`o-flow-strip${compact ? " compact" : ""}`} aria-label="Maintenance decision flow">
     {stages.map(stage => {
       const mine = stage.owner === role.id;
       const current = stage.id === "review" ? location.pathname === "/advisories" : stage.id === "parts" ? location.pathname === "/spares" : location.pathname === "/maintenance" && (stage.id === "ready" ? location.hash === "#scheduled-work" : location.hash !== "#scheduled-work");
-      return <Link key={stage.id} to={stage.to} data-stage={stage.id} aria-current={current ? "step" : undefined} className={`o-flow-step${mine ? " mine" : ""}${counts[stage.id] ? " busy" : ""}`}>
+      return <Link key={stage.id} to={scoped(stage.to)} data-stage={stage.id} aria-current={current ? "step" : undefined} className={`o-flow-step${mine ? " mine" : ""}${counts[stage.id] ? " busy" : ""}`}>
         <span className="o-flow-num">{stage.step}</span>
         <span className="o-flow-text"><strong>{stage.label}</strong><small>{roleById[stage.owner].short}{mine ? " · you" : ""}</small></span>
         <b className="o-flow-count" data-active={Boolean(advisories.data && counts[stage.id])}>{advisories.data ? counts[stage.id] : "–"}</b>

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 
 test("record grid active and settled idle rendering cost at 4x CPU slowdown", async ({ page }, info) => {
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");

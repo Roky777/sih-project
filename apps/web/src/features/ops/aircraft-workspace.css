@@ -203,3 +203,27 @@
 .aircraft-work-section.work-empty { display: flex; align-items: center; gap: 24px; padding-block: 14px; }
 .aircraft-work-section.work-empty > header { margin: 0; flex: none; }
 @media(max-width:600px) { .aircraft-work-section.work-empty { align-items: flex-start; flex-direction: column; gap: 10px; } }
+
+/* Expanding a system must not resize columns or reveal the generic blue tree selection. */
+.aircraft-component-records .o-tree { table-layout: fixed; width: 100%; min-width: 960px; }
+.aircraft-component-records .aircraft-col-name { width: 41%; }
+.aircraft-component-records .aircraft-col-hi { width: 6%; }
+.aircraft-component-records .aircraft-col-state { width: 14%; }
+.aircraft-component-records .aircraft-col-risk { width: 9%; }
+.aircraft-component-records .aircraft-col-rul { width: 10%; }
+.aircraft-component-records .aircraft-col-advisory { width: 7%; }
+.aircraft-component-records .aircraft-col-evidence { width: 13%; }
+.o-shell .aircraft-component-records .o-tree tr.o-tree-system { background: var(--o-surface); }
+.o-shell .aircraft-component-records .o-tree tr.o-tree-system:is(.selected,:hover) { background: var(--o-accent-soft); }
+.o-shell .aircraft-component-records .o-tree tr.o-tree-system td { background: transparent; }
+.o-shell .aircraft-component-records .o-tree tr.o-tree-component { background: var(--o-surface); }
+.o-shell .aircraft-component-records .o-tree tr.o-tree-component:hover { background: var(--o-surface-2); }
+.o-shell .aircraft-component-records .o-tree tr.o-tree-component td { background: transparent; }
+.aircraft-component-records .o-tree td { overflow-wrap: anywhere; vertical-align: middle; }
+.aircraft-component-records .o-tree .o-tree-component td:first-child { padding-left: 34px; }
+.aircraft-component-records .o-tree .o-tree-component td:first-child small { display: block; margin: 4px 0 0; line-height: 1.5; }
+.aircraft-component-records .o-tree .o-tree-component .o-btn { white-space: nowrap; font-size: 11px; padding: 7px 10px; }
+.aircraft-component-records .aircraft-system-toggle { flex-wrap: wrap; min-height: 38px; }
+.aircraft-component-records .aircraft-system-toggle:focus-visible { outline: 2px solid var(--o-accent); outline-offset: 3px; border-radius: 5px; }
+/* Programmatic visual-inspection handoffs clear the floating navigation. */
+#aircraft-blueprint-placeholder { scroll-margin-top: 112px; }

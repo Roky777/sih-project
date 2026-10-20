@@ -1,5 +1,5 @@
 import { handleWorkspaceEntry } from "./workspaceEntry";
-import { expect, test } from '@playwright/test';
+import { expect, test } from './workspaceTest';
 
 test.beforeEach(async ({ page }) => {
   await handleWorkspaceEntry(page);

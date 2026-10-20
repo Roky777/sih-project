@@ -17,28 +17,49 @@ def run(*args: str) -> bytes:
     return subprocess.check_output(args)
 
 
+def file_sha256(path: Path) -> str:
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def source_revision() -> str:
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=False
+    )
+    return result.stdout.strip() if result.returncode == 0 else "source archive; retain manifest"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, required=True)
+    output = parser.add_mutually_exclusive_group(required=True)
+    output.add_argument("--output", type=Path)
+    output.add_argument(
+        "--output-root", type=Path, help="Create a new UTC-named backup for timers"
+    )
     parser.add_argument("--compose", action="append")
-    parser.add_argument("--env-file")
+    parser.add_argument("--env-file", action="append")
     parser.add_argument("--project-name")
     parser.add_argument("--database", default="fleet")
     parser.add_argument("--source-revision")
     args = parser.parse_args()
-    destination = args.output.resolve()
+    destination = (
+        args.output
+        or (args.output_root / datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ"))
+    ).resolve()
     destination.mkdir(mode=0o700, parents=True, exist_ok=False)
     os.chmod(destination, 0o700)
     compose_files = args.compose or ["compose.yaml"]
     compose = ["docker", "compose"]
-    if args.env_file:
-        compose += ["--env-file", args.env_file]
+    for env_file in args.env_file or []:
+        compose += ["--env-file", env_file]
     if args.project_name:
         compose += ["--project-name", args.project_name]
     for file in compose_files:
         compose += ["-f", file]
     services = ["api", "worker", "outbox", "web"]
-    active = run(*compose, "ps", "--status", "running", "--services").decode().splitlines()
+    active = (
+        run(*compose, "ps", "--status", "running", "--services").decode().splitlines()
+    )
     restart = [service for service in services if service in active]
     started = datetime.now(UTC)
     try:
@@ -139,7 +160,7 @@ def main() -> None:
                 .strip()
             )
         inventory = {
-            str(path.relative_to(destination)): hashlib.sha256(path.read_bytes()).hexdigest()
+            str(path.relative_to(destination)): file_sha256(path)
             for path in sorted(destination.rglob("*"))
             if path.is_file()
         }
@@ -149,12 +170,12 @@ def main() -> None:
             "schema": schema,
             "table_fingerprints": fingerprints,
             "files": inventory,
-            "source_head": args.source_revision or run("git", "rev-parse", "HEAD").decode().strip(),
+            "source_head": args.source_revision
+            or source_revision(),
             "working_tree": "uncommitted; preserve release source manifest separately",
             "configuration": {
                 "compose_sha256": {
-                    file: hashlib.sha256(Path(file).read_bytes()).hexdigest()
-                    for file in compose_files
+                    file: file_sha256(Path(file)) for file in compose_files
                 },
                 "database": args.database,
                 "scope": "single_agency",
@@ -167,7 +188,11 @@ def main() -> None:
         for path in destination.rglob("*"):
             if path.is_file():
                 os.chmod(path, 0o600)
-        print(json.dumps({"backup": str(destination), "schema": schema, "files": len(inventory)}))
+        print(
+            json.dumps(
+                {"backup": str(destination), "schema": schema, "files": len(inventory)}
+            )
+        )
     finally:
         if restart:
             subprocess.check_call([*compose, "start", *restart])

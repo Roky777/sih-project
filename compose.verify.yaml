@@ -19,7 +19,7 @@ services:
       timeout: 5s
       retries: 30
   api:
-    image: fleet-maintenance-api:latest
+    image: ${FLEET_VERIFY_API_IMAGE:-fleet-maintenance-api:latest}
     environment: &environment
       FLEET_DATABASE_URL: postgresql+psycopg://fleet:fleet@postgres:5432/fleet
       FLEET_BROKER_URL: amqp://fleet:fleet@rabbitmq:5672//
@@ -29,7 +29,7 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
       rabbitmq: {condition: service_healthy}
-    ports: ['127.0.0.1:18000:8000']
+    ports: ['127.0.0.1:${FLEET_VERIFY_API_PORT:-18000}:8000']
     volumes: [verify-artifacts:/var/lib/fleet-maintenance/artifacts]
     healthcheck:
       test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/ready')"]
@@ -37,23 +37,23 @@ services:
       timeout: 3s
       retries: 30
   worker:
-    image: fleet-maintenance-worker:latest
+    image: ${FLEET_VERIFY_API_IMAGE:-fleet-maintenance-worker:latest}
     environment: *environment
     command: [celery, -A, fleet_maintenance.workers.celery_app:app, worker, --loglevel=INFO, --concurrency=1, --without-mingle, --without-gossip]
     depends_on:
       api: {condition: service_healthy}
     volumes: [verify-artifacts:/var/lib/fleet-maintenance/artifacts]
   outbox:
-    image: fleet-maintenance-outbox:latest
+    image: ${FLEET_VERIFY_API_IMAGE:-fleet-maintenance-outbox:latest}
     environment: *environment
     command: [python, -m, fleet_maintenance.workers.outbox_dispatcher]
     depends_on:
       api: {condition: service_healthy}
   web:
-    image: fleet-maintenance-web:latest
+    image: ${FLEET_VERIFY_WEB_IMAGE:-fleet-maintenance-web:latest}
     depends_on:
       api: {condition: service_healthy}
-    ports: ['127.0.0.1:18080:80']
+    ports: ['127.0.0.1:${FLEET_VERIFY_WEB_PORT:-18080}:80']
 volumes:
   verify-postgres:
   verify-artifacts:

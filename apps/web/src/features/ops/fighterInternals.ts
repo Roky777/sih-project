@@ -15,7 +15,7 @@ export function createInternals(spec: AirframeSpec, wireframe = false) {
   const root = new Group(); root.name = "Internal structure and systems";
   root.userData = { engineeringValidated: false, units: "metres", airframe: spec.id };
   const m = (color: string, metalness: number, roughness: number, opacity = 1) => new MeshStandardMaterial({
-    color, metalness, roughness, wireframe, transparent: opacity < 1, opacity, depthWrite: opacity >= 1, side: opacity < 1 ? DoubleSide : undefined,
+    color, metalness, roughness, wireframe, transparent: opacity < 1, opacity, depthWrite: opacity >= 1, ...(opacity < 1 ? { side: DoubleSide } : {}),
   });
   const frame = m("#b7c7c2", .7, .4), spar = m("#a8bdb6", .7, .42), duct = m("#7fa7b9", .3, .5, .26), fuel = m("#e0a84a", .1, .5, .24);
   const steel = m("#c9ced2", .9, .25), dark = m("#3c454c", .4, .6), hydraulic = m("#5fa8d3", .4, .4), electric = m("#d58b4a", .3, .5), fuelLine = m("#d6b45a", .5, .4);

@@ -204,7 +204,10 @@ function ProfileMenu() {
       {["engineer", "planner", "supervisor", "administrator"].includes(actorRole ?? "") && <Link to="/data">Data & integrations</Link>}
       <Link to="/settings">Settings</Link>
       <Link to="/help">Help</Link>
-      {navigationGroups.slice(1).map(group => <details className="o-profile-support" key={group.title}><summary>{group.title}</summary>{group.items.map(item => <Link key={item.to} to={item.to}>{item.label}</Link>)}</details>)}
+      {navigationGroups.slice(1).map(group => <details className="o-profile-support" key={group.title}>
+        <summary><span>{group.title}</span><Icon name="chevron" size={15}/></summary>
+        <nav aria-label={`${group.title} destinations`}>{group.items.map(item => <Link key={item.to} to={item.to}><Icon name={item.icon} size={15}/><span>{item.label}</span></Link>)}</nav>
+      </details>)}
       {session?.authentication === "server session" && <button type="button" className="o-link" disabled={signingOut} onClick={() => { setSigningOut(true); void api("/access/session", { method: "DELETE" }).then(() => window.dispatchEvent(new Event("fleet:session-expired"))).catch(error => toast({ tone: "error", title: "Could not sign out", body: error instanceof Error ? error.message : "Please retry." })).finally(() => setSigningOut(false)); }}>{signingOut ? "Signing out…" : "Sign out"}</button>}
     </div>
   </details>;

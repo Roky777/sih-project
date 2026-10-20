@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./workspaceTest";
 
 const fleet = [
   { id:"ac-syn-01", tail_number:"SYN-001", label:"Synthetic demonstrator aircraft 1", provenance:"synthetic", component_ids:["cmp-eng-01"], components:1, open_tasks:1 },
@@ -31,15 +31,17 @@ test('workflow guide leads to the separate research register, evidence and maint
   const requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
   await page.goto('/');
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/maintenance$/);
   await page.goto('/overview');
   await expect(page).toHaveURL(/\/welcome$/);
   await expect(page.getByRole('heading', { name: 'From a finding to recorded maintenance' })).toBeVisible();
   expect(requests.some(url => url.endsWith('.glb') || url.includes('/AircraftScene-'))).toBe(false);
   await page.goto('/research');
-  await expect(page.getByRole('heading', { name: 'Engine research workspace', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Technical sandbox', exact: true })).toBeVisible();
   await page.getByRole('link', { name: /Choose an engine record/ }).click();
-  await page.getByRole('link', { name: 'SYN-001', exact: true }).click();
+  await page.locator('.o-aircraft-card').filter({hasText:'SYN-001'}).click();
+  await page.getByRole('tab',{name:'Components',exact:true}).click();
+  await page.getByRole('link',{name:/Open evidence/}).first().click();
   await expect(page.getByRole('heading', { name: 'Assessment & model evidence' })).toBeVisible();
   await page.getByRole('link', { name: 'Review maintenance options', exact: true }).first().click();
   await expect(page).toHaveURL(/component=cmp-eng-01/);
@@ -58,33 +60,32 @@ test('supporting tools keep keyboard focus and a route back to the main journey'
   await expect(trigger).toBeFocused();
   await trigger.click();
   await dialog.getByRole('link', { name: 'Parts & deliveries' }).click();
-  await expect(page).toHaveURL(/\/inventory$/);
+  await expect(page).toHaveURL(/\/spares\?.*dataset=research/);
   await expect(dialog).not.toBeVisible();
 });
 
 test('mobile research register remains readable and failed records never become an empty healthy fleet', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/fleet/register');
-  await expect(page.getByRole('link', { name: 'SYN-001', exact: true })).toBeVisible();
+  await expect(page.locator('.o-aircraft-card').filter({hasText:'SYN-001'})).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('start-mobile-fixture.png'), fullPage: true });
   await page.route('**/api/fleet', route => route.fulfill({ status: 503, json: { detail: 'Fixture fleet unavailable' } }));
   await page.reload();
   await expect(page.getByRole('alert')).toContainText('Fixture fleet unavailable');
   await expect(page.getByText('No aircraft records yet', { exact: true })).toHaveCount(0);
-  await expect(page.getByRole('navigation', { name: 'Related workflow steps' }).getByRole('link', { name: 'Constraint planner' })).toBeVisible();
+  await expect(page.locator('.workspace-research-context').getByRole('link', {name:'Return to fleet operations'})).toBeVisible();
 });
 
 test("fleet search and filters use the returned aircraft records", async ({ page }) => {
   await page.goto("/fleet/register");
-  await expect(page.getByRole("heading", { name:"Fleet overview", exact:true })).toBeVisible();
-  await expect(page.getByRole("link", { name:"SYN-001", exact:true })).toBeVisible();
-  await page.getByRole("textbox", { name:"Search aircraft" }).fill("SYN-002");
-  await expect(page.getByRole("link", { name:"SYN-001", exact:true })).toHaveCount(0);
-  await page.getByRole("button", { name:"Clear aircraft search" }).click();
-  await page.getByRole("button", { name:"No open work", exact:true }).click();
-  await expect(page.getByRole("link", { name:"SYN-002", exact:true })).toBeVisible();
-  await expect(page.getByRole("link", { name:"SYN-001", exact:true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name:"Aircraft", exact:true })).toBeVisible();
+  await expect(page.getByRole("link", { name:/SYN-001/ })).toBeVisible();
+  await page.getByRole("textbox", { name:"Search records" }).fill("SYN-002");
+  await expect(page.getByRole("link", { name:/SYN-001/ })).toHaveCount(0);
+  await page.getByRole("textbox", { name:"Search records" }).fill("SYN-002");
+  await expect(page.getByRole("link", { name:/SYN-002/ })).toBeVisible();
+  await expect(page.getByRole("link", { name:/SYN-001/ })).toHaveCount(0);
 });
 
 test("component evidence retains unavailable estimates and accessible observation values", async ({ page }) => {
@@ -130,7 +131,7 @@ test("failed requests show an actionable retry state without invented aircraft c
   await page.goto("/fleet");
   await expect(page.getByRole("alert")).toContainText("Fleet service temporarily unavailable");
   await expect(page.getByRole("button", { name:"Try again" })).toBeVisible();
-  await expect(page.getByRole("link", { name:"SYN-001", exact:true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name:/SYN-001/ })).toHaveCount(0);
 });
 
 test("mobile navigation traps focus, supports Escape and keeps the viewport contained", async ({ page }) => {
@@ -168,15 +169,17 @@ test("session sign-in shows denied credentials and opens the authenticated works
     }
     return route.fulfill({ status: signedIn ? 200 : 401, json: signedIn ? { id: "test-reviewer", role: "supervisor", authentication: "server session", csrf_token: "fixture-csrf" } : { detail: "Authentication required" } });
   });
+  await page.route("**/api/access/registration",route=>route.fulfill({json:{enabled:false}}));
   await page.goto("/fleet");
   await expect(page.getByRole("heading", { name: "Sign in to AeroCare" })).toBeVisible();
   await page.getByLabel("Account ID").fill("test-reviewer");
   await page.getByLabel("Password", { exact: true }).fill("wrong-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Invalid credentials");
+  await expect(page.getByRole("alert").filter({hasText:"Invalid credentials"})).toBeVisible();
   await page.getByLabel("Password", { exact: true }).fill("test-account-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.locator(".o-profile summary").click();
+  await page.getByRole("dialog", {name:"A quick look around your dashboard"}).getByRole("button",{name:"Skip",exact:true}).click();
+  await page.locator(".o-profile > summary").click();
   await expect(page.getByText("test-reviewer", { exact: true })).toBeVisible();
   await expect(page.getByText(/signed in/)).toBeVisible();
 });

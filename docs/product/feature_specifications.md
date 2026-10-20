@@ -383,7 +383,7 @@ AeroCare is the visible product name. The supplied logo appears in navigation, l
 
 ### Complete workspace UI and control audit — 2026-10-13
 
-Overview places system health alongside priority cases in a balanced lower row. The health matrix fills its panel, retains every aircraft through bounded scrolling, exposes keyboard cell descriptions and links to the selected aircraft/system. Colour labels distinguish restrictions, review, available resources, analysis and maintenance.
+Overview uses five KPI cards in one desktop row, availability/downtime charts in a 7:5 split, and system health/priority cases in a 5:7 lower row, matching the supplied 20 October reference. Panels stack at widths of 1100px or less. Overview metric cards use compact desktop sizing (152px measured height, 34px values) and share label/value/supporting-text rows; chart panels have equal heights and aligned heading separators, while health and priority panels stretch to equal lower edges. Compact priority-card spacing and consistent padding/radii retain the same content and actions. Mobile charts reserve additional height for wrapped headings and legends. The Overview desktop header follows the latest supplied compact reference (72px bar, 184px logo, 40px navigation, 42px action controls and 13px text). Its frosted layer uses a 66%-opaque pale surface with 26px blur and 1.15 saturation; other pages and mobile toolbar sizing remain unchanged. The health matrix fills its panel, retains every aircraft through bounded scrolling, exposes keyboard cell descriptions and links to the selected aircraft/system. Colour labels distinguish restrictions, review, available resources, analysis and maintenance.
 
 Maintenance separates the work queue, planning/schedule, case register and history into URL-addressable views rather than placing a complete case table ahead of every work control. Case actions reveal the applicable review/planning/execution section. Mandatory tasks do not offer predictive dismiss/monitor forms. Proposal controls require the current planning step; the server remains authoritative on evidence, permissions and commitments.
 
@@ -577,3 +577,88 @@ fallback for enlarged text or other constrained viewports rather than clipping r
 Availability refinement: retain green forecast text and proportional track, but use a transparent
 badge background and border when the availability step is unselected. Only its selected state gets
 the green fill/border. Hover alone must not fill the percentage badge.
+
+## First-login tour persistence — 20 October 2026
+
+Supersedes refresh-triggered invitations: show the tour once per account in the current browser.
+Record that it has been presented immediately, so refreshing even before Skip/Finish does not
+reopen it. Skip, completion, navigation, new tabs and later sign-ins retain that preference. Different
+accounts have independent flags; local-demo roles have independent demo identities. Only a browser
+preference is stored, with no credentials. Clearing site storage or using another browser resets it;
+this is not a cross-device server profile. Storage denial falls back to memory for the current page.
+
+Health-card interior reference refinement: preserve desktop outer bounds while placing sort controls
+and all four legend items in one row, removing only this panel's heading divider, and using the
+reference's square health swatches, circular maintenance marker and evenly spaced rectangular cells.
+The matrix retains all aircraft through internal scrolling and keeps its existing selection/sorting.
+Mobile retains its existing wrapping layout and outer dimensions.
+
+Priority actions reference refinement: remove this panel's heading divider and stretched action
+whitespace. Retain two-by-two desktop case boxes with consistent compact text, badges, spacing and
+review buttons; use one column on phones. Case identities, details, role filtering and links remain.
+
+Aircraft register reference presentation: five compact cards per desktop row above 1240px, 156px
+minimum card height, 18px tail labels and 46px health rings. Keep all six status filters, live counts,
+search, Cards/Table and Risk/Health/Tail sorting together in a responsive toolbar. Controls wrap on
+smaller screens, preserving current data, URL filter semantics, permissions and record navigation.
+
+Aircraft component expansion layout: maintain fixed name/HI/state/risk/RUL/advisory/evidence column
+widths through expand/collapse, use the green selected-row theme, and keep serial/criticality details
+inside the name column. Preserve evidence links and system toggle accessibility; narrow viewports
+scroll inside the table container rather than changing page width.
+
+Findings reference presentation: use Inter for heading, workflow labels, table text and actions;
+Roboto Mono for compact rounded filter values and tail search. Keep the live status options and
+existing role-dependent actions. The availability reading uses green Inter text and a proportional
+track with transparent background when unselected. Changes are scoped to Findings; no forecast,
+status, count, role or case data is changed to reproduce screenshot numbers.
+
+Maintenance reference presentation: operational queue/History share Inter heading/body typography,
+compact coloured due-task boxes with monospaced due-day values, consistent confirmed-finding cards,
+and reference Planned/Recorded work panels. Preserve due-task precedence, role restrictions, work
+records and all scheduling actions. Desktop queue columns use 2.4:1, stacking at 1100px; research
+workspaces are excluded. The forecast reading remains green on a transparent unselected background.
+
+Findings advisory drawer reference presentation: use a frosted right panel with a blurred overlay,
+compact Inter headings and body text, monospaced advisory identifiers, a coloured action banner,
+rounded case context and four metric cells. Keep case navigation, evidence, model details and all
+existing advisory data. Desktop width is 630px, constrained to the viewport on mobile; case actions
+wrap on narrow screens. These styles are scoped to the Findings drawer.
+
+Operational Spares reference presentation: begin with the workflow strip, retain an accessible
+page heading, then show Requests/Inventory/Deliveries tabs and role guidance. Use Inter typography,
+rounded panels, a compact request empty state and neutral shortage rows with textual status pills.
+Availability retains its live value with a green reading and slim proportional track. Research
+inventory, stock calculations, request lifecycle and role permissions remain unchanged.
+
+Scenario comparison presentation: separate curves, impact cards, assumptions and supporting
+results with a consistent 16px vertical gap. Expanded assumption snapshots scroll horizontally
+inside their own block when necessary; simulation values and calculations remain unchanged.
+
+Account navigation: More and Research use compact disclosure rows with chevrons and indented
+destination links. Avatar sizing/glass selectors apply only to the profile's direct summary;
+nested disclosures retain normal menu sizing. Preserve native keyboard expansion, visible focus,
+scroll containment, existing destinations and account-menu close behavior.
+
+Audit hardening — 20 October 2026: workflow stage navigation retains aircraft, component, case
+and replay parameters. Aircraft browsing retains the active tab, inspection and return URL while
+clearing selections that belong to the previous aircraft. Research engine selection preserves its
+dataset/view. Disabled trials provide installation guidance and return navigation. A disabled
+assistant is omitted from the first-login tour. Mobile blueprint handoff closes the component drawer
+before selecting and scrolling to the rendered blueprint. Shared header styling applies consistently
+across routes; 320px telemetry controls and short-screen workspace entry remain contained.
+
+## Import form consistency — 20 October 2026
+
+Aircraft onboarding previews apply to the exact source reference and uploaded JSON content.
+Changing either requires validation again; a delayed response for older inputs cannot enable
+saving or display its preview as current. Clearing an upload clears the pending content, and
+older asynchronous file reads cannot replace a later selection. Moving to a different aircraft
+resets that aircraft's import form. Server-side atomic validation remains authoritative.
+
+The ingestion tester rejects JSON null, non-object bodies and missing readings arrays with
+a visible validation message instead of a browser exception. Reset sample clears validation
+errors as well as the prior result.
+
+Aircraft browsing shows an unknown position/count while the register is unavailable, rather
+than a fabricated first position out of zero. The loaded register supplies the actual position.

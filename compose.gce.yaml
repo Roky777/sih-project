@@ -1,0 +1,25 @@
+# aerocare-server: Ubuntu 24.04 x86/64, e2-standard-2. Private until a domain is attached.
+# Use after compose.yaml + compose.production.yaml, then compose.release.yaml.
+services:
+  postgres:
+    platform: linux/amd64
+  rabbitmq:
+    platform: linux/amd64
+  api:
+    platform: linux/amd64
+  worker:
+    platform: linux/amd64
+  outbox:
+    platform: linux/amd64
+  web:
+    platform: linux/amd64
+    environment:
+      DEPLOYMENT_DOMAIN: ${DEPLOYMENT_DOMAIN:-localhost}
+      NGINX_ENVSUBST_FILTER: ^DEPLOYMENT_DOMAIN$
+    ports: !override
+      - "${FLEET_BIND_ADDRESS:-127.0.0.1}:${FLEET_HTTP_PORT:-8080}:80"
+      - "${FLEET_BIND_ADDRESS:-127.0.0.1}:${FLEET_HTTPS_PORT:-8443}:443"
+    volumes:
+      - ./infra/proxy/${FLEET_PROXY_TEMPLATE:-vm-bootstrap.conf.template}:/etc/nginx/templates/default.conf.template:ro
+      - ${FLEET_TLS_DIRECTORY:?Set the absolute certificate directory}:/etc/letsencrypt:ro
+      - ${FLEET_ACME_DIRECTORY:?Set the absolute ACME directory}:/var/www/certbot:ro

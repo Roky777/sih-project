@@ -128,8 +128,8 @@ export function Tabs<T extends string>({ value, tabs, onChange }: { value: T; ta
   }}>{icon && <Icon name={icon} size={15}/>}{text}</button>)}</div>;
 }
 
-export function Drawer({ open, onOpenChange, title, subtitle, children, width = 560 }: { open: boolean; onOpenChange: (open: boolean) => void; title: ReactNode; subtitle?: ReactNode; children: ReactNode; width?: number }) {
-  return <Dialog.Root open={open} onOpenChange={onOpenChange}><Dialog.Portal><Dialog.Overlay className="o-overlay"/><Dialog.Content className="o-drawer" style={{ width: `min(${width}px, 100vw)` }} aria-describedby={undefined}>
+export function Drawer({ open, onOpenChange, title, subtitle, children, width = 560, className = "", overlayClassName = "" }: { open: boolean; onOpenChange: (open: boolean) => void; title: ReactNode; subtitle?: ReactNode; children: ReactNode; width?: number; className?: string; overlayClassName?: string }) {
+  return <Dialog.Root open={open} onOpenChange={onOpenChange}><Dialog.Portal><Dialog.Overlay className={`o-overlay ${overlayClassName}`}/><Dialog.Content className={`o-drawer ${className}`} style={{ width: `min(${width}px, 100vw)` }} aria-describedby={undefined}>
     <header className="o-drawer-head"><div><Dialog.Title>{title}</Dialog.Title>{subtitle && <p>{subtitle}</p>}</div><Dialog.Close asChild><button type="button" className="o-icon-btn" aria-label="Close"><Icon name="close" size={18}/></button></Dialog.Close></header>
     <div className="o-drawer-body">{children}</div>
   </Dialog.Content></Dialog.Portal></Dialog.Root>;

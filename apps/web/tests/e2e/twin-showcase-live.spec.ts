@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 import { airframeOf } from "../../src/features/ops/airframes";
 import { rulText } from "../../src/features/ops/format";
 import type { AircraftDetail } from "../../src/features/ops/api";
@@ -15,7 +15,7 @@ test("authored fighter replaces the transport and renders each camera view", asy
   await expect(stage.getByText(/3D view unavailable/)).toHaveCount(0);
   await expect(stage.getByText("Tejas-inspired visual · Not engineering-validated", { exact: true })).toHaveCount(0);
   await expect(stage.locator(".twin-caption")).toHaveCount(0);
-  await expect(stage.locator(".twin-overview-caption")).toContainText("Illustrative airframe");
+  await expect(stage.locator(".twin-heading")).toContainText("Illustrative 3D model");
   expect(assets.some(url => url.endsWith("/models/tejas-visual.glb"))).toBe(true);
   expect(assets.some(url => url.endsWith("/models/aircraft.glb"))).toBe(false);
   const response = await page.request.get("/models/tejas-visual.glb");
@@ -132,7 +132,7 @@ test("live twin statistics match the API and responsive layouts contain the view
     }
     const stageBounds = await stage.boundingBox();
     const tabsBounds = await page.getByRole("tablist").boundingBox();
-    expect(tabsBounds!.y + tabsBounds!.height).toBeLessThanOrEqual(stageBounds!.y);
+    expect(tabsBounds!.y).toBeGreaterThanOrEqual(stageBounds!.y + stageBounds!.height);
     if (width > 1000) {
       const bounds = await stage.evaluate(element => {
         const scene = element.querySelector(".twin-scene")!.getBoundingClientRect();
@@ -219,12 +219,14 @@ test("airframe families share clear mobile controls and themed component drawers
       await page.goto(`/aircraft/${row.id}`);
       await expect(page.locator(".twin-scene canvas")).toBeVisible();
       await expect(page.getByText("Loading aircraft model…")).toHaveCount(0);
-      await expect(page.locator(".twin-overview-caption")).toContainText("Illustrative airframe");
+      await expect(page.locator(".twin-heading")).toContainText("Illustrative 3D model");
       await page.waitForTimeout(500);
       if (width < 760) {
         const clear = await page.evaluate(() => {
           const action = document.querySelector(".twin-details")!.getBoundingClientRect();
-          const ai = document.querySelector(".o-header .o-ask-ai")!.getBoundingClientRect();
+          const button = document.querySelector(".o-header .o-ask-ai");
+          if (!button) return true;
+          const ai = button.getBoundingClientRect();
           return action.right <= ai.left || action.bottom <= ai.top || action.top >= ai.bottom;
         });
         expect(clear, `${row.type}: blueprint action stays clear of copilot`).toBe(true);

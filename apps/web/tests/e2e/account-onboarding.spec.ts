@@ -149,12 +149,12 @@ test('desktop and mobile expose signup without horizontal overflow', async ({ pa
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/login');
   await expect(page.getByRole('heading', { name: 'Sign in to AeroCare' })).toBeVisible();
-  await page.screenshot({ path: '../../output/auth-flow/login-desktop.png', fullPage: true });
+  await page.screenshot({ path: '../../artifacts/auth-flow/login-desktop.png', fullPage: true });
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
   await expect(page.getByLabel('Confirm password', { exact: true })).toBeVisible();
-  await page.screenshot({ path: '../../output/auth-flow/signup-desktop.png', fullPage: true });
+  await page.screenshot({ path: '../../artifacts/auth-flow/signup-desktop.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Create account', exact: true }).scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.screenshot({ path: '../../output/auth-flow/signup-mobile.png', fullPage: true });
+  await page.screenshot({ path: '../../artifacts/auth-flow/signup-mobile.png', fullPage: true });
 });

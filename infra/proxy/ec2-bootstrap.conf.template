@@ -4,3 +4,12 @@ server {
     location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
     location / { return 503; }
 }
+
+# Container-local liveness only; never published by Compose.
+server {
+    listen 127.0.0.1:8081;
+    server_name localhost;
+    access_log off;
+    location = /health { return 200 "ok\n"; }
+    location / { return 404; }
+}

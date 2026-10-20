@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 
 const routes = ["/dashboard", "/aircraft", "/aircraft/AC-033", "/component-health", "/advisories", "/maintenance", "/spares", "/simulator", "/review", "/plan", "/parts", "/status", "/notifications", "/settings", "/account", "/help", "/aircraft/AC-014?tab=blueprint", "/aircraft/AC-014?tab=components", "/analytics", "/data", "/welcome", "/fleet/register", "/planning", "/inventory", "/scenarios", "/ai", "/alerts", "/research", "/demo", "/fleet"];
 
@@ -10,7 +10,9 @@ for (const width of [1440, 390]) test(`shared navigation remains consistent on a
   let expected: unknown;
   let destinations: string[] | undefined;
   for (const route of routes) {
+    const statusReady = page.waitForResponse(response=>response.url().endsWith("/api/assistant/status"));
     await page.goto(route);
+    await statusReady;
     const header = page.locator(".o-header");
     await expect(header).toBeVisible();
     await expect(page.locator(".workspace-flow-grid,.twin-flow-grid"), route).toHaveCount(1);

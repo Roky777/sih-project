@@ -106,7 +106,7 @@ function Comparison({ runs }: { runs: ScenarioRun[] }) {
   const base = result(runs[0]);
   const palette = usePalette();
   const colors = () => [palette.accent, palette.accent2, palette.watch];
-  return <>
+  return <div className="o-scenario-comparison">
     <div className="o-delta-grid">
       <div className="o-delta base"><span>Baseline (current plan)</span><b>{pct(base.baseline.availability_mean, 1)}</b><small>{num(base.baseline.aircraft_days_lost, 0)} aircraft-days lost · P10–P90 {pct(base.baseline.availability_p10)}–{pct(base.baseline.availability_p90)}</small></div>
       {runs.map((run, index) => { const r = result(run); return <button type="button" key={run.id} className={`o-delta${run.id === active.id ? " on" : ""}`} onClick={() => setFocus(run.id)}>
@@ -136,7 +136,7 @@ function Comparison({ runs }: { runs: ScenarioRun[] }) {
     <div className="o-note" aria-label="Simulation assumptions and formula"><div><strong>Simulated availability — calculation and assumptions</strong><p>Availability = 1 − mean unavailable aircraft-days ÷ (aircraft × horizon days). Change = 100 × (scenario − baseline), in percentage points. A positive change is a simulated projection, not an observed operational improvement.</p>
       {result(active).assumptions ? <><p>{result(active).assumptions!.aircraft_count} aircraft × {active.horizon_days} days = {result(active).assumptions!.exposure_aircraft_days} aircraft-days. Baseline lost {num(result(active).baseline.aircraft_days_lost, 2)}; intervention lost {num(result(active).scenario.aircraft_days_lost, 2)} aircraft-days.</p><p>{result(active).assumptions!.repair_model}</p><details><summary>Frozen downtime, stock, capacity and intervention inputs</summary><pre>{JSON.stringify(result(active).assumptions, null, 2)}</pre></details></> : <p>This older run does not retain the full assumptions snapshot. Run a new scenario to inspect its actual denominator and downtime inputs.</p>}
     </div></div>
-    <div className="o-grid o-cols-2" style={{ marginTop: 6 }}>
+    <div className="o-grid o-cols-2">
       <div><h4 className="o-sub">Change in aircraft-days lost by cause · {active.name}</h4>
         <OpsChart label="Change in downtime by cause" height={190} deps={[active]} build={p => { const entries = Object.entries(result(active).delta.by_cause); return {
           grid: { left: 120, right: 20, top: 6, bottom: 20 }, tooltip: { ...tooltip(p), axisPointer: { type: "shadow" } },
@@ -153,7 +153,7 @@ function Comparison({ runs }: { runs: ScenarioRun[] }) {
     <p className="o-muted o-small">{result(active).framing} Baseline includes {result(active).baseline_includes_planned_work} planned work order(s). {active.runs} runs · seed {active.seed} · {active.horizon_days}-day horizon · created {longDate(active.created_at)}.</p>
     {result(active).delta.availability_pct_points < 0 && active.kind === "schedule_maintenance" && <p className="o-note warn"><Icon name="info" size={16}/>Replacing early lowers availability here. Check the stock-out and per-aircraft lists: an early replacement can consume the only spare that another aircraft’s failing part needs.</p>}
     <div className="o-legend"><Pill tone="neutral">Shared random numbers</Pill><Pill tone="neutral">Failures from RUL quantiles</Pill><Pill tone="neutral">Bays, spares and inspections modelled</Pill></div>
-  </>;
+  </div>;
 }
 
 /** Bottom impact strip: three numbers taken directly from the baseline vs scenario difference. */

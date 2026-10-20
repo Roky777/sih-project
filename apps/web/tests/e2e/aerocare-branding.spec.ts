@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 
 test("AeroCare name and supplied logo appear across operational and report pages", async ({ page }) => {
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
@@ -11,7 +11,7 @@ test("AeroCare name and supplied logo appear across operational and report pages
     expect(await logo.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     expect(await page.locator("body").innerText()).not.toContain("FleetAvail");
     if (route === "/dashboard") {
-      const charts = await page.locator(".fleet-overview .o-grid-12").first().boundingBox();
+      const charts = await page.locator(".fleet-overview .fleet-chart-grid").first().boundingBox();
       const actions = await page.getByRole("region", { name: "Priority actions", exact: true }).boundingBox();
       expect(charts).not.toBeNull();
       expect(actions).not.toBeNull();
@@ -31,9 +31,8 @@ test("login uses AeroCare branding and keeps the existing authentication contrac
   await page.route("**/api/access/session", route => route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ detail: "Authentication required" }) }));
   await page.route("**/api/access/registration", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ enabled: false }) }));
   await page.goto("/dashboard");
-  await page.getByRole("button", { name: /Fleet manager/ }).click();
   await expect(page.getByRole("heading", { name: "Sign in to AeroCare" })).toBeVisible();
-  await expect(page.locator(".entry-brand")).toContainText("AeroCare");
+  await expect(page.locator(".entry-brand").getByRole("img", { name: "AeroCare", exact: true })).toBeVisible();
   await expect(page.getByLabel("Account ID")).toBeVisible();
   await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
 });

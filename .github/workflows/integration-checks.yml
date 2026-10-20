@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 jobs:
-  browser:
+  postgres-and-fixture-browser:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,10 +18,25 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chrome
-      - run: docker compose up -d --build postgres rabbitmq api
+      - run: pnpm --filter @fleet-maintenance/web exec playwright install --with-deps chrome
+      - run: docker compose up -d --build --wait postgres rabbitmq api worker outbox
+        env:
+          FLEET_AUTHENTICATION_MODE: demo
       - run: docker build --target test -t fleet-maintenance-test backend
-      - run: docker run --rm --network fleet-maintenance_default -e FLEET_DATABASE_URL=postgresql+psycopg://fleet:fleet@postgres:5432/fleet fleet-maintenance-test python -m pytest tests/integration
-      - run: pnpm --filter @fleet-maintenance/web test:e2e
+      - name: Prepare a separate integration database
+        run: |
+          docker compose exec -T postgres psql -U fleet -v ON_ERROR_STOP=1 -c 'CREATE DATABASE fleet_release_integration_test'
+          docker compose run --rm --no-deps -e FLEET_DATABASE_URL=postgresql+psycopg://fleet:fleet@postgres:5432/fleet_release_integration_test api alembic upgrade head
+      - run: docker run --rm --network fleet-maintenance_default -e FLEET_DATABASE_URL=postgresql+psycopg://fleet:fleet@postgres:5432/fleet_release_integration_test fleet-maintenance-test python -m pytest tests/integration
+      - name: Browser fixtures (live scientific journeys require retained model/data artifacts)
+        run: pnpm --filter @fleet-maintenance/web exec playwright test --config playwright.ci.config.ts
+        env:
+          FLEET_E2E_BASE_URL: http://127.0.0.1:5173
       - if: always()
-        run: docker compose logs api postgres rabbitmq
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-traces
+          path: apps/web/test-results
+          if-no-files-found: ignore
+      - if: always()
+        run: docker compose logs api worker outbox postgres rabbitmq

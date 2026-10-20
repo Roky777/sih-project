@@ -3,15 +3,31 @@ import { useEffect, useState } from "react";
 import { Icon } from "../../shared/ui/Icon";
 import { useRole } from "./roles";
 import { overviewTours } from "./dashboardOverviewTours";
+import { useSession } from "../access/SessionGate";
+import { useOptionalAssistant } from "../assistant/AssistantProvider";
 import "./dashboard-overview.css";
 
 type Bounds = { top: number; left: number; width: number; height: number; borderRadius: string };
 
-/** Deliberately memory-only: every full page load starts with the invitation again. */
+const shownInMemory = new Set<string>();
+
+/** First-visit guidance is remembered per account in this browser, across sign-ins. */
 export function DashboardOverview() {
-  const [open, setOpen] = useState(true);
+  const session = useSession();
+  const assistant = useOptionalAssistant();
   const { role } = useRole();
-  const steps = overviewTours[role.id];
+  const identity = session?.authentication === 'server session' ? session.id : `demo:${role.id}`;
+  const seenKey = `aerocare:overview-seen:${encodeURIComponent(identity)}`;
+  const [open, setOpen] = useState(() => {
+    if (shownInMemory.has(seenKey)) return false;
+    try { return localStorage.getItem(seenKey) !== '1'; } catch { return true; }
+  });
+  useEffect(() => {
+    if (!open) return;
+    shownInMemory.add(seenKey);
+    try { localStorage.setItem(seenKey, '1'); } catch { /* Memory still suppresses repeat mounts. */ }
+  }, [open, seenKey]);
+  const steps = overviewTours[role.id].filter(step => step.target !== 'assistant' || assistant?.enabled);
   const [step, setStep] = useState(-1);
   const [bounds, setBounds] = useState<Bounds | null>(null);
   const active = steps[step];

@@ -1,5 +1,5 @@
 import { handleWorkspaceEntry } from "./workspaceEntry";
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './workspaceTest';
 import { mkdir } from 'node:fs/promises';
 
 test.beforeEach(async ({ page }) => {
@@ -22,7 +22,7 @@ async function create(page: Page, name: string, cutoff = 140, stock = 0, usage =
   await page.getByRole('spinbutton', { name: 'Inspection kits in stock' }).fill(String(stock));
   await page.getByRole('spinbutton', { name: 'Usage (cycles / day)' }).fill(String(usage));
   await page.getByRole('button', { name: 'Create my trial' }).click();
-  await expect(page).toHaveURL(/\/demo\?trial=trial-/);
+  await expect(page).toHaveURL(/\/demo\?trial=trial-/, { timeout: 30_000 });
   await expect(page.getByRole('button', { name: 'Calculate AI assessment', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Calculate AI assessment', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Recalculate AI assessment' })).toBeVisible({ timeout: 45_000 });

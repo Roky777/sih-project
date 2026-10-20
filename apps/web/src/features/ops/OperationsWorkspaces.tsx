@@ -1,3 +1,5 @@
+import "./maintenance-reference.css";
+import "./supply-reference.css";
 import { Suspense, lazy } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
@@ -27,7 +29,7 @@ export function MaintenanceWorkspace() {
   const [params, setParams] = useSearchParams();
   const research = params.get("dataset") === "research";
   const view = params.get("view") === "bays" ? "bays" : params.get("view") === "register" ? "register" : params.get("view") === "cases" || params.has("caseState") ? "cases" : "work";
-  return <div className="o-screen operations-workspace">
+  return <div className={`o-screen operations-workspace${research ? "" : " maintenance-reference"}`}>
     <div className="o-screen-head"><h1>Maintenance</h1><span>Confirmed findings → schedule → secure parts → record work</span></div>
     {!research && <FlowStrip compact/>}
     <Segmented label="Maintenance views" value={view} onChange={value => setParams(previous => { const next = new URLSearchParams(previous); next.set("view", value); next.delete("caseState"); next.delete("casePage"); return next; })} options={research ? [["work", "Case queue"], ["bays", "Planning & schedule"]] as const : [["work", "Work queue"], ["bays", "Planning & schedule"], ["cases", "Case register"], ["register", "History"]] as const}/>
@@ -43,7 +45,7 @@ export function SupplyWorkspace() {
   const research = params.get("dataset") === "research";
   const view = (params.get("view") === "inventory" || (!params.has("view") && params.has("part"))) ? "inventory" : params.get("view") === "deliveries" ? "deliveries" : "requests";
   const requests = view === "requests";
-  return <div className="o-screen operations-workspace">
+  return <div className={`o-screen operations-workspace${research ? "" : " supply-reference"}`}>
     <div className="o-screen-head"><h1>Spares & supply</h1><span>Forecast shortages · secure parts for scheduled work</span></div>
     {!research && <FlowStrip compact/>}
     {!research && <Segmented label="Supply views" value={view} onChange={value => setParams(previous => { const next = new URLSearchParams(previous); next.set("view", value); next.delete("part"); return next; })} options={[["requests", "Requests"], ["inventory", "Inventory"], ["deliveries", "Deliveries"]] as const}/>}

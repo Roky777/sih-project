@@ -86,7 +86,7 @@
 [data-theme="dark"] .workspace-selection .entry-eyebrow { background: #213a2b; border-color: #496153; }
 [data-theme="dark"] .workspace-selection .entry-intro h1 > .entry-title-accent { background: none; color: #accfae; -webkit-text-fill-color: currentColor; }
 [data-theme="dark"] .entry-capabilities dt svg { background: #2c4837; color: #accfae; }
-@media (max-height: 760px) and (min-width: 901px) {
+@media (max-height: 800px) and (min-width: 901px) {
   .workspace-selection { padding-block: 18px; }
   .workspace-selection .entry-layout { padding-block: 12px; }
   .workspace-selection .entry-intro h1 { font-size: clamp(34px,3.8vw,48px); }
@@ -133,4 +133,13 @@
 @media (max-width: 900px) {
   .workspace-entry:not(.workspace-selection) .entry-intro { display: none; }
   .workspace-entry:not(.workspace-selection) .entry-layout { min-height: 0; padding-block: 24px; }
+}
+/* Keep all four role cards clear of the confirmation area on short screens. */
+@media (max-height: 800px) and (min-width: 901px) {
+  .workspace-selection .entry-role-card { min-height: 116px; }
+}
+@media (max-height: 600px) and (max-width: 900px) {
+  .workspace-selection .entry-role-card { min-height: 94px; gap: 3px; }
+  .workspace-selection .entry-role-icon { width: 24px; height: 24px; margin-bottom: 0; }
+  .workspace-selection .entry-role-icon svg { width: 16px; height: 16px; }
 }

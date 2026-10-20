@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 
 test("appearance controls stay in sync, persist and preserve unsaved capacity edits", async ({ page }) => {
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
@@ -114,6 +114,9 @@ test("demonstration role choices update restricted controls consistently", async
   test.skip(!process.env.FLEET_E2E_BASE_URL, "Select the local deployment explicitly.");
   await page.goto("/account");
   await page.getByRole("combobox", { name: "Current role", exact: true }).selectOption("logistics");
+  await page.getByRole("button",{name:"Logistics team",exact:false}).click();
+  await page.getByRole("button",{name:"Select workspace",exact:true}).click();
+  await page.goto("/account");
   await expect(page.locator(".account-details")).toContainText("demo-logistics");
   await page.goto("/data");
   await expect(page.getByRole("button", { name: "Validate & ingest", exact: true })).toBeDisabled();

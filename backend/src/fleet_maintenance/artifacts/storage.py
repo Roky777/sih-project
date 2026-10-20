@@ -5,7 +5,8 @@ from pathlib import Path
 
 
 def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
 def artifact_directory(root: Path, relative: str) -> Path:

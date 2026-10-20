@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 
 test("scenario run is labelled as a simulated projection", async ({ page }) => {
   await page.goto("/scenarios");

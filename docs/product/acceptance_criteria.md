@@ -409,3 +409,32 @@ inside the viewport without page scrolling. Check laptop, tablet and small phone
 content scrolls internally, its last card must remain reachable above the confirmation area. Preserve
 entry permissions, explicit confirmation and liquid-selection behavior. Unselected forecast badge
 must be transparent with green text/track; selected availability keeps its green fill.
+
+First-login tour revision: a new account/browser shows the invitation once. Refresh during the tour,
+refresh after Skip/Finish, new tabs and subsequent sign-ins of that account do not show it again.
+Another account in the same browser receives its own first invitation. Preserve role-specific steps
+and account permissions. Older criteria requiring an invitation on refresh are superseded.
+
+Audit regressions — 20 October 2026: verify dataset/view retention when changing research engines;
+selected record/replay retention between workflow stages; aircraft tab/inspection retention and
+clearing stale component/case selections when browsing; disabled-trial guidance; tours with the
+assistant disabled; mobile drawer-to-blueprint scrolling after close; saved telemetry selection at
+320px; short-screen role confirmation; matching-family model fallback and recovery on family change.
+Verify recorded work/parts detail links and missing-record recovery. Preserve resource-booking
+conflicts rather than weakening scheduling constraints to make a demonstration pass. Read the dated
+product audit for executed coverage, failures/retests and remaining release gates.
+
+## Import form regression acceptance — 20 October 2026
+
+Delay an onboarding preview, edit its source reference, then release the response: Save must
+remain disabled and the stale preview must not appear as current. A fresh preview of the edited
+inputs must enable Save. Clear a validated file: content and validation must clear; selecting
+a replacement requires a new preview. Older file reads must not overwrite the current file,
+and aircraft changes must reset import state.
+
+Submit JSON null in the ingestion tester: show the readings-array validation message without
+a page exception or a write request. Reset sample must clear the error and restore the sample.
+
+Delay the aircraft register response while opening a detail page: browsing must stay disabled
+and position/count must remain unknown. Releasing the response restores the actual position
+and navigation without changing the selected aircraft.

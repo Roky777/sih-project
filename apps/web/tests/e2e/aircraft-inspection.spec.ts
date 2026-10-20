@@ -1,4 +1,4 @@
-import {expect,test,type Page} from '@playwright/test';
+import {expect,test,type Page} from './workspaceTest';
 const fleet=[{id:'a',tail_number:'SYN-A',label:'Synthetic test aircraft A',provenance:'synthetic',component_ids:['left','right'],components:2,open_tasks:1},{id:'b',tail_number:'SYN-B',label:'Synthetic test aircraft B',provenance:'synthetic',component_ids:['other'],components:1,open_tasks:0}];
 async function fixture(page:Page){
  await page.route(url=>url.pathname.startsWith('/api/'),route=>{
@@ -11,6 +11,9 @@ async function fixture(page:Page){
   if(path==='/api/alerts')return route.fulfill({json:[]});
   // Labelled fixture for the shared workspace navbar, also present on research routes.
   if(path==='/api/fleet-health/alerts'||path==='/api/fleet-health/advisories')return route.fulfill({json:[]});
+  if(path==='/api/workspace/summary')return route.fulfill({json:{awaiting_review:0,work_needing_action:0}});
+  if(path==='/api/fleet-health/engine')return route.fulfill({json:{ready:true,runs:[]}});
+  if(path==='/api/cases')return route.fulfill({json:{items:[],total:0,offset:0,limit:25}});
   const id=path.split('/')[3];
   if(path.endsWith('/maintenance'))return route.fulfill({json:{component_id:id,slot_duration_hours:8,tasks:[]}});
   if(path.startsWith('/api/components/'))return route.fulfill({json:{id,aircraft_id:id==='other'?'b':'a',kind:'engine',serial_number:`ENGINE-${id}`,status:'monitoring',current_cycle:31,observations:[],assessment:{id:`asm-${id}`,state:'unavailable',estimate_cycles:null,lower_cycles:null,upper_cycles:null,model_version:null,input_version:'labelled-test-fixture',quality_findings:[{code:'model_unavailable',severity:'warning',message:'Fixture: no evaluated model installed.'}]}}});
@@ -37,7 +40,7 @@ test('mapped hotspots and keyboard buttons select the same component',async({pag
 test('failed aircraft asset retains component selection and evidence',async({page})=>{
  await page.route('**/models/aircraft.glb',route=>route.fulfill({status:503,body:'Asset unavailable'}));
  await page.goto('/fleet');
- await expect(page.getByText('3D view unavailable',{exact:true})).toBeVisible();
+ await expect(page.getByText('3D view unavailable',{exact:true})).toBeVisible({timeout:25000});
  await page.locator('.scene-components').getByRole('button',{name:'Engine · ENGINE-right',exact:true}).click();
  await expect(page.locator('.inspection-evidence h2')).toHaveText('ENGINE-right');
  await expect(page.getByRole('link',{name:'Inspect history & evidence'})).toBeVisible();

@@ -8,7 +8,7 @@ export const AIRFRAME_INFO = {
     "subtitle": "Tejas-class light fighter \u00b7 Illustrative 3D model",
     "drawingNumber": "FA-LCA-001",
     "model": "models/tejas-visual.glb",
-    "poster": "models/fighter-poster.svg",
+    "poster": "models/previews/lca.jpg",
     "basis": "Tejas Mk1-class proportions. Built at 1:1 scale to the publicly stated overall dimensions of its class; sections, planform, systems and internal arrangement are approximations from public three-view and cutaway drawings. Not manufacturer CAD or this aircraft's verified configuration; not for installation, clearance or loads. Synthetic records are not airworthiness evidence."
   },
   "ajt": {
@@ -18,7 +18,7 @@ export const AIRFRAME_INFO = {
     "subtitle": "Two-seat advanced jet trainer \u00b7 Illustrative 3D model",
     "drawingNumber": "FA-AJT-001",
     "model": "models/trainer-visual.glb",
-    "poster": "models/fighter-poster.svg",
+    "poster": "models/previews/ajt.jpg",
     "basis": "Hawk-class proportions. Built at 1:1 scale to the publicly stated overall dimensions of its class; sections, planform, systems and internal arrangement are approximations from public three-view and cutaway drawings. Not manufacturer CAD or this aircraft's verified configuration; not for installation, clearance or loads. Synthetic records are not airworthiness evidence."
   },
   "mta": {
@@ -28,7 +28,7 @@ export const AIRFRAME_INFO = {
     "subtitle": "Twin-turboprop medium transport \u00b7 Illustrative 3D model",
     "drawingNumber": "FA-MTA-001",
     "model": "models/transport-visual.glb",
-    "poster": "models/fighter-poster.svg",
+    "poster": "models/previews/mta.jpg",
     "basis": "C-295-class proportions. Built at 1:1 scale to the publicly stated overall dimensions of its class; sections, planform, systems and internal arrangement are approximations from public three-view and cutaway drawings. Not manufacturer CAD or this aircraft's verified configuration; not for installation, clearance or loads. Synthetic records are not airworthiness evidence."
   },
   "mki": {
@@ -38,7 +38,7 @@ export const AIRFRAME_INFO = {
     "subtitle": "Twin-engine heavy multirole fighter \u00b7 Illustrative 3D model",
     "drawingNumber": "FA-HMF-001",
     "model": "models/heavy-fighter-visual.glb",
-    "poster": "models/fighter-poster.svg",
+    "poster": "models/previews/mki.jpg",
     "basis": "Su-30-class proportions. Built at 1:1 scale to the publicly stated overall dimensions of its class; sections, planform, systems and internal arrangement are approximations from public three-view and cutaway drawings. Not manufacturer CAD or this aircraft's verified configuration; not for installation, clearance or loads. Synthetic records are not airworthiness evidence."
   },
   "alh": {
@@ -48,7 +48,7 @@ export const AIRFRAME_INFO = {
     "subtitle": "Twin-engine utility helicopter \u00b7 Illustrative 3D model",
     "drawingNumber": "FA-UH-001",
     "model": "models/helicopter-visual.glb",
-    "poster": "models/fighter-poster.svg",
+    "poster": "models/previews/alh.jpg",
     "basis": "ALH-class proportions (length with rotors turning, main-rotor diameter as span). Built at 1:1 scale to the publicly stated overall dimensions of its class; sections, planform, systems and internal arrangement are approximations from public three-view and cutaway drawings. Not manufacturer CAD or this aircraft's verified configuration; not for installation, clearance or loads. Synthetic records are not airworthiness evidence."
   }
 } as const;

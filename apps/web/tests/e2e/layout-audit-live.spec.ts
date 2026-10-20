@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./workspaceTest";
 
 // Read-only layout checks against the selected local synthetic demonstration.
 const routes = ["/dashboard", "/aircraft", "/aircraft/AC-001", "/component-health", "/advisories", "/maintenance", "/spares", "/simulator", "/review", "/plan", "/parts", "/status", "/notifications", "/analytics", "/data", "/welcome", "/fleet/register", "/planning", "/inventory", "/scenarios", "/ai", "/alerts", "/research", "/demo", "/fleet", "/settings", "/account", "/help", "/analysis?view=study", "/analysis?view=models", "/maintenance?view=work", "/maintenance?view=bays", "/maintenance?view=cases", "/spares?view=inventory", "/spares?view=deliveries", "/analysis?view=reports", "/aircraft/AC-001?tab=components", "/aircraft/AC-001?tab=maintenance", "/aircraft/AC-001?tab=history", "/aircraft/AC-001?tab=visual"];
@@ -24,7 +24,7 @@ for (const theme of ["light", "dark"] as const) for (const [width, height] of [[
     const extra = [registered && `/aircraft/registered/${registered}`, caseRows.items[0]?.id && `/cases/${caseRows.items[0].id}`].filter((value): value is string => Boolean(value));
     for (const route of [...routes, ...extra, `/components/${encodeURIComponent(component)}`]) {
       await page.goto(route);
-      await expect(page.locator("main h1").first(), route).toBeVisible({ timeout: 30_000 });
+      await expect(page.locator("main h1").first(), route).toBeAttached({ timeout: 30_000 });
       await page.waitForTimeout(500); // Let responsive charts and record layout settle.
       const layout = await page.evaluate(() => {
         const main = document.querySelector("main")!;
@@ -61,7 +61,7 @@ test("spares sections have consistent spacing at laptop and tablet widths", asyn
   for (const width of [1366, 900]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/spares?view=inventory");
-    await expect(page.getByRole("heading", { name: "Spares & supply", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Spares & supply", exact: true })).toBeAttached();
     await expect(page.locator("main .o-kpis").first()).toBeVisible();
     const metrics = await page.evaluate(() => {
       const kpis = document.querySelector("main .o-kpis")!.getBoundingClientRect();

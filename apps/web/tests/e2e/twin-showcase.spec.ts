@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./workspaceTest";
 
 const aircraft = (id: string, hours: number) => ({
   aircraft: { id, base: "BASE-A", type: "Generic Twin-Engine Transport (synthetic)", total_flight_hours: hours, total_cycles: hours / 2, inspection_hours_since: 30 },
@@ -56,15 +56,15 @@ test("illustrative model, camera views and animated browsing keep aircraft recor
   await page.getByRole("tab", { name: "Components", exact: true }).click();
   await expect(page.getByRole("link", { name: "View evidence", exact: true })).toHaveAttribute("href", "/health/AC-002-ENGINE");
   await stage.getByRole("button", { name: "Previous aircraft", exact: true }).press("ArrowLeft");
-  await expect(page).toHaveURL(/\/aircraft\/AC-001$/);
+  await expect(page).toHaveURL(/\/aircraft\/AC-001\?tab=components$/);
   await stage.locator(".twin-scene canvas").hover();
   await page.mouse.wheel(0, 400); // vertical scrolling scrolls the page, never changes aircraft
   await page.waitForTimeout(400);
-  await expect(page).toHaveURL(/\/aircraft\/AC-001$/);
+  await expect(page).toHaveURL(/\/aircraft\/AC-001\?tab=components$/);
   await page.evaluate(() => window.scrollTo(0, 0));
   await stage.locator(".twin-scene canvas").hover();
   await page.mouse.wheel(110, 0); // a sideways swipe does
-  await expect(page).toHaveURL(/\/aircraft\/AC-002$/);
+  await expect(page).toHaveURL(/\/aircraft\/AC-002\?tab=components$/);
   expect(errors).toEqual([]);
 });
 

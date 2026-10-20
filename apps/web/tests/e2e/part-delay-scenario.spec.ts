@@ -1,4 +1,4 @@
-import {expect,test} from '@playwright/test';
+import {expect,test} from './workspaceTest';
 test('supply revision creates a saved projected outcome without changing baseline',async({page})=>{
  test.setTimeout(60000);
  await page.goto('/scenarios');

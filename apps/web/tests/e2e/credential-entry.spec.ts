@@ -56,7 +56,7 @@ test('credentials are verified and account role switching requires a fresh login
   await expect(page).toHaveURL(/\/advisories\?status=proposed$/);
   await page.getByRole('button', { name: 'Skip', exact: true }).click();
   await page.goto('/account');
-  await page.getByRole('button', { name: 'Skip', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Skip', exact: true })).toHaveCount(0);
   await page.getByRole('combobox', { name: 'Current role' }).selectOption('fleet_manager');
   await expect(page).toHaveURL(/\/login\?workspace=fleet_manager$/);
   await expect(page.getByRole('heading', { name: 'Sign in to AeroCare' })).toBeVisible();

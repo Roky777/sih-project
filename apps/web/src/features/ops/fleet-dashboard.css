@@ -1,14 +1,19 @@
-/* Full-width overview panels, matching the dashboard reference. */
+/* Overview-only desktop composition from the supplied reference. */
+.fleet-overview .o-kpi-row {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
 .fleet-overview .fleet-chart-grid,
 .fleet-overview .fleet-detail-grid {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
 }
 .fleet-overview :is(.fleet-chart-grid, .fleet-detail-grid) > .o-card {
-  grid-column: 1 / -1;
   min-width: 0;
   padding: 24px;
 }
+.fleet-overview :is(.fleet-chart-grid, .fleet-detail-grid) > .span-7 { grid-column: span 7; }
+.fleet-overview :is(.fleet-chart-grid, .fleet-detail-grid) > .span-5 { grid-column: span 5; }
+.fleet-overview :is(.fleet-chart-grid, .fleet-detail-grid) > .span-12 { grid-column: 1 / -1; }
 .fleet-overview :is(.fleet-chart-grid, .fleet-detail-grid) .o-card-head h2 {
   font-size: 18px;
   font-weight: 500;
@@ -16,14 +21,14 @@
 .fleet-overview .fleet-health-panel .o-matrix.o-matrix-split {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0 18px;
-  max-height: 400px;
+  max-height: 380px;
   overflow-y: auto;
 }
 .fleet-overview .fleet-health-panel .o-matrix-row {
-  grid-template-columns: 62px repeat(7, minmax(24px, 1fr));
+  grid-template-columns: 62px repeat(7, minmax(0, 1fr));
 }
-.fleet-overview .fleet-health-panel :is(.o-matrix-cell, .o-matrix-tail) { height: 30px; }
-.fleet-overview .fleet-health-panel .o-matrix-col { font-size: 9px; }
+.fleet-overview .fleet-health-panel :is(.o-matrix-cell, .o-matrix-tail) { height: 26px; }
+.fleet-overview .fleet-health-panel .o-matrix-col { font-size: 8px; }
 .fleet-overview .fleet-priority-actions .overview-action-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
@@ -35,7 +40,12 @@
   border-radius: 16px;
 }
 .fleet-overview .fleet-priority-actions .case-context nav { align-self: flex-start; }
+@media (max-width: 1100px) {
+  .fleet-overview .o-kpi-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .fleet-overview :is(.fleet-chart-grid, .fleet-detail-grid) > .o-card { grid-column: 1 / -1; }
+}
 @media (max-width: 760px) {
+  .fleet-overview .o-kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fleet-overview :is(.fleet-chart-grid, .fleet-detail-grid) > .o-card { padding: 18px; }
   .fleet-overview .fleet-health-panel .o-matrix.o-matrix-split {
     grid-template-columns: minmax(0, 1fr);
@@ -43,4 +53,106 @@
   }
   .fleet-overview .fleet-priority-actions .overview-action-grid { grid-template-columns: minmax(0, 1fr); }
   .fleet-overview .fleet-priority-actions .case-context { min-height: 0; }
+}
+
+/* Consistent Overview rhythm: aligned metrics, balanced figures and equal row edges. */
+.fleet-overview { gap: 22px; }
+.fleet-overview .o-kpi-row,
+.fleet-overview .fleet-chart-grid,
+.fleet-overview .fleet-detail-grid { gap: 18px; }
+.fleet-overview .o-kpi-block {
+  display: grid; grid-template-rows: 24px 44px minmax(38px,auto); align-content: start;
+  height: auto; min-height: 150px; padding: 16px 20px; gap: 6px; border-radius: 18px;
+  box-shadow: 0 4px 16px rgb(24 48 34 / 4%);
+}
+.fleet-overview .o-kpi-block-label { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; font-size: 12px; line-height: 1.4; }
+.fleet-overview .o-chip-delta { margin: 0; font-size: 10px; padding: 4px 7px; white-space: nowrap; }
+.fleet-overview .o-kpi-block > strong { display: flex; align-items: center; font-size: 34px; line-height: 1.1; letter-spacing: -1.2px; font-variant-numeric: tabular-nums; }
+.fleet-overview .o-kpi-block > small { font: 12px/1.55 Inter,sans-serif; white-space: normal; overflow: visible; }
+.fleet-overview :is(.fleet-chart-grid,.fleet-detail-grid) > .o-card {
+  display: flex; flex-direction: column; align-self: stretch; padding: 22px; border-radius: 22px;
+  box-shadow: 0 4px 18px rgb(24 48 34 / 4%);
+}
+.fleet-overview :is(.fleet-chart-grid,.fleet-detail-grid) .o-card-head { min-height: 64px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--o-border); }
+.fleet-overview :is(.fleet-chart-grid,.fleet-detail-grid) .o-card-head h2 { font-size: 17px; font-weight: 600; line-height: 1.35; letter-spacing: -.3px; }
+.fleet-overview :is(.fleet-chart-grid,.fleet-detail-grid) .o-card-head p { margin-top: 5px; font-size: 12px; line-height: 1.6; }
+.fleet-overview .fleet-chart-grid > .o-card { height: 390px; }
+.fleet-overview .fleet-chart-grid .o-chart { height: auto !important; min-height: 0; flex: 1 1 auto; }
+.fleet-overview .fleet-chart-grid .o-legend { flex-shrink: 0; padding-top: 10px; margin: 0; gap: 12px; font-size: 11px; }
+.fleet-overview .fleet-health-panel .o-matrix-tools { margin-bottom: 14px; gap: 10px; }
+.fleet-overview .fleet-health-panel .o-matrix.o-matrix-split { max-height: 324px; }
+.fleet-overview .fleet-health-panel .o-matrix-cell,
+.fleet-overview .fleet-health-panel .o-matrix-tail { height: 24px; }
+.fleet-overview .fleet-priority-actions .overview-action-grid { flex: 1; grid-auto-rows: 1fr; gap: 12px; }
+.fleet-overview .fleet-priority-actions .case-context { min-height: 174px; padding: 16px; gap: 10px; border-radius: 14px; }
+.fleet-overview .fleet-priority-actions .case-context p { font-size: 13px; line-height: 1.5; margin-block: 4px; }
+.fleet-overview .fleet-priority-actions .case-owner { font-size: 12px; line-height: 1.6; }
+.fleet-overview .fleet-priority-actions .case-context .o-btn { font-size: 12px; min-height: 36px; padding: 8px 12px; }
+@media (max-width: 760px) {
+  .fleet-overview { gap: 16px; }
+  .fleet-overview .o-kpi-row { gap: 12px; }
+  .fleet-overview .o-kpi-block { padding: 16px; grid-template-rows: 44px 42px minmax(40px,auto); border-radius: 16px; }
+  .fleet-overview .o-kpi-block > strong { font-size: 34px; }
+  .fleet-overview :is(.fleet-chart-grid,.fleet-detail-grid) > .o-card { padding: 18px; border-radius: 18px; }
+  .fleet-overview .fleet-chart-grid > .o-card { height: 420px; }
+  .fleet-overview .fleet-priority-actions .case-context { min-height: 170px; }
+}
+
+/* Health-card interior follows the supplied reference; outer dimensions stay fixed. */
+@media (min-width: 1101px) {
+  .fleet-overview .fleet-detail-grid > .fleet-health-panel { height: 512px; }
+  .fleet-overview .fleet-detail-grid .fleet-health-panel .o-card-head {
+    min-height: 0; border: 0; padding-bottom: 0; margin-bottom: 18px;
+  }
+  .fleet-overview .fleet-detail-grid .fleet-health-panel .o-card-head h2 { font-weight: 500; }
+  .fleet-overview .fleet-health-panel .o-matrix-tools {
+    display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 24px;
+  }
+  .fleet-overview .fleet-health-panel .o-segmented { flex: 0 0 auto; padding: 4px; }
+  .o-shell .fleet-overview .fleet-health-panel .o-segmented button {
+    height: 34px; min-height: 34px; padding-inline: 12px; font-size: 12px;
+  }
+  .fleet-overview .fleet-health-panel .o-legend { flex-wrap: nowrap; gap: 10px; margin: 0; font-size: 10px; }
+  .fleet-overview .fleet-health-panel .o-legend > span { white-space: nowrap; gap: 5px; }
+  .fleet-overview .fleet-health-panel .o-legend i { width: 9px; height: 9px; border-radius: 2px; }
+  .fleet-overview .fleet-health-panel .o-legend i.m-under_maintenance { border-radius: 50%; }
+  .fleet-overview .fleet-health-panel .o-matrix.o-matrix-split {
+    flex: 1; min-height: 0; max-height: none; gap: 0 20px; scrollbar-gutter: stable;
+  }
+  .fleet-overview .fleet-health-panel .o-matrix-row { grid-template-columns: 58px repeat(7,minmax(0,1fr)); gap: 3px; margin-bottom: 3px; }
+  .fleet-overview .fleet-health-panel .o-matrix-row.head { padding-block: 0 12px; }
+  .fleet-overview .fleet-health-panel .o-matrix-cell { height: 25px; border-radius: 5px; }
+  .fleet-overview .fleet-health-panel .o-matrix-tail { height: 25px; font-weight: 500; }
+}
+@media (min-width: 1101px) and (max-width: 1400px) {
+  .fleet-overview .fleet-detail-grid > .fleet-health-panel { height: 546px; }
+  .fleet-overview .fleet-health-panel .o-matrix-tools { gap: 8px; }
+  .o-shell .fleet-overview .fleet-health-panel .o-segmented button { padding-inline: 10px; font-size: 11px; }
+  .fleet-overview .fleet-health-panel .o-legend { gap: 7px; font-size: 9px; }
+  .fleet-overview .fleet-health-panel .o-legend > span { gap: 4px; }
+}
+
+/* Priority actions: compact reference cards, without the divider or stretched whitespace. */
+.fleet-overview .fleet-detail-grid > .fleet-priority-actions { align-self: start; padding: 22px; }
+.fleet-overview .fleet-detail-grid .fleet-priority-actions .o-card-head {
+  min-height: 0; padding-bottom: 0; margin-bottom: 16px; border: 0;
+}
+.fleet-overview .fleet-detail-grid .fleet-priority-actions .o-card-head h2 { font-size: 17px; font-weight: 500; }
+.fleet-overview .fleet-priority-actions .o-card-actions { gap: 8px; }
+.fleet-overview .fleet-priority-actions .o-card-actions .o-link { font-size: 12px; }
+.fleet-overview .fleet-priority-actions .overview-action-grid { flex: 0 0 auto; gap: 12px; grid-auto-rows: auto; }
+.fleet-overview .fleet-priority-actions .case-context {
+  min-height: 180px; padding: 17px; gap: 12px; border-radius: 15px; justify-content: flex-start;
+}
+.fleet-overview .fleet-priority-actions .case-context-heading { gap: 8px; margin-bottom: 10px; }
+.fleet-overview .fleet-priority-actions .case-tail { font-size: 13px; font-weight: 600; }
+.fleet-overview .fleet-priority-actions .case-context .o-pill { font-size: 10px; padding: 4px 8px; }
+.fleet-overview .fleet-priority-actions .case-title { display: block; font-size: 14px; font-weight: 500; line-height: 1.4; }
+.fleet-overview .fleet-priority-actions .case-context .case-owner { margin: 9px 0 0; gap: 5px; font-size: 13px; line-height: 1.5; }
+.fleet-overview .fleet-priority-actions .case-context nav { margin-top: 3px; }
+.fleet-overview .fleet-priority-actions .case-context .o-btn { min-height: 36px; padding: 9px 11px; font-size: 12px; font-weight: 500; border-radius: 10px; }
+@media (max-width: 760px) {
+  .fleet-overview .fleet-detail-grid > .fleet-priority-actions { padding: 18px; }
+  .fleet-overview .fleet-priority-actions .case-context { min-height: 180px; }
 }

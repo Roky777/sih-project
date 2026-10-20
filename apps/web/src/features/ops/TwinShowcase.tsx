@@ -1,7 +1,7 @@
 import { Component, Suspense, lazy, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../../shared/ui/Icon";
 import { useAsOf } from "./AsOf";
 import { fetchAircraftDetail, useAircraftList, type AircraftDetail } from "./api";
@@ -14,13 +14,13 @@ import type { FlowSignal } from "./elasticGridMath";
 const Studio = lazy(() => import("./TwinStudio").then(module => ({ default: module.TwinStudio })));
 export type TwinMotion = { sequence: number; direction: number; started: number; duration: number; next: AircraftDetail };
 
-class StudioBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+class StudioBoundary extends Component<{ children: ReactNode; poster: string; title: string }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  render() { return this.state.failed ? <StudioPoster failed/> : this.props.children; }
+  render() { return this.state.failed ? <StudioPoster failed poster={this.props.poster} title={this.props.title}/> : this.props.children; }
 }
-export function StudioPoster({ failed = false }: { failed?: boolean }) {
-  return <div className="twin-poster"><img src={`${import.meta.env.BASE_URL}models/fighter-poster.svg`} alt="Illustrative aircraft silhouette"/>
+export function StudioPoster({ failed = false, poster = "models/fighter-poster.svg", title = "Aircraft" }: { failed?: boolean; poster?: string; title?: string }) {
+  return <div className="twin-poster"><img src={`${import.meta.env.BASE_URL}${poster}`} alt={`${title} illustrative preview`}/>
     <span role="status">{failed ? "3D view unavailable · Aircraft records remain available below" : "Preparing aircraft model…"}</span></div>;
 }
 function recordNumber(data: AircraftDetail, field: string) {
@@ -33,11 +33,13 @@ export function TwinShowcase({ data, onExploreBlueprint }: { data: AircraftDetai
   const list = useAircraftList();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const { asOf } = useAsOf();
   const [motion, setMotion] = useState<TwinMotion | null>(null);
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const openingBlueprint = useRef(false);
   const [view, setView] = useState<"front" | "perspective" | "profile" | "top">("perspective");
   const [viewRevision, setViewRevision] = useState(0), [manualView, setManualView] = useState(false);
   const onOrbit = useCallback(() => setManualView(true), []);
@@ -76,16 +78,19 @@ export function TwinShowcase({ data, onExploreBlueprint }: { data: AircraftDetai
     setPending(nextId); setError("");
     try {
       const path = `/aircraft/${encodeURIComponent(nextId)}`;
+      const nextParams = new URLSearchParams(params);
+      for (const key of ["case", "component", "system"]) nextParams.delete(key);
+      const destination = `${path}${nextParams.size ? `?${nextParams}` : ""}`;
       const next = await queryClient.fetchQuery({ queryKey: ["ops", "aircraft-detail", path, asOf], queryFn: () => fetchAircraftDetail(nextId, asOf) });
       if (!alive.current || token !== request.current) return;
       if (next.aircraft.id !== nextId) throw new Error("The aircraft response does not match your selection.");
-      if (reduced) { navigate(path); return; }
+      if (reduced) { navigate(destination); return; }
       const duration = 1450;
       setView("perspective");
       setManualView(false); setViewRevision(value => value + 1);
       setMotion({ sequence: token, direction, started: performance.now(), duration, next });
       timer.current = setTimeout(() => {
-        if (alive.current && token === request.current) navigate(path);
+        if (alive.current && token === request.current) navigate(destination);
       }, duration);
     } catch (cause) {
       if (alive.current && token === request.current) {
@@ -152,13 +157,13 @@ export function TwinShowcase({ data, onExploreBlueprint }: { data: AircraftDetai
     </div>
     <div className="twin-floor"/>
     <FlowGrid stage={stage} pose={flowPose} reduced={reduced} paused={evidenceOpen}/>
-    <div className="twin-scene" aria-label="Interactive aircraft model"><StudioBoundary><Suspense fallback={<StudioPoster/>}><Studio model={airframeOf(data.aircraft as { id?: unknown; type?: unknown }).model} motion={motion} view={view} viewRevision={viewRevision} onOrbit={onOrbit} reduced={reduced} flowPose={flowPose}/></Suspense></StudioBoundary></div>
+    <div className="twin-scene" aria-label="Interactive aircraft model"><StudioBoundary key={airframeOf(data.aircraft).id} poster={airframeOf(data.aircraft).poster} title={airframeOf(data.aircraft).title}><Suspense fallback={<StudioPoster poster={airframeOf(data.aircraft).poster} title={airframeOf(data.aircraft).title}/>}><Studio model={airframeOf(data.aircraft as { id?: unknown; type?: unknown }).model} motion={motion} view={view} viewRevision={viewRevision} onOrbit={onOrbit} reduced={reduced} flowPose={flowPose}/></Suspense></StudioBoundary></div>
     <div className="twin-controls">
     <div className="twin-views" role="group" aria-label="Aircraft camera views">{(["front", "perspective", "profile", "top"] as const).map(name => <button type="button" key={name} aria-pressed={!manualView && view === name} disabled={Boolean(pending)} onClick={() => { setView(name); setManualView(false); setViewRevision(value => value + 1); }}>{name === "front" ? "Front view" : name === "perspective" ? "3/4 view" : name === "profile" ? "Side view" : "Top view"}</button>)}</div>
     <aside className="twin-evidence" aria-label="Selected aircraft component condition">
       <Dialog.Root open={evidenceOpen} onOpenChange={setEvidenceOpen}>
       <Dialog.Trigger asChild><button type="button" className="twin-evidence-toggle" disabled={Boolean(pending)}>Component condition <Icon name="chevron" size={14}/></button></Dialog.Trigger>
-      <Dialog.Portal><Dialog.Overlay className="o-overlay twin-panel-overlay"/><Dialog.Content className="o-drawer twin-component-panel" aria-describedby="twin-panel-context">
+      <Dialog.Portal><Dialog.Overlay className="o-overlay twin-panel-overlay"/><Dialog.Content className="o-drawer twin-component-panel" aria-describedby="twin-panel-context" onCloseAutoFocus={event => { if (openingBlueprint.current) { event.preventDefault(); openingBlueprint.current = false; requestAnimationFrame(() => { if (onExploreBlueprint) onExploreBlueprint(); else document.getElementById("aircraft-blueprint")?.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" }); }); } }}>
       <header className="twin-panel-head"><div><Dialog.Title>Component condition</Dialog.Title><Dialog.Description id="twin-panel-context">{shownId} · {shortDate(shown.as_of)} · Synthetic records</Dialog.Description></div><Dialog.Close asChild><button type="button" aria-label="Close component condition"><Icon name="close" size={18}/></button></Dialog.Close></header>
       <div className="twin-panel-body">
       <div className="twin-evidence-heading"><p>{active ? `${active} open ${active === 1 ? "advisory" : "advisories"} for review` : "No open advisories in this snapshot"}</p></div>
@@ -169,11 +174,11 @@ export function TwinShowcase({ data, onExploreBlueprint }: { data: AircraftDetai
       {!components.length && <p className="twin-evidence-empty">Component records unavailable.</p>}
       <details className="twin-model-source"><summary>Model accuracy and limits</summary><p>{airframeOf(shown.aircraft as { id?: unknown; type?: unknown }).basis}</p></details>
       </div>
-      <footer className="twin-panel-footer"><button type="button" onClick={() => { setEvidenceOpen(false); if (onExploreBlueprint) onExploreBlueprint(); else document.getElementById("aircraft-blueprint")?.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" }); }}>Explore aircraft blueprint <Icon name="arrow" size={16}/></button></footer>
+      <footer className="twin-panel-footer"><button type="button" onClick={() => { openingBlueprint.current = true; setEvidenceOpen(false); }}>Explore aircraft blueprint <Icon name="arrow" size={16}/></button></footer>
       </Dialog.Content></Dialog.Portal></Dialog.Root>
     </aside>
     </div>
-    <div className="twin-browse" aria-label="Browse aircraft"><button type="button" aria-label="Previous aircraft" disabled={Boolean(pending) || rows.length < 2} onClick={() => step(-1)}><Icon name="arrow" size={22} style={{ transform: "rotate(180deg)" }}/></button><button type="button" className="twin-next" aria-label="Next aircraft" disabled={Boolean(pending) || rows.length < 2} onClick={() => step(1)}><Icon name="arrow" size={22}/></button><span>{String(number + 1).padStart(2, "0")}<small>/ {String(rows.length).padStart(2, "0")}</small></span></div>
+    <div className="twin-browse" aria-label="Browse aircraft"><button type="button" aria-label="Previous aircraft" disabled={Boolean(pending) || rows.length < 2} onClick={() => step(-1)}><Icon name="arrow" size={22} style={{ transform: "rotate(180deg)" }}/></button><button type="button" className="twin-next" aria-label="Next aircraft" disabled={Boolean(pending) || rows.length < 2} onClick={() => step(1)}><Icon name="arrow" size={22}/></button><span>{index < 0 ? "—" : String(index + 1).padStart(2, "0")}<small>/ {list.data ? String(rows.length).padStart(2, "0") : "—"}</small></span></div>
     <div className="twin-stats" key={`stats-${shownId}`}>
       <dl><div><dt>Flight hours</dt><dd>{recordNumber(shown, "total_flight_hours")}<small>FH</small></dd></div><div><dt>Total cycles</dt><dd>{recordNumber(shown, "total_cycles")}</dd></div><div><dt>Health index</dt><dd>{num(shown.health_index)}<small>/ 100</small></dd></div><div><dt>Open advisories</dt><dd>{active.toString().padStart(2, "0")}</dd></div></dl>
       <button type="button" className="twin-details" disabled={Boolean(pending)} onClick={() => { if (onExploreBlueprint) onExploreBlueprint(); else document.getElementById("aircraft-blueprint")?.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" }); }}>Explore blueprint <Icon name="arrow" size={22}/></button>

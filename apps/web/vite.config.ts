@@ -7,6 +7,6 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
-    proxy: { "/api": "http://localhost:8000" },
+    proxy: { "/api": process.env.FLEET_DEV_API_PROXY ?? "http://localhost:8000" },
   },
 });

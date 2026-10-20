@@ -103,7 +103,7 @@ function FleetFindings() {
         </table></div>}</Query>
       <div className="case-pagination"><button className="o-btn ghost" disabled={!page} onClick={() => movePage(page - 1)}>Previous</button><span>{rows.length} findings · page {page + 1}</span><button className="o-btn ghost" disabled={(page + 1) * 25 >= rows.length} onClick={() => movePage(page + 1)}>Next</button></div>
     </Card>
-    <Drawer open={Boolean(open)} onOpenChange={value => !value && setOpen(null)} title={open ? `${open.aircraft} · ${open.component_name}` : ""} subtitle={open ? `${open.system_name} · ${open.component_id}` : undefined} width={620}>
+    <Drawer className="findings-advisory-drawer" overlayClassName="findings-advisory-overlay" open={Boolean(open)} onOpenChange={value => !value && setOpen(null)} title={open ? `${open.aircraft} · ${open.component_name}` : ""} subtitle={open ? `${open.system_name} · ${open.component_id}` : undefined} width={630}>
       {open && <>{(() => { const live = items.find(a => a.id === open.id) ?? open; return <AdvisoryPanel advisory={live} replay={Boolean(asOf)}/>; })()}
         <button type="button" className="o-btn ghost" style={{ marginTop: 14 }} onClick={() => navigate(`/health/${open.component_id}`)}><Icon name="activity" size={15}/>Open sensor evidence</button></>}
     </Drawer>
