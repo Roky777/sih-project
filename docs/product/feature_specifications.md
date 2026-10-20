@@ -471,30 +471,27 @@ boundaries. Change role on the first guided step returns to the invitation; Back
 steps. Choosing a tour role does not switch the account/demo role, grant permissions or alter data.
 The role selection resets on refresh along with the invitation; Skip needs no selection.
 
-## Account entry — 2026-10-20
+## Workspace-first account entry — 2026-10-20
 
-Server-session installations open the sign-in form immediately at the public entry,
-without asking visitors to choose a staff role. When self-registration is enabled,
-Create account opens the refreshable `/signup` route. Signup explains shared synthetic
-records and viewer-only access before submission. Name, account ID, password and
-password confirmation are required. Successful registration returns to `/login`,
-retains the normalized account ID, clears passwords and any requested staff workspace,
-and explains that the user can now sign in. Registration does not create a session.
+The public root opens the four workspace cards before credentials, including when a server
+session is already restored. Clicking a card selects it; Select workspace explicitly continues
+to `/login?workspace=…`. An existing session is ended only when the visitor confirms a new
+workspace. Failed sign-out stays on entry with an actionable error. Anonymous entry does not
+prefetch protected fleet records. Direct login/signup links without a valid workspace show
+the selector; valid workspace links remain refreshable.
 
-Ordinary sign-in omits a requested workspace: the verified server role determines
-the home screen. Explicit `/login?workspace=…` links remain supported for staff
-workspace switching and retain server-side permission checks. A signed-in account
-does not have to select its role again after refresh or opening another tab. Existing
-record bookmarks remain in place when signing in from a protected record URL.
+Login and Create account retain the selected workspace across mode changes and refresh.
+Change workspace returns to the cards and clears password fields. Login submits the workspace
+for existing server authorization and opens the authenticated role's home. Protected record
+bookmarks and ordinary refresh inside a signed-in workspace retain their existing behavior.
 
-Disabled signup explains administrator provisioning and offers existing-account
-login. Signup-option failures offer retry without hiding the sign-in form. Mismatch,
-duplicate-account, authentication, offline and rate-limit states remain actionable;
-forms prevent duplicate submission and expose a password visibility control. Recovery
-help accurately describes administrator-assisted reset; no email recovery is claimed.
-No public form can grant staff permissions. Local header-demo role selection remains.
+Enabled public signup still creates viewer accounts and no session. It retains the normalized
+account ID, clears passwords and returns to the selected workspace's login. Fleet manager
+supports viewer access; other teams explain that an administrator must assign staff access
+before signing in there. Choosing a card never grants staff permissions. Disabled signup,
+password mismatch, duplicate IDs, rate limits and backend errors retain their recovery paths.
 
-This section supersedes workspace-first anonymous entry below for server sessions.
+This section supersedes account-first public entry. Local header-demo entry is unchanged.
 
 ## Role workspace entry — 2026-10-16 (historical server entry)
 

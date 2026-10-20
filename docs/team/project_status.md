@@ -761,3 +761,24 @@ probe fix remains outside that deployed commit. The supplied output omits the fi
 benchmark JSON. Independent authenticated timing could not proceed because the documented
 shared demo credentials returned 401; no repeated sign-in attempts were made. Actual live
 greeting/model latency remains unverified pending the owner's signed-in check or diagnostics.
+
+## Workspace-first public entry restored — 20 October 2026
+
+The public root now shows the existing four role cards before login/signup even with a
+restored server session. Select workspace requires confirmation, ends an existing session
+with CSRF, and carries the choice through login/signup and refresh. Staff permissions still
+come from the server; self-registration remains viewer-only with staff-assignment guidance.
+Ordinary signed-in record refresh remains available. This supersedes account-first entry.
+
+Passed lint, TypeScript, production build, 31 frontend unit tests and 27 focused account,
+entry and assistant browser checks against the production frontend. An unmocked Chrome smoke
+check against the actual local proxy/API confirmed desktop/mobile cards, matching role-login
+URLs, no horizontal overflow and no page errors. The initial broader browser run included
+demo-only dashboard tests against the session-authenticated local API: three failed awaiting
+password-free tour entry, one was interrupted and eleven did not run. Those tests require
+their demo backend; the run is retained and is not reported as passing.
+
+The corrected local web image is running. The deployment target remains the existing
+fleet-aws-demo web service with the production/aws-demo/ec2/qwen overlays. Only web needs
+replacement for this frontend change. Direct SSH still rejects the available identity with
+`Permission denied (publickey)`; public deployment requires the owner's existing VM terminal.

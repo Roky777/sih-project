@@ -21,7 +21,7 @@ const answer = { reply: "Checked fixture answer.", model: "fixture-model",
   citations: [], warnings: ["Fixture verification warning."] };
 
 async function ask(page: Page) {
-  await page.goto("/");
+  await page.goto("/dashboard");
   await page.getByRole("button", { name: "Ask AeroCare maintenance copilot", exact: true }).first().click();
   await page.getByLabel("Ask the copilot", { exact: true }).fill("Fixture question");
   await page.getByRole("button", { name: "Ask", exact: true }).click();

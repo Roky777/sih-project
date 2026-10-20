@@ -171,6 +171,8 @@ test("session sign-in shows denied credentials and opens the authenticated works
   });
   await page.route("**/api/access/registration",route=>route.fulfill({json:{enabled:false}}));
   await page.goto("/fleet");
+  await page.getByRole('button', { name: /Maintenance supervisor.*Plan maintenance/ }).click();
+  await page.getByRole('button', { name: 'Select workspace', exact: true }).click();
   await expect(page.getByRole("heading", { name: "Sign in to AeroCare" })).toBeVisible();
   await page.getByLabel("Account ID").fill("test-reviewer");
   await page.getByLabel("Password", { exact: true }).fill("wrong-password");

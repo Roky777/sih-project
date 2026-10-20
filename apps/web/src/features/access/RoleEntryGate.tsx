@@ -12,7 +12,7 @@ import { api } from '../../shared/api/client';
 export const entryStorageKey = 'fleet:workspace-entry';
 export const hoverEntryDuration = 2000;
 
-export function RoleEntryGate({ children, onRequestSignIn }: { children: ReactNode; onRequestSignIn?: (role: RoleId) => void }) {
+export function RoleEntryGate({ children, onRequestSignIn }: { children: ReactNode; onRequestSignIn?: (role: RoleId) => void | Promise<void> }) {
   const session = useSession();
   const queryClient = useQueryClient();
   const { role, canSwitch, setRole } = useRole();
@@ -66,7 +66,11 @@ export function RoleEntryGate({ children, onRequestSignIn }: { children: ReactNo
   }, [canSwitch, role.id]);
   const requestWorkspace = async (target: RoleId) => {
     cancelHover();
-    if (onRequestSignIn) { onRequestSignIn(target); return; }
+    if (onRequestSignIn) {
+      if (switching) return;
+      setSelected(target);
+      return;
+    }
     if (canSwitch || target === role.id) { setSelected(target); return; }
     if (switching) return;
     setSwitching(true); setSwitchError('');
@@ -83,7 +87,13 @@ export function RoleEntryGate({ children, onRequestSignIn }: { children: ReactNo
   const enter = (target: RoleId | null = selected) => {
     if (!target || entering.current || switching) return;
     if (!canSwitch && target !== role.id) { void requestWorkspace(target); return; }
-    if (onRequestSignIn) { cancelHover(); onRequestSignIn(target); return; }
+    if (onRequestSignIn) {
+      cancelHover(); setSwitching(true); setSwitchError('');
+      Promise.resolve().then(() => onRequestSignIn(target)).catch(cause => {
+        setSwitchError(cause instanceof Error ? cause.message : 'Unable to open sign in. Try again.');
+      }).finally(() => setSwitching(false));
+      return;
+    }
     entering.current = true;
     cancelHover();
     if (canSwitch) setRole(target);
@@ -110,7 +120,7 @@ export function RoleEntryGate({ children, onRequestSignIn }: { children: ReactNo
   const choice = roles.find(r => r.id === selected);
   return <AccessFrame workspaceSelection title={'Know your fleet.\nPlan with clarity.'} description="Aircraft health, maintenance and spare parts—connected in one workspace. See what needs attention and coordinate your team’s next move." eyebrow="ABOUT AEROCARE">
     <div className="entry-role-content">
-    <div className="entry-panel-heading"><h2>How do you work with the fleet?</h2><p>Choose your team to open its workspace. Sign in again when switching roles.</p></div>
+    <div className="entry-panel-heading"><h2>How do you work with the fleet?</h2><p>Choose your team, then sign in or create an account for its workspace.</p></div>
     <div className="entry-role-grid" role="group" aria-label="Choose your workspace role">
       {roles.map(item => { const active = selected === item.id; return <button type="button" className={`entry-role-card${active ? ' selected' : ''}${hoverRole === item.id ? ' is-filling' : ''}`} style={{ '--entry-fill-duration': `${hoverEntryDuration}ms` } as CSSProperties} key={item.id} aria-pressed={active} disabled={switching} onPointerEnter={event => beginHover(item.id, event.currentTarget, event.pointerType)} onAnimationEnd={event => { if (event.animationName === 'entry-liquid-rise') completeHover(item.id, event.currentTarget); }} onPointerLeave={cancelHover} onPointerCancel={cancelHover} onKeyDown={event => { if (event.key === 'Escape') cancelHover(); }} onClick={() => { void requestWorkspace(item.id); }}>
         <span className="entry-role-icon"><Icon name={item.icon} size={22}/></span><span className="entry-role-check" aria-hidden="true">{active ? <Icon name="check" size={13}/> : null}</span>

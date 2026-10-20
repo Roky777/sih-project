@@ -4,7 +4,8 @@ import { createContext, useContext, useEffect, useState, type FormEvent, type Re
 import { api, ApiError, setCsrfToken, pagesDeployment, fullAppUrl, isHealth } from "../../shared/api/client";
 import { AccessFrame } from "./AccessFrame";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { roles } from "../ops/roles";
+import { RoleProvider, roles, type RoleId } from "../ops/roles";
+import { RoleEntryGate } from "./RoleEntryGate";
 import { BrandLogo } from "../../shared/ui/BrandLogo";
 
 type SessionInfo = { id: string; role: string; authentication: string; csrf_token: string | null };
@@ -70,13 +71,13 @@ export function SessionGate({ children }: { children: ReactNode }) {
   });
   function changeMode(create: boolean) {
     if (busy) return;
-    navigate(create ? "/signup" : "/login");
+    navigate(`${create ? "/signup" : "/login"}${workspace ? `?workspace=${workspace.id}` : ""}`);
     setError(""); setNotice(""); setShowPassword(false);
     setPassword(""); setConfirmPassword("");
   }
   async function register(event: FormEvent) {
     event.preventDefault();
-    if (busy || Date.now() < retryAt || !registration.data?.enabled) return;
+    if (busy || Date.now() < retryAt || !registration.data?.enabled || !workspace) return;
     setError(""); setNotice("");
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
     setBusy(true);
@@ -89,9 +90,11 @@ export function SessionGate({ children }: { children: ReactNode }) {
         value !== null && "id" in value && typeof value.id === "string" &&
         "role" in value && value.role === "viewer");
       setUser(account.id); setPassword(""); setConfirmPassword("");
-      navigate("/login", { replace: true });
+      navigate(`/login?workspace=${workspace.id}`, { replace: true });
       setShowPassword(false);
-      setNotice("Account created with viewer access. Sign in below to open your fleet dashboard.");
+      setNotice(workspace?.id === "fleet_manager"
+        ? "Account created with viewer access. Sign in below to open your fleet dashboard."
+        : "Account created with viewer access. Ask your administrator to assign access to this team before signing in here, or choose the Fleet manager workspace for read-only access.");
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 422) {
         setError("Check your name, account ID and password requirements.");
@@ -120,15 +123,25 @@ export function SessionGate({ children }: { children: ReactNode }) {
     } catch (cause) { showAccessError(cause, "Sign in failed"); }
     finally { setBusy(false); }
   }
-  if (session.data && !expired) return <SessionContext.Provider value={session.data}>{children}</SessionContext.Provider>;
+  async function chooseWorkspace(target: RoleId) {
+    if (session.data?.authentication === "server session" && !expired) {
+      await api("/access/session", { method: "DELETE" });
+      setExpired(true); setCsrfToken(null); queryClient.clear();
+    }
+    setPassword(""); setConfirmPassword(""); setError(""); setNotice(""); setShowPassword(false);
+    navigate(`/login?workspace=${target}`);
+  }
+  const publicEntry = session.data?.authentication === "server session" && ["/", "/home"].includes(location.pathname);
+  if (session.data && !expired && !publicEntry) return <SessionContext.Provider value={session.data}>{children}</SessionContext.Provider>;
   if (session.isPending && !expired) return <div className="async-state loading-state" role="status"><span className="spinner"/><strong>Opening your workspace…</strong></div>;
+  if (publicEntry || signInRequired && !workspace) return <RoleProvider><RoleEntryGate onRequestSignIn={chooseWorkspace}>{null}</RoleEntryGate></RoleProvider>;
   if (!signInRequired) return <main className="login-shell"><section className="login-card" role="alert"><BrandLogo className="aerocare-logo-login"/><h1>Demo backend offline</h1><p>AeroCare connects AI engine-health evidence with parts, crew, a checked schedule and human approval.</p><p>The demo server is currently unreachable. Please retry in a moment. Your saved records remain on the server; calculations are unavailable until it reconnects.</p><button onClick={() => void session.refetch()}>Try again</button>{fullAppUrl && <p><a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open complete demo</a></p>}</section></main>;
   return <AccessFrame title="A clearer path to
 fleet readiness." description="Sign in to connect aircraft health evidence with the people, parts and maintenance decisions that keep your team moving." eyebrow="YOUR FLEET WORKSPACE">
-    <span className="entry-step">{creatingAccount ? "NEW ACCOUNT" : "WELCOME BACK"}</span>
+    <span className="entry-step">{workspace?.label} · {creatingAccount ? "NEW ACCOUNT" : "SIGN IN"}</span>
     <h2>{creatingAccount ? "Create your AeroCare account" : "Sign in to AeroCare"}</h2>
     <p>{creatingAccount ? "Explore the shared demonstration fleet with a viewer account." : workspace ? `Sign in to the ${workspace.label.toLowerCase()} workspace.` : "Use your account ID and password. We’ll open the workspace assigned to your account."}</p>
-    {!creatingAccount && workspace && <button type="button" className="account-switch-button" disabled={busy} onClick={() => changeMode(false)}>Use my assigned workspace</button>}
+    {workspace && <button type="button" className="account-switch-button" disabled={busy} onClick={() => { navigate("/"); setPassword(""); setConfirmPassword(""); setError(""); setNotice(""); }}>Change workspace</button>}
     {pagesDeployment && fullAppUrl && <p><a className="button-secondary" href={`${fullAppUrl.replace(/\/$/, '')}/demo`}>Open complete demo</a><small>Use this when your browser blocks cross-site sign-in.</small></p>}
     {notice && <p role="status" className="form-success">{notice}</p>}
     {expired && <p role="status" className="signup-access-note">Your session ended. Sign in again to continue.</p>}

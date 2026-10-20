@@ -29,14 +29,30 @@ async function fillSignup(page: Page) {
   await page.getByLabel('Confirm password', { exact: true }).fill('private-test-password');
 }
 
-test('signup clears staff selection and returns to a usable viewer login', async ({ page }) => {
+test('staff signup keeps the chosen team and explains that staff access needs assignment', async ({ page }) => {
   const { posts } = await accessFixture(page);
-  await page.goto('/login?workspace=supervisor');
+  await page.goto('/login?workspace=engineer');
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
-  await expect(page).toHaveURL(/\/signup$/);
+  await expect(page).toHaveURL(/\/signup\?workspace=engineer$/);
+  await page.reload();
   await fillSignup(page);
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login\?workspace=engineer$/);
+  await expect(page.getByRole('status')).toContainText('administrator to assign access');
+  expect(posts[0].body).not.toHaveProperty('role');
+  expect(posts[0].body).not.toHaveProperty('workspace');
+  await page.getByRole('button', { name: 'Change workspace', exact: true }).click();
+  await expect(page.getByRole('group', { name: 'Choose your workspace role' })).toBeVisible();
+});
+
+test('signup retains the selected fleet workspace and returns to a usable viewer login', async ({ page }) => {
+  const { posts } = await accessFixture(page);
+  await page.goto('/login?workspace=fleet_manager');
+  await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await expect(page).toHaveURL(/\/signup\?workspace=fleet_manager$/);
+  await fillSignup(page);
+  await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await expect(page).toHaveURL(/\/login\?workspace=fleet_manager$/);
   await expect(page.getByRole('status')).toContainText('Account created with viewer access');
   await expect(page.getByLabel('Account ID', { exact: true })).toHaveValue('new.viewer');
   await expect(page.getByLabel('Password', { exact: true })).toHaveValue('');
@@ -45,7 +61,7 @@ test('signup clears staff selection and returns to a usable viewer login', async
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.locator('.o-shell')).toBeVisible();
   expect(posts[0].body).toEqual({ user_id: 'new.viewer', display_name: 'New Viewer', password: 'private-test-password' });
-  expect(posts[1].body).toEqual({ user_id: 'new.viewer', password: 'private-test-password' });
+  expect(posts[1].body).toEqual({ user_id: 'new.viewer', password: 'private-test-password', workspace: 'fleet_manager' });
   // A fresh tab/session-storage loss must not require role selection again.
   await page.evaluate(() => sessionStorage.clear());
   await page.reload();
@@ -63,18 +79,19 @@ for (const [role, home] of [
 ]) {
   test(`${role} signs in directly to its assigned workspace`, async ({ page }) => {
     const { posts } = await accessFixture(page, true, role);
-    await page.goto('/login');
+    const workspace = ['planner', 'administrator'].includes(role) ? 'supervisor' : role;
+    await page.goto(`/login?workspace=${workspace}`);
     await page.getByLabel('Account ID', { exact: true }).fill('assigned-account');
     await page.getByLabel('Password', { exact: true }).fill('assigned-password');
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await expect(page).toHaveURL(url => url.pathname + url.search === home);
-    expect(posts[0].body).toEqual({ user_id: 'assigned-account', password: 'assigned-password' });
+    expect(posts[0].body).toEqual({ user_id: 'assigned-account', password: 'assigned-password', workspace });
   });
 }
 
 test('password mismatch stays on signup without submitting', async ({ page }) => {
   const { posts } = await accessFixture(page);
-  await page.goto('/signup');
+  await page.goto('/signup?workspace=fleet_manager');
   await fillSignup(page);
   await page.getByLabel('Confirm password', { exact: true }).fill('a-different-password');
   await page.getByRole('button', { name: 'Show password', exact: true }).click();
@@ -89,7 +106,7 @@ test('password mismatch stays on signup without submitting', async ({ page }) =>
 
 test('disabled signup explains how to get access and offers existing-account login', async ({ page }) => {
   const { posts } = await accessFixture(page, false);
-  await page.goto('/signup');
+  await page.goto('/signup?workspace=fleet_manager');
   await expect(page.getByText(/Account creation is closed/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create account', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
@@ -109,7 +126,7 @@ test('registration errors allow correction and rate limits cannot be bypassed by
       ? { status: 409, json: { detail: 'Account ID is already in use. Choose another or sign in.' } }
       : { status: 429, headers: { 'Retry-After': '30' }, json: { detail: 'Too many requests' } });
   });
-  await page.goto('/signup');
+  await page.goto('/signup?workspace=fleet_manager');
   await fillSignup(page);
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('already in use');
@@ -118,14 +135,14 @@ test('registration errors allow correction and rate limits cannot be bypassed by
   await expect(page.getByRole('button', { name: /Wait \d+s/ })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeDisabled();
   // Even browser navigation between the routes retains the cooldown in SessionGate.
-  await page.evaluate(() => { history.pushState(null, '', '/login'); dispatchEvent(new PopStateEvent('popstate')); });
+  await page.evaluate(() => { history.pushState(null, '', '/login?workspace=fleet_manager'); dispatchEvent(new PopStateEvent('popstate')); });
   await expect(page.getByRole('button', { name: /Wait \d+s/ })).toBeDisabled();
   expect(attempts).toBe(2);
 });
 
 test('an unreachable backend offers retry without an unusable login form', async ({ page }) => {
   await page.route(/^https?:\/\/[^/]+\/api\//, route => route.fulfill({ status: 503, json: { detail: 'Temporarily unavailable' } }));
-  await page.goto('/login');
+  await page.goto('/login?workspace=fleet_manager');
   await expect(page.getByRole('heading', { name: 'Demo backend offline' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
   await expect(page.getByLabel('Password', { exact: true })).toHaveCount(0);
@@ -136,7 +153,7 @@ test('signup options can be retried without losing ordinary sign-in', async ({ p
   let available = false;
   await page.route('**/api/access/registration', route => route.fulfill(available
     ? { json: { enabled: true } } : { status: 503, json: { detail: 'Try later' } }));
-  await page.goto('/login');
+  await page.goto('/login?workspace=fleet_manager');
   await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeEnabled();
   await expect(page.getByRole('alert')).toContainText('couldn’t check account creation');
   available = true;
@@ -147,7 +164,7 @@ test('signup options can be retried without losing ordinary sign-in', async ({ p
 test('desktop and mobile expose signup without horizontal overflow', async ({ page }) => {
   await accessFixture(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto('/login');
+  await page.goto('/login?workspace=fleet_manager');
   await expect(page.getByRole('heading', { name: 'Sign in to AeroCare' })).toBeVisible();
   await page.screenshot({ path: '../../artifacts/auth-flow/login-desktop.png', fullPage: true });
   await page.getByRole('button', { name: 'Create account', exact: true }).click();

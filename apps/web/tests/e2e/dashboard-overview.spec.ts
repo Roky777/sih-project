@@ -86,13 +86,15 @@ test('real account sign-in retains validation and opens only the authenticated r
   await page.addInitScript(()=>sessionStorage.setItem('fleet:workspace-entry','logistics-demo:logistics'));
   await page.route('**/api/access/session',async route=>{
     if(route.request().method()==='POST'){
-      expect(route.request().postDataJSON()).toEqual({user_id:'logistics-demo',password:'test-password-fixture'});
+      expect(route.request().postDataJSON()).toEqual({user_id:'logistics-demo',password:'test-password-fixture',workspace:'logistics'});
       signedIn=true;
     }
     await route.fulfill(signedIn?{json:{id:'logistics-demo',role:'logistics',authentication:'server session',csrf_token:'test-csrf'}}:{status:401,json:{detail:'Authentication required'}});
   });
   await page.route('**/api/access/registration',route=>route.fulfill({json:{enabled:false}}));
   await page.goto('/dashboard');
+  await page.getByRole('button', { name: /Logistics team.*Secure parts/ }).click();
+  await page.getByRole('button', { name: 'Select workspace', exact: true }).click();
   await expect(page.getByRole('heading',{name:'Sign in to AeroCare'})).toBeVisible();
   await page.getByLabel('Account ID',{exact:true}).fill('logistics-demo');
   await page.getByLabel('Password',{exact:true}).fill('test-password-fixture');

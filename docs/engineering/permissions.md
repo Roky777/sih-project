@@ -52,20 +52,19 @@ Administrator additionally configures operational resources; planner/supervisor 
 The fleet-health screens follow one decision flow, and the API enforces each step: engineers confirm or dismiss findings; supervisors (and planners) schedule work orders; logistics reserves, orders or receives parts requests; fleet managers run scenarios. Supervisors may act at every step. In local demo mode the role chosen in the top bar is sent as `X-Demo-Role`; signed-in accounts keep their server role.
 
 
-## Account-first sign-in — 20 October 2026
+## Workspace-first public sign-in — 20 October 2026
 
-Anonymous visitors now see the credential form directly. Enabled public registration
-is reachable at `/signup` without selecting a staff workspace. It creates a viewer
-account through the existing API; the browser returns to `/login` with the normalized
-account ID and no workspace parameter. The user signs in explicitly. Ordinary login
-omits `workspace` and opens the home mapped from the server's existing role. A valid
-restored server session bypasses role entry even without tab storage. Staff role
-switching still uses explicit workspace login and server validation as below.
+Public root entry shows the four workspace choices even with a restored server session.
+Confirmation ends the old session with CSRF and opens the selected team's credential form.
+Login/signup links preserve `workspace`; invalid or missing choices return to the selector.
+The login API still validates workspace authorization after checking credentials. Signed-in
+record bookmarks and refresh within a workspace continue normally.
 
-These are frontend flow changes: registration permissions, cookie/CSRF protection,
-role assignment, password policy, rate limits and lockout are unchanged. Signup never
-grants mutation/approval permission. Reset remains the operator's existing interactive
-`scripts/provision_user.py` procedure; the UI does not claim email recovery.
+Public registration remains viewer-only and never grants the selected staff role. Signup
+retains the chosen workspace and returns to its login; staff selections explain administrator
+assignment and the Fleet manager read-only alternative. Registration permissions, password
+policy, rate limits, lockout and cookie/CSRF protections remain unchanged. This supersedes
+the previous account-first anonymous entry.
 
 ## Workspace-first sign-in — 18 October 2026 (historical anonymous entry)
 
